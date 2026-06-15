@@ -48,6 +48,51 @@ const GAME_LABELS: Record<string, string> = {
   maze: "🌀 Лабиринт",
 };
 
+function uploadFilename(file: File, which: "main" | "puzzle"): string {
+  const ext = file.type === "image/png" ? "png" : "jpg";
+  return `${which}-${Math.max(1, file.size)}.${ext}`;
+}
+
+function cleanOptional(value: string | undefined): string | undefined {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : undefined;
+}
+
+function normalizeConfigForSave(config: FriendConfig): FriendConfig {
+  const gift = config.gift;
+  const next: FriendConfig = {
+    ...config,
+    username: config.username.trim(),
+    displayName: config.displayName.trim(),
+    birthday: config.birthday.trim(),
+    message: config.message.trim(),
+    avatar: config.avatar.trim(),
+    puzzleAvatar: cleanOptional(config.puzzleAvatar),
+  };
+
+  if (gift) {
+    const name = cleanOptional(gift.name);
+    const emoji = cleanOptional(gift.emoji);
+    const lottie = cleanOptional(gift.lottie);
+    const link = cleanOptional(gift.link);
+    const imagePath = cleanOptional(gift.imagePath);
+
+    if (name || emoji || lottie || link || imagePath) {
+      next.gift = {
+        name: name ?? "Подарок",
+        emoji: emoji ?? "🎁",
+        ...(lottie ? { lottie } : {}),
+        ...(link ? { link } : {}),
+        ...(imagePath ? { imagePath } : {}),
+      };
+    } else {
+      delete next.gift;
+    }
+  }
+
+  return next;
+}
+
 interface FriendEditorProps {
   slug?: string;
   create?: boolean;
@@ -69,6 +114,8 @@ function emptyConfig(): FriendConfig {
     gamesEnabled: true,
     giftDisplay: "current",
     giftLayout: "list",
+    lang: "ru",
+    theme: "light",
   };
 }
 
@@ -162,7 +209,10 @@ export function FriendEditor({
 
   /* The derived slug shown live under the username in create mode. */
   const derivedSlug = useMemo(
-    () => slugOverride.trim() || deriveSlug(config?.username ?? ""),
+    () =>
+      slugOverride.trim()
+        ? deriveSlug(slugOverride)
+        : deriveSlug(config?.username ?? ""),
     [slugOverride, config?.username],
   );
 
@@ -249,27 +299,45 @@ export function FriendEditor({
     setSaving(true);
     try {
       if (creating) {
+        const mainFile = pendingMain.current;
+        const puzzleFile = pendingPuzzle.current;
+        const createConfig = normalizeConfigForSave(config);
+
+        if (!createConfig.avatar && mainFile) {
+          createConfig.avatar = uploadFilename(mainFile, "main");
+        }
+        if (!createConfig.puzzleAvatar && puzzleFile) {
+          createConfig.puzzleAvatar = uploadFilename(puzzleFile, "puzzle");
+        }
+        if (!createConfig.avatar) {
+          show("Выбери главный аватар перед созданием", "error");
+          return;
+        }
+
         const targetSlug = derivedSlug;
-        const res = await createFriend(config, slugOverride.trim() || undefined);
+        const res = await createFriend(
+          createConfig,
+          slugOverride.trim() ? targetSlug : undefined,
+        );
         const newSlug = res.slug ?? targetSlug;
 
         /* Flush any avatars picked before the page existed, then drop the local
            blobs so the tiles show the real saved images. */
-        const mainFile = pendingMain.current;
-        const puzzleFile = pendingPuzzle.current;
+        const savedConfig = { ...createConfig };
         if (mainFile) {
           const up = await uploadAvatar(newSlug, mainFile, "main");
-          set("avatar", up.filename);
+          savedConfig.avatar = up.filename;
           pendingMain.current = null;
           setPreview("main", null);
         }
         if (puzzleFile) {
           const up = await uploadAvatar(newSlug, puzzleFile, "puzzle");
-          set("puzzleAvatar", up.filename);
+          savedConfig.puzzleAvatar = up.filename;
           pendingPuzzle.current = null;
           setPreview("puzzle", null);
         }
 
+        setConfig(savedConfig);
         setSlug(newSlug);
         setEditMode(true); /* further saves now PUT, not POST */
         setPreviewKey((k) => k + 1);
@@ -281,12 +349,14 @@ export function FriendEditor({
           gamesEnabled: config.gamesEnabled,
           giftDisplay: config.giftDisplay,
           giftLayout: config.giftLayout,
+          lang: config.lang,
+          theme: config.theme,
         };
         await updateFriend(slug, subset);
         setPreviewKey((k) => k + 1);
         show("Сохранили 💛", "success");
       } else {
-        await updateFriend(slug, config);
+        await updateFriend(slug, normalizeConfigForSave(config));
         setPreviewKey((k) => k + 1);
         show("Сохранили 💛", "success");
       }
@@ -575,6 +645,40 @@ export function FriendEditor({
                       onClick={() => set("giftLayout", opt)}
                     >
                       {opt === "list" ? "Список" : "Блоки"}
+                    </SegBtn>
+                  ))}
+                </div>
+              </Field>
+
+              <Field label="Язык страницы">
+                <div className="flex gap-2">
+                  {(["ru", "en"] as const).map((opt) => (
+                    <SegBtn
+                      key={opt}
+                      active={(config.lang ?? "ru") === opt}
+                      onClick={() => set("lang", opt)}
+                    >
+                      {opt === "ru" ? "Русский" : "English"}
+                    </SegBtn>
+                  ))}
+                </div>
+              </Field>
+
+              <Field label="Тема">
+                <div className="flex flex-wrap gap-2">
+                  {(["light", "dark", "halloween", "newyear"] as const).map((opt) => (
+                    <SegBtn
+                      key={opt}
+                      active={(config.theme ?? "light") === opt}
+                      onClick={() => set("theme", opt)}
+                    >
+                      {opt === "light"
+                        ? "🌞 Светлая"
+                        : opt === "dark"
+                          ? "🌙 Тёмная"
+                          : opt === "halloween"
+                            ? "🎃 Хэллоуин"
+                            : "🎄 Новый год"}
                     </SegBtn>
                   ))}
                 </div>

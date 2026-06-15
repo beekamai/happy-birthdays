@@ -1,32 +1,32 @@
 import type { PublicFriend } from "../lib/types.ts";
 import { StickerCard } from "../components/decor/StickerCard.tsx";
+import { useT } from "../lib/i18n.ts";
 
 /* A dated list of all gifts — shown outside the birthday window (and optionally
    in-window when the owner prefers a list over the single current gift). */
-
-const MONTHS = [
-  "янв", "фев", "мар", "апр", "мая", "июн",
-  "июл", "авг", "сен", "окт", "ноя", "дек",
-];
-
-function formatDate(d?: string): string {
-  if (!d) return "";
-  const m = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(d);
-  if (!m) return d;
-  const month = MONTHS[Number(m[2]) - 1] ?? "";
-  return `${Number(m[3])} ${month} ${m[1]}`;
-}
 
 export function GiftList({
   gifts,
 }: {
   gifts: NonNullable<PublicFriend["giftHistory"]>;
 }) {
+  const { t } = useT();
+
+  /* "DD <month> YYYY" using the localized short month; unparsable input passes
+     through unchanged. */
+  const formatDate = (d?: string): string => {
+    if (!d) return "";
+    const m = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(d);
+    if (!m) return d;
+    const month = t(`month.short.${Number(m[2])}`);
+    return `${Number(m[3])} ${month} ${m[1]}`;
+  };
+
   if (!gifts.length) return null;
 
   return (
     <StickerCard hover={false} className="w-full max-w-sm">
-      <h3 className="text-center text-xl">Подарки 🎁</h3>
+      <h3 className="text-center text-xl">{t("giftList.title")}</h3>
       <ul className="mt-4 flex flex-col gap-3">
         {gifts.map((g, i) => (
           <li

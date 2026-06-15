@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 
+import { useTheme } from "../lib/useTheme.ts";
+import { useT, initLang } from "../lib/i18n.ts";
+import { ThemeSwitcher } from "../components/ThemeSwitcher.tsx";
+import { LanguageSwitcher } from "../components/LanguageSwitcher.tsx";
 import { Lanterns } from "../components/decor/Lanterns.tsx";
 import { Particles } from "../components/decor/Particles.tsx";
 import { Steam } from "../components/decor/Steam.tsx";
@@ -20,15 +24,42 @@ import { FriendEditor } from "./FriendEditor.tsx";
 
 export default function AdminApp() {
   const { user, config, loading, refresh, logout } = useAuth();
+  const { theme, setTheme, themes } = useTheme("light");
 
-  if (loading) return <CozyShell><Spinner /></CozyShell>;
+  useEffect(() => {
+    initLang("ru");
+  }, []);
+
+  /* The switchers are fixed-positioned, so render them once for every screen. */
+  const switcher = (
+    <>
+      <ThemeSwitcher theme={theme} setTheme={setTheme} themes={themes} />
+      <LanguageSwitcher />
+    </>
+  );
+
+  if (loading)
+    return (
+      <>
+        {switcher}
+        <CozyShell>
+          <Spinner />
+        </CozyShell>
+      </>
+    );
 
   if (!user) {
-    return <LoginScreen onLogin={refresh} config={config} />;
+    return (
+      <>
+        {switcher}
+        <LoginScreen onLogin={refresh} config={config} />
+      </>
+    );
   }
 
   return (
     <div className="min-h-[100dvh] bg-[var(--color-cream)]">
+      {switcher}
       <TopBar user={user} onLogout={logout} />
       {user.isOwner ? <OwnerDashboard /> : <FriendArea user={user} />}
     </div>
@@ -54,6 +85,7 @@ function LoginScreen({
   onLogin: () => void;
   config: ReturnType<typeof useAuth>["config"];
 }) {
+  const { t } = useT();
   return (
     <CozyShell>
       <div className="mx-auto max-w-md text-center">
@@ -63,15 +95,15 @@ function LoginScreen({
             <span className="block text-6xl select-none" aria-hidden="true">
               🍜
             </span>
-            <h1 className="mt-4 text-3xl">Админка</h1>
+            <h1 className="mt-4 text-3xl">{t("admin.login.title")}</h1>
             <p className="mt-2 mb-6 text-[var(--color-text-soft)]">
-              Войди через Telegram, чтобы редактировать странички.
+              {t("admin.login.subtitle")}
             </p>
             {config ? (
               <TelegramLoginButton config={config} onLogin={onLogin} />
             ) : (
               <p className="text-sm text-[var(--color-text-soft)]">
-                Не удалось загрузить настройки входа.
+                {t("admin.login.configError")}
               </p>
             )}
           </StickerCard>
@@ -89,6 +121,7 @@ function TopBar({
   user: AuthUser;
   onLogout: () => void;
 }) {
+  const { t } = useT();
   return (
     <header className="sticky top-0 z-40 border-b-[2px] border-[var(--color-muted)] bg-[var(--color-surface)]/90 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
@@ -99,7 +132,7 @@ function TopBar({
           <span className="text-xl select-none" aria-hidden="true">
             🍜
           </span>
-          Happy Birthdays
+          {t("admin.brand")}
         </a>
         <div className="flex items-center gap-3">
           {user.photoUrl && (
@@ -117,7 +150,7 @@ function TopBar({
             onClick={onLogout}
             className="rounded-[var(--radius-full)] border-[2px] border-[var(--color-muted)] bg-[var(--color-surface)] px-4 py-1.5 text-sm font-bold text-[var(--color-text)] shadow-[var(--shadow-sm)] transition-transform hover:scale-[1.03]"
           >
-            Выйти
+            {t("admin.logout")}
           </button>
         </div>
       </div>
@@ -129,6 +162,7 @@ function TopBar({
 /* A non-owner can only edit their own page. We probe for a page whose slug
    matches their username; if the probe 403/404s they have nothing to edit. */
 function FriendArea({ user }: { user: AuthUser }) {
+  const { t } = useT();
   const [state, setState] = useState<"checking" | "has" | "none">("checking");
   const [slug, setSlug] = useState<string | null>(null);
 
@@ -153,7 +187,7 @@ function FriendArea({ user }: { user: AuthUser }) {
     };
   }, [user.username]);
 
-  if (state === "checking") return <Spinner label="Ищем твою страничку…" />;
+  if (state === "checking") return <Spinner label={t("admin.searchingPage")} />;
 
   if (state === "none" || !slug) {
     return (
@@ -162,9 +196,9 @@ function FriendArea({ user }: { user: AuthUser }) {
           <span className="block text-5xl select-none" aria-hidden="true">
             🥺
           </span>
-          <h2 className="mt-3 text-2xl">У тебя пока нет странички</h2>
+          <h2 className="mt-3 text-2xl">{t("admin.noPage.title")}</h2>
           <p className="mt-2 text-[var(--color-text-soft)]">
-            Когда владелец создаст её — сможешь редактировать тут.
+            {t("admin.noPage.text")}
           </p>
         </StickerCard>
       </div>

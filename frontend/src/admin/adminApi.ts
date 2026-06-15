@@ -65,6 +65,8 @@ export interface FriendConfig {
   gamesEnabled?: boolean;
   giftDisplay?: "current" | "all";
   giftLayout?: "list" | "blocks";
+  lang?: "ru" | "en";
+  theme?: "light" | "dark" | "halloween" | "newyear";
 }
 
 /** Subset a non-owner friend may PUT for their own page. */
@@ -74,6 +76,8 @@ export interface FriendLimitedUpdate {
   gamesEnabled?: boolean;
   giftDisplay?: "current" | "all";
   giftLayout?: "list" | "blocks";
+  lang?: "ru" | "en";
+  theme?: "light" | "dark" | "halloween" | "newyear";
 }
 
 export interface AvatarUploadResult {
@@ -91,8 +95,7 @@ export function deriveSlug(username: string): string {
     .trim()
     .replace(/^@/, "")
     .toLowerCase()
-    .replace(/[^a-z0-9-]+/g, "-")
-    .replace(/^-+|-+$/g, "");
+    .replace(/[^a-z0-9-]/g, "");
 }
 
 /* ---- Error helper -------------------------------------------------------- */

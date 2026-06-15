@@ -27,11 +27,12 @@ export interface GameProps {
 /** Registry entry describing a game: metadata + a lazily-loaded component. */
 export interface GameDescriptor {
   id: string;
-  title: string;
+  /** i18n key for the launcher card title. */
+  titleKey: string;
   /** Emoji shown on the launcher card. */
   icon: string;
-  /** One-line description shown on the card. */
-  blurb: string;
+  /** i18n key for the one-line description shown on the card. */
+  blurbKey: string;
   component: LazyExoticComponent<ComponentType<GameProps>>;
   defaultConfig?: Record<string, unknown>;
 }

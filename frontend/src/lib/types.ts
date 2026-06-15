@@ -37,6 +37,8 @@ export interface PublicFriend {
   gamesEnabled: boolean;
   giftDisplay: "current" | "all";
   giftLayout: "list" | "blocks";
+  lang: "ru" | "en";
+  theme: "light" | "dark" | "halloween" | "newyear";
   access: AccessInfo;
 }
 

@@ -8,6 +8,7 @@ import {
 } from "./catcher-configs.ts";
 import { useGameLoop } from "./useGameLoop.ts";
 import { playSound } from "../lib/sound.ts";
+import { useT } from "../lib/i18n.ts";
 
 /* One DOM-based catch engine, configured by `config` (feed-fox / catch-stars).
    Falling items are real DOM nodes whose `transform` is mutated directly in the
@@ -37,6 +38,7 @@ function pickItem(items: CatcherItem[]): CatcherItem {
 }
 
 export default function Catcher({ config, onFinish }: GameProps) {
+  const { t } = useT();
   const cfg = (config as CatcherConfig | undefined) ?? feedFoxConfig;
 
   const arenaRef = useRef<HTMLDivElement>(null);
@@ -175,7 +177,7 @@ export default function Catcher({ config, onFinish }: GameProps) {
         {score} 🏅
       </div>
       <div className="pointer-events-none absolute top-3 right-3 z-10 rounded-[var(--radius-full)] bg-white/85 px-4 py-1.5 font-bold text-[var(--color-text)] shadow-[var(--shadow-sm)]">
-        {timeLeft}с ⏳
+        {t("catcher.timeLeft", { n: timeLeft })}
       </div>
 
       {/* basket */}

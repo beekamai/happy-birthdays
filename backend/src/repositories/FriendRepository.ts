@@ -260,6 +260,8 @@ export default class FriendRepository {
         const gamesEnabled = cfg.gamesEnabled ?? true;
         const giftDisplay = cfg.giftDisplay ?? "current";
         const giftLayout = cfg.giftLayout ?? "blocks";
+        const lang = cfg.lang ?? "ru";
+        const theme = cfg.theme ?? "light";
 
         /* Locked pages expose identity + countdown + the gift history list — but
            no greeting or games (the celebration itself stays hidden). */
@@ -277,6 +279,8 @@ export default class FriendRepository {
                 gamesEnabled,
                 giftDisplay,
                 giftLayout,
+                lang,
+                theme,
                 access,
             };
         }
@@ -294,6 +298,8 @@ export default class FriendRepository {
             gamesEnabled,
             giftDisplay,
             giftLayout,
+            lang,
+            theme,
             access,
         };
 

@@ -4,6 +4,7 @@ import confetti from "canvas-confetti";
 import type { PublicFriend, SiteConfig } from "../lib/types.ts";
 import { postScore, type ScoreResult } from "../lib/api.ts";
 import { playSound } from "../lib/sound.ts";
+import { useT } from "../lib/i18n.ts";
 import { StickerCard } from "../components/decor/StickerCard.tsx";
 
 import type { GameDescriptor, GameResult } from "./game-types.ts";
@@ -34,6 +35,7 @@ export function GameHost({
   visitorId,
   onScored,
 }: GameHostProps) {
+  const { t } = useT();
   const [runKey, setRunKey] = useState(0);
   const [result, setResult] = useState<GameResult | null>(null);
   const [serverResult, setServerResult] = useState<ScoreResult | null>(null);
@@ -100,26 +102,26 @@ export function GameHost({
           <StickerCard hover={false} className="relative z-10 max-w-sm text-center">
             <div className="text-5xl">{result.won ? "🎉" : "🌙"}</div>
             <h2 className="mt-3 text-2xl">
-              {result.won ? "Получилось!" : "Игра окончена"}
+              {result.won ? t("game.won") : t("game.over")}
             </h2>
             <p className="mt-2 text-[var(--color-text-soft)]">
-              Очки за игру:{" "}
+              {t("game.scoreForGame")}{" "}
               <span className="font-bold text-[var(--color-text)]">{result.score}</span>
             </p>
             {serverResult && (
               <div className="mt-2 flex flex-col gap-1 text-sm text-[var(--color-text-soft)]">
                 <span>
-                  Твой рекорд в игре:{" "}
+                  {t("game.bestInGame")}{" "}
                   <span className="font-bold text-[var(--color-accent)]">
                     {serverResult.gameBest}
                   </span>
                 </span>
                 <span>
-                  🏅 Твои очки:{" "}
+                  {t("game.yourScore")}{" "}
                   <span className="font-bold text-[var(--color-text)]">
                     {serverResult.personal.total}
                   </span>{" "}
-                  · 🌍 всего на странице:{" "}
+                  · {t("game.pageTotal")}{" "}
                   <span className="font-bold text-[var(--color-text)]">
                     {serverResult.global.total}
                   </span>
@@ -132,14 +134,14 @@ export function GameHost({
                 onClick={replay}
                 className="rounded-[var(--radius-full)] bg-[var(--color-accent)] px-5 py-2.5 font-bold text-white shadow-[var(--shadow-sm)] transition-transform duration-200 hover:scale-105"
               >
-                Сыграть ещё
+                {t("game.playAgain")}
               </button>
               <button
                 type="button"
                 onClick={onClose}
                 className="rounded-[var(--radius-full)] border-[2px] border-[var(--color-muted)] bg-[var(--color-surface)] px-5 py-2.5 font-bold text-[var(--color-text)] transition-transform duration-200 hover:scale-105"
               >
-                Закрыть
+                {t("game.close")}
               </button>
             </div>
           </StickerCard>
@@ -151,12 +153,13 @@ export function GameHost({
 
 /* Cozy fallback while a game chunk loads. */
 function CozySpinner() {
+  const { t } = useT();
   return (
     <div className="flex h-full w-full flex-col items-center justify-center gap-4">
       <span className="animate-bob text-5xl select-none" aria-hidden="true">
         🍜
       </span>
-      <p className="font-bold text-[var(--color-text-soft)]">Загружаем игру…</p>
+      <p className="font-bold text-[var(--color-text-soft)]">{t("loading.game")}</p>
     </div>
   );
 }

@@ -35,6 +35,8 @@ export interface FriendConfig {
     gamesEnabled?: boolean; /* default true; off hides games + score badges */
     giftDisplay?: "current" | "all"; /* in-window: single current gift or full list */
     giftLayout?: "list" | "blocks"; /* how the gift list is rendered */
+    lang?: "ru" | "en"; /* default page language (visitor can switch) */
+    theme?: "light" | "dark" | "halloween" | "newyear"; /* default page theme */
 }
 
 /* Parsed birthday components. `year` present only for full ISO dates. */
@@ -74,6 +76,8 @@ export interface PublicFriend {
     gamesEnabled: boolean;
     giftDisplay: "current" | "all";
     giftLayout: "list" | "blocks";
+    lang: "ru" | "en";
+    theme: "light" | "dark" | "halloween" | "newyear";
     /* Access window (open / closing / locked) computed from the birthday. */
     access: AccessInfo;
 }

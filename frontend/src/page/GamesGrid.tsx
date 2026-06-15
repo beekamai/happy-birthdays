@@ -5,6 +5,7 @@ import type { PublicFriend, SiteConfig } from "../lib/types.ts";
 import type { GameDescriptor } from "../games/game-types.ts";
 import { getGame } from "../games/registry.ts";
 import { playSound } from "../lib/sound.ts";
+import { useT } from "../lib/i18n.ts";
 import { GameHost } from "../games/GameHost.tsx";
 import { StickerCard } from "../components/decor/StickerCard.tsx";
 
@@ -28,6 +29,7 @@ interface ResolvedGame {
 
 /** Grid of game launchers with a modal game host. */
 export function GamesGrid({ friend, site, visitorId, onScored }: GamesGridProps) {
+  const { t } = useT();
   /* Resolve each slot to its descriptor once; skip unknown gameIds. */
   const games = useMemo<ResolvedGame[]>(() => {
     const resolved: ResolvedGame[] = [];
@@ -66,7 +68,7 @@ export function GamesGrid({ friend, site, visitorId, onScored }: GamesGridProps)
 
   return (
     <section className="flex flex-col gap-4">
-      <h2 className="text-center text-3xl">Мини-игры 🎮</h2>
+      <h2 className="text-center text-3xl">{t("games.title")}</h2>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {games.map((game, index) => (
@@ -83,10 +85,10 @@ export function GamesGrid({ friend, site, visitorId, onScored }: GamesGridProps)
                 {game.descriptor.icon}
               </span>
               <span className="text-xl font-bold text-[var(--color-text)]">
-                {game.descriptor.title}
+                {t(game.descriptor.titleKey)}
               </span>
               <span className="text-sm text-[var(--color-text-soft)]">
-                {game.descriptor.blurb}
+                {t(game.descriptor.blurbKey)}
               </span>
             </button>
           </StickerCard>
@@ -119,7 +121,7 @@ export function GamesGrid({ friend, site, visitorId, onScored }: GamesGridProps)
                 <button
                   type="button"
                   onClick={close}
-                  aria-label="Закрыть"
+                  aria-label={t("games.close")}
                   className="flex size-10 cursor-pointer items-center justify-center rounded-[var(--radius-full)] border-[2px] border-[var(--color-muted)] bg-[var(--color-surface)] text-lg font-bold text-[var(--color-text)] shadow-[var(--shadow-sm)] transition-transform duration-200 hover:scale-105 focus:outline-none focus-visible:ring-[3px] focus-visible:ring-[var(--color-accent)]"
                 >
                   ✕

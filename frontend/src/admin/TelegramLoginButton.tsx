@@ -5,6 +5,7 @@ import {
   type AuthConfig,
   type TelegramAuthData,
 } from "./adminApi.ts";
+import { useT } from "../lib/i18n.ts";
 
 /* Telegram Login Widget wrapper.
 
@@ -30,6 +31,7 @@ export function TelegramLoginButton({
   config,
   onLogin,
 }: TelegramLoginButtonProps) {
+  const { t } = useT();
   const containerRef = useRef<HTMLDivElement>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -48,9 +50,7 @@ export function TelegramLoginButton({
       loginWithTelegram(user)
         .then(() => onLogin())
         .catch((e: unknown) => {
-          setError(
-            e instanceof Error ? e.message : "Не удалось войти, попробуй ещё раз",
-          );
+          setError(e instanceof Error ? e.message : t("tg.loginFailed"));
         })
         .finally(() => setBusy(false));
     };
@@ -77,11 +77,11 @@ export function TelegramLoginButton({
         <span className="mb-1 block text-2xl select-none" aria-hidden="true">
           🔧
         </span>
-        Telegram-вход ещё не настроен — добавь{" "}
+        {t("tg.notConfigured")}{" "}
         <code className="rounded bg-[var(--color-muted)]/50 px-1 font-mono text-[var(--color-text)]">
           TG_BOT_TOKEN
         </code>{" "}
-        в .env
+        {t("tg.notConfiguredEnv")}
       </div>
     );
   }
@@ -90,7 +90,7 @@ export function TelegramLoginButton({
     <div className="flex flex-col items-center gap-3">
       <div ref={containerRef} className="min-h-[48px]" />
       {busy && (
-        <p className="text-sm text-[var(--color-text-soft)]">Входим…</p>
+        <p className="text-sm text-[var(--color-text-soft)]">{t("tg.signingIn")}</p>
       )}
       {error && (
         <p className="text-sm font-bold text-[var(--color-lantern)]">{error}</p>

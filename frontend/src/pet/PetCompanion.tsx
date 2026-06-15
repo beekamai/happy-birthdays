@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useAnimationControls } from "motion/react";
 import { useHappiness } from "./useHappiness.ts";
 import { playSound } from "../lib/sound.ts";
+import { useT } from "../lib/i18n.ts";
 
 /* Pet glyph footprint and the gap kept from the viewport edges. */
 const PET_SIZE = 56;
@@ -53,6 +54,7 @@ const prefersReducedMotion = () =>
  * gives hearts on tap, and gently wanders while idle.
  */
 export function PetCompanion({ slug }: { slug: string }) {
+  const { t } = useT();
   const { happiness, bump } = useHappiness(slug);
   const [constraints, setConstraints] = useState<Box>(computeBox);
   const [hearts, setHearts] = useState<Heart[]>([]);
@@ -138,7 +140,7 @@ export function PetCompanion({ slug }: { slug: string }) {
           isDraggingRef.current = false;
         }}
         role="button"
-        aria-label="Питомец — погладь меня"
+        aria-label={t("pet.aria")}
       >
         {/* Inner wrapper owns the wander animation so it never fights drag. */}
         <motion.div animate={wander} className="relative">

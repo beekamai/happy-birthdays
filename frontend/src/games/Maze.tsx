@@ -4,6 +4,7 @@ import confetti from "canvas-confetti";
 
 import type { GameProps } from "./game-types.ts";
 import { playSound } from "../lib/sound.ts";
+import { useT } from "../lib/i18n.ts";
 
 /* "Path to friendship" — a perfect maze (recursive-backtracker DFS). The owner's
    avatar is the player; the friend's avatar is the goal. Walls are drawn as cell
@@ -78,6 +79,7 @@ function preload(src: string): Promise<void> {
 }
 
 export default function Maze({ friend, site, onFinish, config }: GameProps) {
+  const { t } = useT();
   const rawSize = Number((config as { size?: number } | undefined)?.size ?? 9);
   const size = Math.max(5, Math.min(13, Number.isFinite(rawSize) ? rawSize : 9));
 
@@ -184,7 +186,7 @@ export default function Maze({ friend, site, onFinish, config }: GameProps) {
       {!ready && (
         <div className="absolute inset-0 z-20 flex items-center justify-center bg-[var(--color-cream)]/80">
           <span className="animate-bob text-lg font-bold text-[var(--color-text)]">
-            готовим тропинку…
+            {t("maze.preparing")}
           </span>
         </div>
       )}
@@ -226,7 +228,7 @@ export default function Maze({ friend, site, onFinish, config }: GameProps) {
       </div>
 
       <p className="text-sm text-[var(--color-text-soft)]">
-        Стрелки или свайп — дойди до друга 🗺️
+        {t("maze.hint")}
       </p>
 
       {/* meeting cutscene */}

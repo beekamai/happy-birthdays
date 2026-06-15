@@ -142,3 +142,114 @@
   position: relative;
   z-index: 2;
 }
+
+/* ===========================================================================
+   THEME OVERRIDES
+   ---------------------------------------------------------------------------
+   The @theme block above IS the light "Cozy Ramen" palette and lives on :root.
+   Each block below re-declares the SAME `--color-*` set (plus shadows where a
+   darker surface needs them) scoped to `[data-theme="..."]` on <html>. Every
+   variable light defines is redefined in every theme, so nothing ever falls
+   back to a mismatched light value. `useTheme` toggles the attribute.
+   =========================================================================== */
+
+/* Light — default look. Mirrors the @theme values so toggling back to light is
+   explicit and form controls/scrollbars stay light. No color overrides needed;
+   :root already carries them. */
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+/* Dark — warm cozy night. Deep warm-brown/charcoal ground (never pure black),
+   a lifted surface, sand/cream text, coral + ramen-gold kept punchy, soft-blue
+   brightened, muted darkened. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --color-cream: #211b16; /* page ground — warm charcoal-brown */
+  --color-surface: #2e2620; /* lifted card surface */
+  --color-primary: #ff9a72; /* coral, a touch lighter for dark */
+  --color-primary-deep: #f4673b;
+  --color-secondary: #8fd0f2; /* soft-blue, brighter */
+  --color-secondary-deep: #62b6e4;
+  --color-lantern: #f0613f;
+  --color-lantern-glow: #ffc28a;
+  --color-ramen-gold: #f6c45a;
+  --color-nest-green: #a9d57a;
+  --color-text: #f3e3cf; /* warm cream text */
+  --color-text-soft: #c0a98f; /* sand */
+  --color-muted: #4a3d31; /* dark warm border/muted */
+  --color-success: #8fc35e;
+  --color-on-primary: #2a1d12;
+  --color-accent: #8fd0f2;
+
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.5);
+  --shadow-glow: 0 0 32px rgba(255, 154, 114, 0.35);
+  --shadow-sticker: 0 6px 0 rgba(0, 0, 0, 0.35);
+}
+
+/* Halloween — spooky-cozy. Dark purple/charcoal ground, pumpkin-orange primary,
+   purple secondary, eerie-green accent, cream text, pumpkin-orange lanterns. */
+:root[data-theme="halloween"] {
+  color-scheme: dark;
+
+  --color-cream: #1a1320; /* dark purple-charcoal ground */
+  --color-surface: #261a30; /* deep aubergine surface */
+  --color-primary: #ff7a1a; /* pumpkin orange */
+  --color-primary-deep: #e85f00;
+  --color-secondary: #a96cff; /* witchy purple */
+  --color-secondary-deep: #8a45e6;
+  --color-lantern: #ff7a1a; /* pumpkin lanterns */
+  --color-lantern-glow: #ffb45c;
+  --color-ramen-gold: #ffc83d;
+  --color-nest-green: #7bd957; /* eerie slime green */
+  --color-text: #f5ead8; /* warm cream text */
+  --color-text-soft: #c4a9d6; /* dusty lilac */
+  --color-muted: #3d2c4d; /* purple border/muted */
+  --color-success: #6fd34a;
+  --color-on-primary: #25140a;
+  --color-accent: #7bd957; /* eerie green accent */
+
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.55);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.6);
+  --shadow-glow: 0 0 32px rgba(255, 122, 26, 0.4);
+  --shadow-sticker: 0 6px 0 rgba(123, 217, 87, 0.22);
+}
+
+/* New Year — festive midnight. Deep midnight-blue ground, gold primary,
+   fir-green + snowy-white accents, near-white text, cool but cozy. */
+:root[data-theme="newyear"] {
+  color-scheme: dark;
+
+  --color-cream: #0e1830; /* midnight blue ground */
+  --color-surface: #18233f; /* lifted navy surface */
+  --color-primary: #f3c969; /* festive gold */
+  --color-primary-deep: #d9a637;
+  --color-secondary: #5fb98c; /* fir green */
+  --color-secondary-deep: #3f9c6e;
+  --color-lantern: #e85a5a; /* warm red bauble glow */
+  --color-lantern-glow: #ffd27a;
+  --color-ramen-gold: #f3c969;
+  --color-nest-green: #5fb98c;
+  --color-text: #f4f7ff; /* snowy near-white */
+  --color-text-soft: #aebfdc; /* frosty blue-grey */
+  --color-muted: #2a3a5e; /* navy border/muted */
+  --color-success: #5fb98c;
+  --color-on-primary: #1a1305;
+  --color-accent: #f3f8ff; /* snowy-white accent */
+
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.45);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.55);
+  --shadow-glow: 0 0 32px rgba(243, 201, 105, 0.4);
+  --shadow-sticker: 0 6px 0 rgba(0, 0, 0, 0.4);
+}
+
+/* Smooth the cross-theme swap on the page surfaces. Reduced-motion users get an
+   instant change (the global reduce rule in global.css zeroes transitions). */
+body {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}

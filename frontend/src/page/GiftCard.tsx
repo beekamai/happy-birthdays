@@ -3,6 +3,7 @@ import { useLottie } from "lottie-react";
 
 import type { PublicFriend } from "../lib/types.ts";
 import { StickerCard } from "../components/decor/StickerCard.tsx";
+import { useT } from "../lib/i18n.ts";
 
 /* The gift reveal card: a Lottie animation when available, otherwise a big
    cozy emoji. Caption announces the gift with a sparkle.
@@ -38,6 +39,7 @@ function LottieGift({ data }: { data: object }) {
 
 /** A sticker card revealing the friend's birthday gift. */
 export function GiftCard({ gift }: GiftCardProps) {
+  const { t } = useT();
   const [data, setData] = useState<object | null>(null);
 
   useEffect(() => {
@@ -75,7 +77,7 @@ export function GiftCard({ gift }: GiftCardProps) {
             target="_blank"
             rel="noopener noreferrer"
             className="transition-transform duration-200 hover:scale-105"
-            title="Открыть подарок"
+            title={t("gift.open")}
           >
             {visual}
           </a>
@@ -84,7 +86,7 @@ export function GiftCard({ gift }: GiftCardProps) {
         )}
 
         <p className="text-[var(--color-text-soft)]">
-          Тебе подарок:{" "}
+          {t("gift.youGot")}{" "}
           {gift.link ? (
             <a
               href={gift.link}

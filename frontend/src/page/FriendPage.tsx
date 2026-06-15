@@ -6,7 +6,11 @@ import type { PublicFriend, SiteConfig } from "../lib/types.ts";
 import { useTotals } from "../lib/useTotals.ts";
 import { getVisitorId } from "../lib/visitor.ts";
 import { unlockAudio } from "../lib/sound.ts";
+import { useTheme } from "../lib/useTheme.ts";
+import { useT, initLang } from "../lib/i18n.ts";
 import { SoundToggle } from "../components/SoundToggle.tsx";
+import { ThemeSwitcher } from "../components/ThemeSwitcher.tsx";
+import { LanguageSwitcher } from "../components/LanguageSwitcher.tsx";
 import { Lanterns } from "../components/decor/Lanterns.tsx";
 import { Particles } from "../components/decor/Particles.tsx";
 import { StickerCard } from "../components/decor/StickerCard.tsx";
@@ -34,7 +38,14 @@ const prefersReducedMotion = () =>
 /** Composed birthday page for one friend. */
 export function FriendPage({ friend, site }: FriendPageProps) {
   const accentStyle = { "--color-accent": friend.accent } as CSSProperties;
+  const { theme, setTheme, themes } = useTheme(friend.theme);
+  const { t } = useT();
   const visitorId = getVisitorId();
+
+  /* Initialise language from the friend's default (a stored override wins). */
+  useEffect(() => {
+    initLang(friend.lang);
+  }, [friend.lang]);
   const { totals, refresh } = useTotals(friend.slug, visitorId);
 
   /* One gentle welcome burst on mount — never on a reduced-motion preference,
@@ -72,6 +83,8 @@ export function FriendPage({ friend, site }: FriendPageProps) {
       className="relative min-h-[100dvh] overflow-hidden px-5 pt-24 pb-16"
     >
       <SoundToggle />
+      <ThemeSwitcher theme={theme} setTheme={setTheme} themes={themes} />
+      <LanguageSwitcher />
       {/* Ambient decor — non-interactive, behind the content. */}
       <Particles />
       <Lanterns count={5} />
@@ -79,8 +92,7 @@ export function FriendPage({ friend, site }: FriendPageProps) {
       <div className="relative mx-auto flex w-full max-w-[640px] flex-col gap-8">
         {friend.access.state === "closing" && (
           <div className="rounded-[var(--radius-lg)] border-[2px] border-[var(--color-lantern)] bg-[var(--color-lantern-glow)]/25 px-5 py-3 text-center text-sm font-bold text-[var(--color-text)]">
-            🎂 День рождения уже прошёл — страничка будет доступна ещё{" "}
-            {friend.access.closesInDays} дн., потом закроется до следующего дня рождения.
+            {t("friend.closingBanner", { n: friend.access.closesInDays })}
           </div>
         )}
         <Hero friend={friend} />
@@ -107,11 +119,11 @@ export function FriendPage({ friend, site }: FriendPageProps) {
               <div className="flex flex-wrap items-center justify-center gap-3">
                 <span className="inline-flex items-center gap-2 rounded-[var(--radius-full)] border-[2px] border-[var(--color-ramen-gold)] bg-[var(--color-ramen-gold)]/15 px-5 py-2 font-bold text-[var(--color-text)] shadow-[var(--shadow-sm)]">
                   <span aria-hidden="true">🏅</span>
-                  Твои очки: {totals.personal.total}
+                  {t("friend.yourScore", { n: totals.personal.total })}
                 </span>
                 <span className="inline-flex items-center gap-2 rounded-[var(--radius-full)] border-[2px] border-[var(--color-secondary)] bg-[var(--color-secondary)]/15 px-5 py-2 font-bold text-[var(--color-text)] shadow-[var(--shadow-sm)]">
                   <span aria-hidden="true">🌍</span>
-                  Всего на странице: {totals.global.total}
+                  {t("friend.pageTotal", { n: totals.global.total })}
                 </span>
               </div>
             )}
@@ -121,7 +133,7 @@ export function FriendPage({ friend, site }: FriendPageProps) {
         )}
 
         <footer className="mt-2 flex items-center justify-center gap-2 text-[var(--color-text-soft)]">
-          <span>с любовью, {site?.owner.displayName ?? "beekamai"}</span>
+          <span>{t("friend.footer", { name: site?.owner.displayName ?? "beekamai" })}</span>
           {site?.owner.avatarUrl && (
             <img
               src={site.owner.avatarUrl}

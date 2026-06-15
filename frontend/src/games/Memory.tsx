@@ -3,6 +3,7 @@ import confetti from "canvas-confetti";
 
 import type { GameProps } from "./game-types.ts";
 import { playSound } from "../lib/sound.ts";
+import { useT } from "../lib/i18n.ts";
 
 /* Find-pairs memory game. A themed emoji set is doubled, shuffled, and laid out
    as flip cards (CSS rotateY). Two cards flip up; a 700ms lock lets the player
@@ -37,6 +38,7 @@ function buildDeck(emojis: readonly string[]): Card[] {
 }
 
 export default function Memory({ config, onFinish }: GameProps) {
+  const { t } = useT();
   const override = (config as { emojis?: string[] } | undefined)?.emojis;
   const emojis = override?.length ? override : [...DEFAULT_EMOJIS];
 
@@ -113,7 +115,7 @@ export default function Memory({ config, onFinish }: GameProps) {
   return (
     <div className="flex h-full w-full flex-col items-center justify-center gap-4 p-4">
       <div className="rounded-[var(--radius-full)] bg-white/85 px-4 py-1.5 font-bold text-[var(--color-text)] shadow-[var(--shadow-sm)]">
-        Ходов: {moves}
+        {t("memory.moves", { n: moves })}
       </div>
 
       <div
@@ -127,7 +129,7 @@ export default function Memory({ config, onFinish }: GameProps) {
               key={card.id}
               type="button"
               onClick={() => flip(idx)}
-              aria-label={up ? card.emoji : "закрытая карточка"}
+              aria-label={up ? card.emoji : t("memory.closedCard")}
               className="relative aspect-square w-full"
               style={{ perspective: "600px", touchAction: "manipulation" }}
             >
@@ -164,7 +166,7 @@ export default function Memory({ config, onFinish }: GameProps) {
       </div>
 
       <p className="text-sm text-[var(--color-text-soft)]">
-        Открывай карточки и находи одинаковые пары
+        {t("memory.hint")}
       </p>
     </div>
   );

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 
 import { StickerCard } from "../components/decor/StickerCard.tsx";
 import { Particles } from "../components/decor/Particles.tsx";
+import { useT, coverage } from "../lib/i18n.ts";
 import {
   fetchAdminFriends,
   type AdminFriendSummary,
@@ -30,6 +31,8 @@ function birthdayLabel(b: AdminFriendSummary["birthday"]): string {
 }
 
 export function OwnerDashboard() {
+  const { t } = useT();
+  const cov = coverage();
   const [view, setView] = useState<View>({ kind: "list" });
   const [friends, setFriends] = useState<AdminFriendSummary[] | null>(null);
 
@@ -63,6 +66,9 @@ export function OwnerDashboard() {
           <h1 className="text-3xl">🍜 Странички</h1>
           <p className="text-[var(--color-text-soft)]">
             Управляй поздравлениями друзей.
+          </p>
+          <p className="mt-1 text-xs text-[var(--color-text-soft)]">
+            {t("dashboard.coverage", { ru: cov.ru, en: cov.en })}
           </p>
         </div>
         <PillButton onClick={() => setView({ kind: "create" })}>

@@ -3,6 +3,7 @@ import confetti from "canvas-confetti";
 
 import type { GameProps } from "./game-types.ts";
 import { playSound } from "../lib/sound.ts";
+import { useT } from "../lib/i18n.ts";
 
 /* A 3×3 sliding puzzle cut from the friend's puzzle/avatar image. The board is
    an array of tile VALUES 0..8 indexed by position; value 8 is the empty slot.
@@ -91,6 +92,7 @@ function hintMove(board: number[]): number | null {
 }
 
 export default function SlidePuzzle({ friend, onFinish }: GameProps) {
+  const { t } = useT();
   const image = friend.puzzleAvatarUrl ?? friend.avatarUrl;
 
   const [board, setBoard] = useState<number[]>(() => shuffleBoard(SHUFFLE_MOVES));
@@ -141,7 +143,7 @@ export default function SlidePuzzle({ friend, onFinish }: GameProps) {
     <div className="flex h-full w-full flex-col items-center justify-center gap-4 p-4">
       <div className="flex items-center gap-3">
         <span className="rounded-[var(--radius-full)] bg-white/85 px-4 py-1.5 font-bold text-[var(--color-text)] shadow-[var(--shadow-sm)]">
-          Ходов: {moves}
+          {t("puzzle.moves", { n: moves })}
         </span>
       </div>
 
@@ -164,7 +166,7 @@ export default function SlidePuzzle({ friend, onFinish }: GameProps) {
               key={pos}
               type="button"
               onClick={() => tap(pos)}
-              aria-label={isEmpty ? "пусто" : `кусочек ${value + 1}`}
+              aria-label={isEmpty ? t("puzzle.empty") : t("puzzle.piece", { n: value + 1 })}
               className={`aspect-square w-full rounded-[var(--radius-sm)] transition-[opacity] duration-150 ${
                 isHint ? "animate-pulse-hint" : ""
               }`}
@@ -206,19 +208,19 @@ export default function SlidePuzzle({ friend, onFinish }: GameProps) {
           onPointerLeave={() => setPeek(false)}
           className="rounded-[var(--radius-full)] border-[2px] border-[var(--color-muted)] bg-[var(--color-surface)] px-4 py-2 font-bold text-[var(--color-text)] shadow-[var(--shadow-sm)] transition-transform duration-200 hover:scale-105 active:scale-95"
         >
-          👁 Показать картинку
+          {t("puzzle.showPicture")}
         </button>
         <button
           type="button"
           onClick={showHint}
           className="rounded-[var(--radius-full)] bg-[var(--color-accent)] px-4 py-2 font-bold text-white shadow-[var(--shadow-sm)] transition-transform duration-200 hover:scale-105 active:scale-95"
         >
-          💡 Подсказка
+          {t("puzzle.hint")}
         </button>
       </div>
 
       <p className="text-sm text-[var(--color-text-soft)]">
-        Собери картинку — двигай кусочки к пустой клетке
+        {t("puzzle.tip")}
       </p>
     </div>
   );

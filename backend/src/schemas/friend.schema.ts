@@ -166,6 +166,15 @@ export function validateFriendConfig(obj: unknown): FriendConfig {
     if (obj.giftLayout === "list" || obj.giftLayout === "blocks") {
         result.giftLayout = obj.giftLayout;
     }
+    if (obj.lang === "ru" || obj.lang === "en") result.lang = obj.lang;
+    if (
+        obj.theme === "light" ||
+        obj.theme === "dark" ||
+        obj.theme === "halloween" ||
+        obj.theme === "newyear"
+    ) {
+        result.theme = obj.theme;
+    }
 
     return result;
 }
@@ -225,6 +234,13 @@ export const PublicFriend_Object_Schema = {
     gamesEnabled: t.Boolean(),
     giftDisplay: t.Union([t.Literal("current"), t.Literal("all")]),
     giftLayout: t.Union([t.Literal("list"), t.Literal("blocks")]),
+    lang: t.Union([t.Literal("ru"), t.Literal("en")]),
+    theme: t.Union([
+        t.Literal("light"),
+        t.Literal("dark"),
+        t.Literal("halloween"),
+        t.Literal("newyear"),
+    ]),
     access: t.Object(Access_Object_Schema),
 };
 

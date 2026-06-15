@@ -1,6 +1,10 @@
-import type { CSSProperties } from "react";
+import { useEffect, type CSSProperties } from "react";
 
 import type { PublicFriend } from "../lib/types.ts";
+import { useTheme } from "../lib/useTheme.ts";
+import { useT, initLang } from "../lib/i18n.ts";
+import { ThemeSwitcher } from "../components/ThemeSwitcher.tsx";
+import { LanguageSwitcher } from "../components/LanguageSwitcher.tsx";
 import { Lanterns } from "../components/decor/Lanterns.tsx";
 import { Particles } from "../components/decor/Particles.tsx";
 import { StickerCard } from "../components/decor/StickerCard.tsx";
@@ -11,6 +15,12 @@ import { GiftList } from "./GiftList.tsx";
    to their next birthday — no greeting, gift, games or scoring. */
 export function LockedPage({ friend }: { friend: PublicFriend }) {
   const accentStyle = { "--color-accent": friend.accent } as CSSProperties;
+  const { theme, setTheme, themes } = useTheme(friend.theme);
+  const { t } = useT();
+
+  useEffect(() => {
+    initLang(friend.lang);
+  }, [friend.lang]);
 
   return (
     <main
@@ -18,6 +28,8 @@ export function LockedPage({ friend }: { friend: PublicFriend }) {
       style={accentStyle}
       className="relative flex min-h-[100dvh] flex-col items-center justify-center overflow-hidden px-5 py-16"
     >
+      <ThemeSwitcher theme={theme} setTheme={setTheme} themes={themes} />
+      <LanguageSwitcher />
       <Particles count={8} />
       <Lanterns count={5} />
 
@@ -52,10 +64,10 @@ export function LockedPage({ friend }: { friend: PublicFriend }) {
             🔒🎂
           </div>
           <p className="mt-3 text-[var(--color-text-soft)]">
-            Праздничная страничка откроется в день рождения
+            {t("locked.opensOn")}
             {friend.access.daysUntilBirthday === 0
-              ? " — сегодня! 🎉"
-              : ` — через ${friend.access.daysUntilBirthday} дн. 🎉`}
+              ? t("locked.today")
+              : t("locked.inDays", { n: friend.access.daysUntilBirthday })}
           </p>
         </StickerCard>
 

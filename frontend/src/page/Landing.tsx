@@ -1,3 +1,9 @@
+import { useEffect } from "react";
+
+import { useTheme } from "../lib/useTheme.ts";
+import { useT, initLang } from "../lib/i18n.ts";
+import { ThemeSwitcher } from "../components/ThemeSwitcher.tsx";
+import { LanguageSwitcher } from "../components/LanguageSwitcher.tsx";
 import { Particles } from "../components/decor/Particles.tsx";
 import { Lanterns } from "../components/decor/Lanterns.tsx";
 import { Steam } from "../components/decor/Steam.tsx";
@@ -8,8 +14,17 @@ import { StickerCard } from "../components/decor/StickerCard.tsx";
 
 /** Cozy landing for the site root. */
 export function Landing() {
+  const { theme, setTheme, themes } = useTheme("light");
+  const { t } = useT();
+
+  useEffect(() => {
+    initLang("ru");
+  }, []);
+
   return (
     <main className="relative flex min-h-[100dvh] flex-col items-center justify-center overflow-hidden px-6 text-center">
+      <ThemeSwitcher theme={theme} setTheme={setTheme} themes={themes} />
+      <LanguageSwitcher />
       <Particles />
       <Lanterns count={5} />
 
@@ -19,9 +34,9 @@ export function Landing() {
           <span className="block text-6xl select-none" aria-hidden="true">
             🍜
           </span>
-          <h1 className="mt-4 text-4xl">Happy Birthdays ✨</h1>
+          <h1 className="mt-4 text-4xl">{t("landing.title")}</h1>
           <p className="mt-3 text-[var(--color-text-soft)]">
-            Тёплые странички ко дню рождения.
+            {t("landing.subtitle")}
           </p>
         </StickerCard>
       </div>
