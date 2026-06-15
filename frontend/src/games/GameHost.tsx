@@ -1,0 +1,162 @@
+import { Suspense, useCallback, useRef, useState } from "react";
+import confetti from "canvas-confetti";
+
+import type { PublicFriend, SiteConfig } from "../lib/types.ts";
+import { postScore, type ScoreResult } from "../lib/api.ts";
+import { playSound } from "../lib/sound.ts";
+import { StickerCard } from "../components/decor/StickerCard.tsx";
+
+import type { GameDescriptor, GameResult } from "./game-types.ts";
+
+/* The single host that mounts a game, posts its score exactly once, fires
+   confetti on a win, and shows a finish overlay. Games never touch the API —
+   they only call `onFinish`. "Сыграть ещё" remounts the game via `runKey`. */
+
+interface GameHostProps {
+  descriptor: GameDescriptor;
+  friend: PublicFriend;
+  site: SiteConfig | null;
+  /** Per-friend slot config, merged over the descriptor's `defaultConfig`. */
+  config?: Record<string, unknown>;
+  onClose: () => void;
+  /** Stable per-device id, so scores attribute to this player. */
+  visitorId: string;
+  /** Fired after the server records a score, so the page can refresh its total. */
+  onScored?: () => void;
+}
+
+export function GameHost({
+  descriptor,
+  friend,
+  site,
+  config,
+  onClose,
+  visitorId,
+  onScored,
+}: GameHostProps) {
+  const [runKey, setRunKey] = useState(0);
+  const [result, setResult] = useState<GameResult | null>(null);
+  const [serverResult, setServerResult] = useState<ScoreResult | null>(null);
+  /* guard against a game calling onFinish twice within one run */
+  const postedRef = useRef(false);
+
+  const merged: Record<string, unknown> = {
+    ...descriptor.defaultConfig,
+    ...config,
+  };
+
+  const handleFinish = useCallback(
+    (r: GameResult) => {
+      if (postedRef.current) return;
+      postedRef.current = true;
+
+      if (r.won) {
+        confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 } });
+        playSound("win");
+      } else {
+        playSound("lose");
+      }
+      setResult(r);
+
+      /* The server clamps + aggregates; we display its numbers, not ours. */
+      void postScore(friend.slug, visitorId, {
+        gameId: descriptor.id,
+        score: r.score,
+        durationMs: r.durationMs,
+      }).then((sr) => {
+        if (sr) {
+          setServerResult(sr);
+          onScored?.();
+        }
+      });
+    },
+    [friend.slug, descriptor.id, visitorId, onScored],
+  );
+
+  const replay = () => {
+    postedRef.current = false;
+    setResult(null);
+    setServerResult(null);
+    setRunKey((k) => k + 1);
+  };
+
+  const Game = descriptor.component;
+
+  return (
+    <div className="relative h-full w-full">
+      <Suspense fallback={<CozySpinner />}>
+        <Game
+          key={runKey}
+          friend={friend}
+          site={site}
+          config={merged}
+          onFinish={handleFinish}
+        />
+      </Suspense>
+
+      {result && (
+        <div className="absolute inset-0 z-40 flex items-center justify-center p-6">
+          <div className="absolute inset-0 bg-[var(--color-cream)]/70 backdrop-blur-[2px]" />
+          <StickerCard hover={false} className="relative z-10 max-w-sm text-center">
+            <div className="text-5xl">{result.won ? "🎉" : "🌙"}</div>
+            <h2 className="mt-3 text-2xl">
+              {result.won ? "Получилось!" : "Игра окончена"}
+            </h2>
+            <p className="mt-2 text-[var(--color-text-soft)]">
+              Очки за игру:{" "}
+              <span className="font-bold text-[var(--color-text)]">{result.score}</span>
+            </p>
+            {serverResult && (
+              <div className="mt-2 flex flex-col gap-1 text-sm text-[var(--color-text-soft)]">
+                <span>
+                  Твой рекорд в игре:{" "}
+                  <span className="font-bold text-[var(--color-accent)]">
+                    {serverResult.gameBest}
+                  </span>
+                </span>
+                <span>
+                  🏅 Твои очки:{" "}
+                  <span className="font-bold text-[var(--color-text)]">
+                    {serverResult.personal.total}
+                  </span>{" "}
+                  · 🌍 всего на странице:{" "}
+                  <span className="font-bold text-[var(--color-text)]">
+                    {serverResult.global.total}
+                  </span>
+                </span>
+              </div>
+            )}
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
+              <button
+                type="button"
+                onClick={replay}
+                className="rounded-[var(--radius-full)] bg-[var(--color-accent)] px-5 py-2.5 font-bold text-white shadow-[var(--shadow-sm)] transition-transform duration-200 hover:scale-105"
+              >
+                Сыграть ещё
+              </button>
+              <button
+                type="button"
+                onClick={onClose}
+                className="rounded-[var(--radius-full)] border-[2px] border-[var(--color-muted)] bg-[var(--color-surface)] px-5 py-2.5 font-bold text-[var(--color-text)] transition-transform duration-200 hover:scale-105"
+              >
+                Закрыть
+              </button>
+            </div>
+          </StickerCard>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* Cozy fallback while a game chunk loads. */
+function CozySpinner() {
+  return (
+    <div className="flex h-full w-full flex-col items-center justify-center gap-4">
+      <span className="animate-bob text-5xl select-none" aria-hidden="true">
+        🍜
+      </span>
+      <p className="font-bold text-[var(--color-text-soft)]">Загружаем игру…</p>
+    </div>
+  );
+}

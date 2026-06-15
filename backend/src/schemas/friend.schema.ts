@@ -1,0 +1,363 @@
+import { t } from "elysia";
+import type { FriendConfig, ParsedBirthday } from "../models/Friend";
+
+/* ------------------------------------------------------------------ */
+/* Birthday parsing                                                    */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Parse a birthday string into { month, day, year? }.
+ * Accepts "MM-DD" (no year) or full ISO "YYYY-MM-DD". Throws on invalid input.
+ */
+export function parseBirthday(raw: string): ParsedBirthday {
+    if (typeof raw !== "string") {
+        throw new Error("birthday must be a string");
+    }
+    const trimmed = raw.trim();
+
+    /* Full ISO: YYYY-MM-DD */
+    const iso = /^(\d{4})-(\d{2})-(\d{2})$/.exec(trimmed);
+    if (iso) {
+        const year = Number(iso[1]);
+        const month = Number(iso[2]);
+        const day = Number(iso[3]);
+        assertMonthDay(month, day, trimmed);
+        return { month, day, year };
+    }
+
+    /* Short: MM-DD */
+    const md = /^(\d{2})-(\d{2})$/.exec(trimmed);
+    if (md) {
+        const month = Number(md[1]);
+        const day = Number(md[2]);
+        assertMonthDay(month, day, trimmed);
+        return { month, day };
+    }
+
+    throw new Error(`Invalid birthday format: "${raw}" (expected MM-DD or YYYY-MM-DD)`);
+}
+
+function assertMonthDay(month: number, day: number, raw: string): void {
+    if (month < 1 || month > 12 || day < 1 || day > 31) {
+        throw new Error(`Invalid birthday value: "${raw}"`);
+    }
+}
+
+/* ------------------------------------------------------------------ */
+/* Runtime friend config validation                                    */
+/* ------------------------------------------------------------------ */
+
+function isObject(v: unknown): v is Record<string, unknown> {
+    return typeof v === "object" && v !== null && !Array.isArray(v);
+}
+
+function requireString(obj: Record<string, unknown>, key: string): string {
+    const v = obj[key];
+    if (typeof v !== "string" || v.length === 0) {
+        throw new Error(`friend config: "${key}" must be a non-empty string`);
+    }
+    return v;
+}
+
+/**
+ * Validate an unknown value as a FriendConfig. Returns a typed, normalized
+ * object on success; throws with a descriptive message on bad shape.
+ */
+export function validateFriendConfig(obj: unknown): FriendConfig {
+    if (!isObject(obj)) {
+        throw new Error("friend config: root must be an object");
+    }
+
+    const username = requireString(obj, "username");
+    const displayName = requireString(obj, "displayName");
+    const birthday = requireString(obj, "birthday");
+    const message = requireString(obj, "message");
+    const avatar = requireString(obj, "avatar");
+
+    /* Birthday must be parseable. */
+    parseBirthday(birthday);
+
+    /* games: required array of { gameId, config? }. */
+    if (!Array.isArray(obj.games)) {
+        throw new Error('friend config: "games" must be an array');
+    }
+    const games = obj.games.map((g, i) => {
+        if (!isObject(g) || typeof g.gameId !== "string" || g.gameId.length === 0) {
+            throw new Error(`friend config: games[${i}].gameId must be a non-empty string`);
+        }
+        const entry: { gameId: string; config?: Record<string, unknown> } = {
+            gameId: g.gameId,
+        };
+        if (g.config !== undefined) {
+            if (!isObject(g.config)) {
+                throw new Error(`friend config: games[${i}].config must be an object`);
+            }
+            entry.config = g.config;
+        }
+        return entry;
+    });
+
+    const result: FriendConfig = {
+        username,
+        displayName,
+        birthday,
+        message,
+        avatar,
+        games,
+    };
+
+    /* Optional fields. */
+    if (obj.accent !== undefined) {
+        if (typeof obj.accent !== "string") {
+            throw new Error('friend config: "accent" must be a string');
+        }
+        result.accent = obj.accent;
+    }
+
+    if (obj.puzzleAvatar !== undefined) {
+        if (typeof obj.puzzleAvatar !== "string") {
+            throw new Error('friend config: "puzzleAvatar" must be a string');
+        }
+        result.puzzleAvatar = obj.puzzleAvatar;
+    }
+
+    if (obj.gift !== undefined) {
+        if (!isObject(obj.gift)) {
+            throw new Error('friend config: "gift" must be an object');
+        }
+        const gift = obj.gift;
+        if (typeof gift.name !== "string" || typeof gift.emoji !== "string") {
+            throw new Error('friend config: gift.name and gift.emoji are required strings');
+        }
+        result.gift = {
+            name: gift.name,
+            emoji: gift.emoji,
+            ...(typeof gift.lottie === "string" ? { lottie: gift.lottie } : {}),
+            ...(typeof gift.imagePath === "string" ? { imagePath: gift.imagePath } : {}),
+            ...(typeof gift.link === "string" ? { link: gift.link } : {}),
+        };
+    }
+
+    /* Optional gift history (past gifts). */
+    if (obj.giftHistory !== undefined) {
+        if (!Array.isArray(obj.giftHistory)) {
+            throw new Error('friend config: "giftHistory" must be an array');
+        }
+        result.giftHistory = obj.giftHistory.map((g, i) => {
+            if (!isObject(g) || typeof g.name !== "string") {
+                throw new Error(`friend config: giftHistory[${i}].name must be a string`);
+            }
+            return {
+                name: g.name,
+                ...(typeof g.emoji === "string" ? { emoji: g.emoji } : {}),
+                ...(typeof g.lottie === "string" ? { lottie: g.lottie } : {}),
+                ...(typeof g.link === "string" ? { link: g.link } : {}),
+                ...(typeof g.imagePath === "string" ? { imagePath: g.imagePath } : {}),
+                ...(typeof g.date === "string" ? { date: g.date } : {}),
+            };
+        });
+    }
+
+    return result;
+}
+
+/* ------------------------------------------------------------------ */
+/* TypeBox object schemas                                               */
+/* ------------------------------------------------------------------ */
+
+export const Birthday_Object_Schema = {
+    month: t.Number(),
+    day: t.Number(),
+    year: t.Optional(t.Number()),
+};
+
+export const Gift_Object_Schema = {
+    name: t.String(),
+    emoji: t.String(),
+    lottie: t.Optional(t.String()),
+    imageUrl: t.Optional(t.String()),
+    link: t.Optional(t.String()),
+};
+
+export const Game_Object_Schema = {
+    gameId: t.String(),
+    config: t.Optional(t.Record(t.String(), t.Unknown())),
+};
+
+export const Access_Object_Schema = {
+    state: t.Union([t.Literal("open"), t.Literal("closing"), t.Literal("locked")]),
+    daysUntilBirthday: t.Number(),
+    closesInDays: t.Number(),
+};
+
+export const PublicFriend_Object_Schema = {
+    slug: t.String(),
+    username: t.String(),
+    displayName: t.String(),
+    birthday: t.Object(Birthday_Object_Schema),
+    message: t.String(),
+    accent: t.String(),
+    gift: t.Optional(t.Object(Gift_Object_Schema)),
+    games: t.Array(t.Object(Game_Object_Schema)),
+    avatarUrl: t.String(),
+    puzzleAvatarUrl: t.Optional(t.String()),
+    access: t.Object(Access_Object_Schema),
+};
+
+export const SiteConfig_Object_Schema = {
+    owner: t.Object({
+        displayName: t.String(),
+        avatarUrl: t.String(),
+    }),
+    baseUrl: t.String(),
+};
+
+export const Score_Object_Schema = {
+    slug: t.String(),
+    gameId: t.String(),
+    score: t.Number(),
+    durationMs: t.Number(),
+    createdAt: t.Number(),
+};
+
+/* Shared error response shape. */
+const errorResponse = t.Object({ error: t.String() });
+
+/* ------------------------------------------------------------------ */
+/* Request schemas (consumed by Phase 2 routes)                        */
+/* ------------------------------------------------------------------ */
+
+export const getFriend_Request_Schema = {
+    params: t.Object({
+        slug: t.String({ error: "slug is required." }),
+    }),
+    response: {
+        200: t.Object(PublicFriend_Object_Schema),
+        400: errorResponse,
+        404: errorResponse,
+        422: errorResponse,
+        500: errorResponse,
+    },
+};
+
+export const getSite_Request_Schema = {
+    response: {
+        200: t.Object(SiteConfig_Object_Schema),
+        404: errorResponse,
+        422: errorResponse,
+        500: errorResponse,
+    },
+};
+
+/* Per-game best entry + the totals shape returned by the score endpoints. */
+const GameBest_Object_Schema = t.Object({ gameId: t.String(), best: t.Number() });
+const Totals_Object = t.Object({
+    total: t.Number(),
+    games: t.Array(GameBest_Object_Schema),
+});
+
+export const postScore_Request_Schema = {
+    body: t.Object({
+        slug: t.String({ error: "slug is required." }),
+        visitorId: t.Optional(t.String()),
+        gameId: t.String({ error: "gameId is required." }),
+        score: t.Number({ error: "score must be a number." }),
+        durationMs: t.Number({ error: "durationMs must be a number." }),
+    }),
+    response: {
+        200: t.Object({
+            ok: t.Boolean(),
+            gameBest: t.Number(),
+            personal: Totals_Object,
+            global: Totals_Object,
+        }),
+        400: errorResponse,
+        404: errorResponse,
+        422: errorResponse,
+        500: errorResponse,
+    },
+};
+
+export const getTotals_Request_Schema = {
+    params: t.Object({
+        slug: t.String({ error: "slug is required." }),
+    }),
+    query: t.Object({
+        visitorId: t.Optional(t.String()),
+    }),
+    response: {
+        200: t.Object({ personal: Totals_Object, global: Totals_Object }),
+        404: errorResponse,
+        422: errorResponse,
+        500: errorResponse,
+    },
+};
+
+export const getHistory_Request_Schema = {
+    params: t.Object({
+        slug: t.String({ error: "slug is required." }),
+    }),
+    response: {
+        200: t.Object({
+            gifts: t.Array(
+                t.Object({
+                    id: t.Number(),
+                    slug: t.String(),
+                    name: t.String(),
+                    emoji: t.String(),
+                    lottie: t.String(),
+                    link: t.String(),
+                    imagePath: t.String(),
+                    createdAt: t.Number(),
+                }),
+            ),
+            changes: t.Array(
+                t.Object({
+                    id: t.Number(),
+                    slug: t.String(),
+                    field: t.String(),
+                    oldValue: t.String(),
+                    newValue: t.String(),
+                    createdAt: t.Number(),
+                }),
+            ),
+        }),
+        500: errorResponse,
+    },
+};
+
+export const getBirthdays_Request_Schema = {
+    response: {
+        200: t.Object({
+            birthdays: t.Array(
+                t.Object({
+                    slug: t.String(),
+                    displayName: t.String(),
+                    username: t.String(),
+                    month: t.Number(),
+                    day: t.Number(),
+                    year: t.Nullable(t.Number()),
+                    daysUntil: t.Number(),
+                }),
+            ),
+        }),
+        500: errorResponse,
+    },
+};
+
+export const getScores_Request_Schema = {
+    params: t.Object({
+        slug: t.String({ error: "slug is required." }),
+        gameId: t.String({ error: "gameId is required." }),
+    }),
+    query: t.Object({
+        limit: t.Optional(t.String()),
+    }),
+    response: {
+        200: t.Object({ scores: t.Array(t.Object(Score_Object_Schema)) }),
+        400: errorResponse,
+        404: errorResponse,
+        422: errorResponse,
+        500: errorResponse,
+    },
+};

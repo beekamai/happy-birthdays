@@ -1,0 +1,30 @@
+import { Particles } from "../components/decor/Particles.tsx";
+import { Lanterns } from "../components/decor/Lanterns.tsx";
+import { Steam } from "../components/decor/Steam.tsx";
+import { StickerCard } from "../components/decor/StickerCard.tsx";
+
+/* The site root (no friend slug): a warm holding screen that says what this
+   place is. Decor only — every real card lives on a friend's page. */
+
+/** Cozy landing for the site root. */
+export function Landing() {
+  return (
+    <main className="relative flex min-h-[100dvh] flex-col items-center justify-center overflow-hidden px-6 text-center">
+      <Particles />
+      <Lanterns count={5} />
+
+      <div className="relative">
+        <Steam count={4} />
+        <StickerCard hover={false} className="mt-16">
+          <span className="block text-6xl select-none" aria-hidden="true">
+            🍜
+          </span>
+          <h1 className="mt-4 text-4xl">Happy Birthdays ✨</h1>
+          <p className="mt-3 text-[var(--color-text-soft)]">
+            Тёплые странички ко дню рождения.
+          </p>
+        </StickerCard>
+      </div>
+    </main>
+  );
+}

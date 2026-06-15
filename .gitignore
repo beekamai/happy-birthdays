@@ -1,0 +1,13 @@
+node_modules/
+dist/
+backend/dist/
+cache/
+backend/cache/
+*.db
+*.db-shm
+*.db-wal
+.env
+.env.local
+.DS_Store
+*.log
+bun.lockb

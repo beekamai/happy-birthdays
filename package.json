@@ -1,0 +1,14 @@
+{
+  "name": "happy-birthdays",
+  "private": true,
+  "type": "module",
+  "workspaces": ["backend", "frontend"],
+  "scripts": {
+    "dev": "bun run dev.ts",
+    "build": "bun run --filter frontend build",
+    "start": "bun run --filter backend start",
+    "typecheck": "bun run --filter '*' typecheck",
+    "add-friend": "bun run scripts/add-friend.ts",
+    "add-gift": "bun run scripts/add-gift.ts"
+  }
+}

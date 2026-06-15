@@ -1,0 +1,22 @@
+{
+  "username": "@alumi",
+  "displayName": "Алуми",
+  "birthday": "06-15",
+  "message": "С днём рождения, лисичка! 🦊 Пусть этот год будет тёплым, как миска рамёна, и полным звёзд. Я собрал для тебя эту страничку — полистай, поиграй и знай, что тебя очень любят. 🍜✨",
+  "accent": "#7EC2E8",
+  "gift": {
+    "name": "Instant Ramen",
+    "emoji": "🍜",
+    "lottie": "/gifts/instant-ramen.json",
+    "link": "https://t.me/nft/InstantRamen-349224"
+  },
+  "games": [
+    { "gameId": "feed-fox" },
+    { "gameId": "catch-stars" },
+    { "gameId": "slide-puzzle" },
+    { "gameId": "memory" },
+    { "gameId": "maze" }
+  ],
+  "avatar": "avatar2.jpg",
+  "puzzleAvatar": "avatar1.jpg"
+}
