@@ -114,7 +114,7 @@ export default function Memory({ config, onFinish }: GameProps) {
 
   return (
     <div className="flex h-full w-full flex-col items-center justify-center gap-4 p-4">
-      <div className="rounded-[var(--radius-full)] bg-white/85 px-4 py-1.5 font-bold text-[var(--color-text)] shadow-[var(--shadow-sm)]">
+      <div className="rounded-[var(--radius-full)] bg-[var(--color-surface)]/90 px-4 py-1.5 font-bold text-[var(--color-text)] shadow-[var(--shadow-sm)]">
         {t("memory.moves", { n: moves })}
       </div>
 

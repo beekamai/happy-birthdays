@@ -1,8 +1,8 @@
-import { Suspense, useCallback, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import confetti from "canvas-confetti";
 
 import type { PublicFriend, SiteConfig } from "../lib/types.ts";
-import { postScore, type ScoreResult } from "../lib/api.ts";
+import { startGame, postScore, type ScoreResult } from "../lib/api.ts";
 import { playSound } from "../lib/sound.ts";
 import { useT } from "../lib/i18n.ts";
 import { StickerCard } from "../components/decor/StickerCard.tsx";
@@ -41,11 +41,25 @@ export function GameHost({
   const [serverResult, setServerResult] = useState<ScoreResult | null>(null);
   /* guard against a game calling onFinish twice within one run */
   const postedRef = useRef(false);
+  /* one-time anti-cheat token for the current play (fetched per run) */
+  const tokenRef = useRef<string | null>(null);
 
   const merged: Record<string, unknown> = {
     ...descriptor.defaultConfig,
     ...config,
   };
+
+  /* Open a fresh play session per run to get a score token. */
+  useEffect(() => {
+    let alive = true;
+    tokenRef.current = null;
+    void startGame(friend.slug, descriptor.id, visitorId).then((tok) => {
+      if (alive) tokenRef.current = tok;
+    });
+    return () => {
+      alive = false;
+    };
+  }, [friend.slug, descriptor.id, visitorId, runKey]);
 
   const handleFinish = useCallback(
     (r: GameResult) => {
@@ -60,12 +74,18 @@ export function GameHost({
       }
       setResult(r);
 
-      /* The server clamps + aggregates; we display its numbers, not ours. */
-      void postScore(friend.slug, visitorId, {
-        gameId: descriptor.id,
-        score: r.score,
-        durationMs: r.durationMs,
-      }).then((sr) => {
+      /* The server verifies the token + plausibility, then aggregates; we show
+         its numbers, not ours. */
+      void postScore(
+        friend.slug,
+        visitorId,
+        {
+          gameId: descriptor.id,
+          score: r.score,
+          durationMs: r.durationMs,
+        },
+        tokenRef.current,
+      ).then((sr) => {
         if (sr) {
           setServerResult(sr);
           onScored?.();
@@ -132,7 +152,7 @@ export function GameHost({
               <button
                 type="button"
                 onClick={replay}
-                className="rounded-[var(--radius-full)] bg-[var(--color-accent)] px-5 py-2.5 font-bold text-white shadow-[var(--shadow-sm)] transition-transform duration-200 hover:scale-105"
+                className="rounded-[var(--radius-full)] bg-[var(--color-primary)] px-5 py-2.5 font-bold text-[var(--color-on-primary)] shadow-[var(--shadow-sm)] transition-transform duration-200 hover:scale-105"
               >
                 {t("game.playAgain")}
               </button>

@@ -7,6 +7,7 @@ import { ThemeSwitcher } from "../components/ThemeSwitcher.tsx";
 import { LanguageSwitcher } from "../components/LanguageSwitcher.tsx";
 import { Lanterns } from "../components/decor/Lanterns.tsx";
 import { Particles } from "../components/decor/Particles.tsx";
+import { ThemeDecor } from "../components/decor/ThemeDecor.tsx";
 import { StickerCard } from "../components/decor/StickerCard.tsx";
 import { Countdown } from "./Countdown.tsx";
 import { GiftList } from "./GiftList.tsx";
@@ -30,6 +31,7 @@ export function LockedPage({ friend }: { friend: PublicFriend }) {
     >
       <ThemeSwitcher theme={theme} setTheme={setTheme} themes={themes} />
       <LanguageSwitcher />
+      <ThemeDecor theme={theme} />
       <Particles count={8} />
       <Lanterns count={5} />
 

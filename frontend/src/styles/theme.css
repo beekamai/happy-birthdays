@@ -143,6 +143,61 @@
   z-index: 2;
 }
 
+/* ---- Theme-specific decor animations ------------------------------------- */
+@keyframes snow-fall {
+  0% {
+    transform: translateY(-10vh) translateX(0) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.9;
+  }
+  90% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(110vh) translateX(18px) rotate(180deg);
+    opacity: 0;
+  }
+}
+@keyframes drift-across {
+  0% {
+    transform: translateX(-8vw) translateY(0) rotate(-6deg);
+    opacity: 0;
+  }
+  10%,
+  90% {
+    opacity: 0.85;
+  }
+  50% {
+    transform: translateX(50vw) translateY(-18px) rotate(6deg);
+  }
+  100% {
+    transform: translateX(108vw) translateY(0) rotate(-6deg);
+    opacity: 0;
+  }
+}
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 0.25;
+    transform: scale(0.85);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+}
+.animate-snow-fall {
+  animation: snow-fall linear infinite;
+}
+.animate-drift-across {
+  animation: drift-across linear infinite;
+}
+.animate-twinkle {
+  animation: twinkle ease-in-out infinite;
+}
+
 /* ===========================================================================
    THEME OVERRIDES
    ---------------------------------------------------------------------------

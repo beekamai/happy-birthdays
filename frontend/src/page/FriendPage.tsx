@@ -13,6 +13,7 @@ import { ThemeSwitcher } from "../components/ThemeSwitcher.tsx";
 import { LanguageSwitcher } from "../components/LanguageSwitcher.tsx";
 import { Lanterns } from "../components/decor/Lanterns.tsx";
 import { Particles } from "../components/decor/Particles.tsx";
+import { ThemeDecor } from "../components/decor/ThemeDecor.tsx";
 import { StickerCard } from "../components/decor/StickerCard.tsx";
 
 import { Hero } from "./Hero.tsx";
@@ -86,6 +87,7 @@ export function FriendPage({ friend, site }: FriendPageProps) {
       <ThemeSwitcher theme={theme} setTheme={setTheme} themes={themes} />
       <LanguageSwitcher />
       {/* Ambient decor — non-interactive, behind the content. */}
+      <ThemeDecor theme={theme} />
       <Particles />
       <Lanterns count={5} />
 

@@ -296,6 +296,22 @@ const Totals_Object = t.Object({
     games: t.Array(GameBest_Object_Schema),
 });
 
+export const startGame_Request_Schema = {
+    body: t.Object({
+        slug: t.String({ error: "slug is required." }),
+        gameId: t.String({ error: "gameId is required." }),
+        visitorId: t.Optional(t.String()),
+    }),
+    response: {
+        200: t.Object({ token: t.String() }),
+        400: errorResponse,
+        403: errorResponse,
+        404: errorResponse,
+        422: errorResponse,
+        500: errorResponse,
+    },
+};
+
 export const postScore_Request_Schema = {
     body: t.Object({
         slug: t.String({ error: "slug is required." }),
@@ -303,6 +319,7 @@ export const postScore_Request_Schema = {
         gameId: t.String({ error: "gameId is required." }),
         score: t.Number({ error: "score must be a number." }),
         durationMs: t.Number({ error: "durationMs must be a number." }),
+        token: t.Optional(t.String()),
     }),
     response: {
         200: t.Object({
@@ -312,7 +329,9 @@ export const postScore_Request_Schema = {
             global: Totals_Object,
         }),
         400: errorResponse,
+        403: errorResponse,
         404: errorResponse,
+        409: errorResponse,
         422: errorResponse,
         500: errorResponse,
     },

@@ -1,5 +1,6 @@
 import ScoreRepository from "../repositories/ScoreRepository";
 import FriendRepository from "../repositories/FriendRepository";
+import { verifyGameToken, consumeNonce, isPlausibleScore } from "../utils/gameSession";
 import Logger from "../utils/Logger";
 
 /* Behind a reverse proxy the real client IP is in X-Forwarded-For. Used only
@@ -20,7 +21,7 @@ function clientIp(headers: Record<string, string | undefined>): string {
 export const postScore = async ({ body, headers, set }: any) => {
     const slug = body?.slug;
     try {
-        const { visitorId, gameId, score, durationMs } = body ?? {};
+        const { visitorId, gameId, score, durationMs, token } = body ?? {};
 
         if (!slug || !gameId) {
             set.status = 400;
@@ -38,12 +39,37 @@ export const postScore = async ({ body, headers, set }: any) => {
         }
 
         const vid = typeof visitorId === "string" ? visitorId : "";
+        const numScore = Number(score) || 0;
+        const numDuration = Number(durationMs) || 0;
+
+        /* Anti-cheat: a valid one-time token from /games/start must match this
+           submission, and the score/duration must be plausible for the game. */
+        const payload = verifyGameToken(token);
+        if (
+            !payload ||
+            payload.slug !== slug ||
+            payload.gameId !== gameId ||
+            payload.visitorId !== vid
+        ) {
+            set.status = 403;
+            return { error: "Invalid or missing game token" };
+        }
+        if (!isPlausibleScore(gameId, numScore, numDuration)) {
+            set.status = 422;
+            return { error: "Implausible score" };
+        }
+        /* Consume the one-time token only once the score is accepted. */
+        if (!consumeNonce(payload.nonce)) {
+            set.status = 409;
+            return { error: "Token already used" };
+        }
+
         ScoreRepository.insertScore({
             slug,
             visitorId: vid,
             gameId,
-            score: Number(score) || 0,
-            durationMs: Number(durationMs) || 0,
+            score: numScore,
+            durationMs: numDuration,
             ip: clientIp(headers ?? {}),
         });
 

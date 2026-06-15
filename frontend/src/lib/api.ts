@@ -64,20 +64,46 @@ export interface DualTotals {
 }
 
 /**
- * Submit a game score for a visitor. The SERVER clamps it and returns the
- * authoritative personal + global aggregates, so the UI shows the server's
- * numbers — never ones it computed. Returns null on failure.
+ * Begin a play and obtain a one-time score token. The token must accompany the
+ * score; without it the server rejects the submission (anti-cheat). Returns the
+ * token, or null on failure.
+ */
+export async function startGame(
+  slug: string,
+  gameId: string,
+  visitorId: string,
+): Promise<string | null> {
+  try {
+    const res = await fetch("/api/games/start", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ slug, gameId, visitorId }),
+    });
+    if (!res.ok) return null;
+    const data = (await res.json()) as { token?: string };
+    return data.token ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Submit a game score for a visitor with the play's token. The SERVER verifies
+ * the token + plausibility, clamps, and returns the authoritative personal +
+ * global aggregates, so the UI shows the server's numbers. Returns null on
+ * failure (rejected token, implausible score, network).
  */
 export async function postScore(
   slug: string,
   visitorId: string,
   payload: ScorePayload,
+  token: string | null,
 ): Promise<ScoreResult | null> {
   try {
     const res = await fetch("/api/scores", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ slug, visitorId, ...payload }),
+      body: JSON.stringify({ slug, visitorId, token, ...payload }),
       keepalive: true,
     });
     if (!res.ok) return null;

@@ -173,10 +173,10 @@ export default function Catcher({ config, onFinish }: GameProps) {
       style={{ background: cfg.background, touchAction: "none" }}
     >
       {/* HUD */}
-      <div className="pointer-events-none absolute top-3 left-3 z-10 rounded-[var(--radius-full)] bg-white/85 px-4 py-1.5 font-bold text-[var(--color-text)] shadow-[var(--shadow-sm)]">
+      <div className="pointer-events-none absolute top-3 left-3 z-10 rounded-[var(--radius-full)] bg-[var(--color-surface)]/90 px-4 py-1.5 font-bold text-[var(--color-text)] shadow-[var(--shadow-sm)]">
         {score} 🏅
       </div>
-      <div className="pointer-events-none absolute top-3 right-3 z-10 rounded-[var(--radius-full)] bg-white/85 px-4 py-1.5 font-bold text-[var(--color-text)] shadow-[var(--shadow-sm)]">
+      <div className="pointer-events-none absolute top-3 right-3 z-10 rounded-[var(--radius-full)] bg-[var(--color-surface)]/90 px-4 py-1.5 font-bold text-[var(--color-text)] shadow-[var(--shadow-sm)]">
         {t("catcher.timeLeft", { n: timeLeft })}
       </div>
 

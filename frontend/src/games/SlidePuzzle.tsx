@@ -142,7 +142,7 @@ export default function SlidePuzzle({ friend, onFinish }: GameProps) {
   return (
     <div className="flex h-full w-full flex-col items-center justify-center gap-4 p-4">
       <div className="flex items-center gap-3">
-        <span className="rounded-[var(--radius-full)] bg-white/85 px-4 py-1.5 font-bold text-[var(--color-text)] shadow-[var(--shadow-sm)]">
+        <span className="rounded-[var(--radius-full)] bg-[var(--color-surface)]/90 px-4 py-1.5 font-bold text-[var(--color-text)] shadow-[var(--shadow-sm)]">
           {t("puzzle.moves", { n: moves })}
         </span>
       </div>
@@ -213,7 +213,7 @@ export default function SlidePuzzle({ friend, onFinish }: GameProps) {
         <button
           type="button"
           onClick={showHint}
-          className="rounded-[var(--radius-full)] bg-[var(--color-accent)] px-4 py-2 font-bold text-white shadow-[var(--shadow-sm)] transition-transform duration-200 hover:scale-105 active:scale-95"
+          className="rounded-[var(--radius-full)] bg-[var(--color-primary)] px-4 py-2 font-bold text-[var(--color-on-primary)] shadow-[var(--shadow-sm)] transition-transform duration-200 hover:scale-105 active:scale-95"
         >
           {t("puzzle.hint")}
         </button>
