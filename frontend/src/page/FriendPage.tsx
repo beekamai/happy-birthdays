@@ -13,6 +13,7 @@ import { StickerCard } from "../components/decor/StickerCard.tsx";
 
 import { Hero } from "./Hero.tsx";
 import { GiftCard } from "./GiftCard.tsx";
+import { GiftList } from "./GiftList.tsx";
 import { GamesGrid } from "./GamesGrid.tsx";
 import { PetCompanion } from "../pet/PetCompanion.tsx";
 
@@ -90,22 +91,34 @@ export function FriendPage({ friend, site }: FriendPageProps) {
           </p>
         </StickerCard>
 
-        {friend.gift && <GiftCard gift={friend.gift} />}
-
-        {totals && (totals.personal.total > 0 || totals.global.total > 0) && (
-          <div className="flex flex-wrap items-center justify-center gap-3">
-            <span className="inline-flex items-center gap-2 rounded-[var(--radius-full)] border-[2px] border-[var(--color-ramen-gold)] bg-[var(--color-ramen-gold)]/15 px-5 py-2 font-bold text-[var(--color-text)] shadow-[var(--shadow-sm)]">
-              <span aria-hidden="true">🏅</span>
-              Твои очки: {totals.personal.total}
-            </span>
-            <span className="inline-flex items-center gap-2 rounded-[var(--radius-full)] border-[2px] border-[var(--color-secondary)] bg-[var(--color-secondary)]/15 px-5 py-2 font-bold text-[var(--color-text)] shadow-[var(--shadow-sm)]">
-              <span aria-hidden="true">🌍</span>
-              Всего на странице: {totals.global.total}
-            </span>
+        {/* Gift: a single current card, or the full dated list (owner setting). */}
+        {friend.giftDisplay === "all" && friend.giftHistory && friend.giftHistory.length > 0 ? (
+          <div className="flex justify-center">
+            <GiftList gifts={friend.giftHistory} />
           </div>
+        ) : (
+          friend.gift && <GiftCard gift={friend.gift} />
         )}
 
-        <GamesGrid friend={friend} site={site} visitorId={visitorId} onScored={refresh} />
+        {/* Games + scores — hidden entirely when the friend turned them off. */}
+        {friend.gamesEnabled && (
+          <>
+            {totals && (totals.personal.total > 0 || totals.global.total > 0) && (
+              <div className="flex flex-wrap items-center justify-center gap-3">
+                <span className="inline-flex items-center gap-2 rounded-[var(--radius-full)] border-[2px] border-[var(--color-ramen-gold)] bg-[var(--color-ramen-gold)]/15 px-5 py-2 font-bold text-[var(--color-text)] shadow-[var(--shadow-sm)]">
+                  <span aria-hidden="true">🏅</span>
+                  Твои очки: {totals.personal.total}
+                </span>
+                <span className="inline-flex items-center gap-2 rounded-[var(--radius-full)] border-[2px] border-[var(--color-secondary)] bg-[var(--color-secondary)]/15 px-5 py-2 font-bold text-[var(--color-text)] shadow-[var(--shadow-sm)]">
+                  <span aria-hidden="true">🌍</span>
+                  Всего на странице: {totals.global.total}
+                </span>
+              </div>
+            )}
+
+            <GamesGrid friend={friend} site={site} visitorId={visitorId} onScored={refresh} />
+          </>
+        )}
 
         <footer className="mt-2 flex items-center justify-center gap-2 text-[var(--color-text-soft)]">
           <span>с любовью, {site?.owner.displayName ?? "beekamai"}</span>

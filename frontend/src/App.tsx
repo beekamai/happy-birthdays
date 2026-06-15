@@ -1,3 +1,5 @@
+import { lazy, Suspense } from "react";
+
 import { useFriend } from "./lib/useFriend.ts";
 import { useSite } from "./lib/useSite.ts";
 
@@ -7,6 +9,9 @@ import { LockedPage } from "./page/LockedPage.tsx";
 import { Landing } from "./page/Landing.tsx";
 import { NotFound } from "./page/NotFound.tsx";
 
+/* The admin bundle is code-split: the public birthday pages never download it. */
+const AdminApp = lazy(() => import("./admin/AdminApp.tsx"));
+
 /* Read the route slug from the path: "/alumi" -> "alumi", "/" -> "". No router;
    the backend serves the same SPA shell on every path. */
 function readSlug(): string {
@@ -15,6 +20,16 @@ function readSlug(): string {
 
 export function App() {
   const slug = readSlug();
+
+  /* /admin is its own app — branch on the path before any friend lookup so it
+     renders regardless of whether a friend named "admin" exists. */
+  if (slug === "admin" || window.location.pathname.startsWith("/admin")) {
+    return (
+      <Suspense fallback={<LoadingState />}>
+        <AdminApp />
+      </Suspense>
+    );
+  }
 
   if (!slug) return <Landing />;
   return <FriendRoute slug={slug} />;

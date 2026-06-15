@@ -8,6 +8,8 @@ import { serveFriendPage, serveLanding } from "../controllers/pageController";
  */
 const pageRoutes = new Elysia()
     .get("/", serveLanding)
+    /* /admin is the SPA admin app — serve the shell (200), not a 404 page. */
+    .get("/admin", serveLanding)
     .get("/:slug", serveFriendPage);
 
 export default pageRoutes;

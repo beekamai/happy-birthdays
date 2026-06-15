@@ -27,7 +27,14 @@ export function Hero({ friend }: HeroProps) {
 
       <div className="flex flex-col items-center gap-1">
         <h1 className="text-4xl">{friend.displayName}</h1>
-        <p className="text-[var(--color-text-soft)]">{friend.username}</p>
+        <a
+          href={`https://t.me/${friend.username.replace(/^@/, "")}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[var(--color-text-soft)] transition-colors hover:text-[var(--color-secondary-deep)]"
+        >
+          {friend.username}
+        </a>
       </div>
 
       <Countdown birthday={friend.birthday} />

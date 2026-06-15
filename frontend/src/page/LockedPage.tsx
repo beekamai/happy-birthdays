@@ -5,6 +5,7 @@ import { Lanterns } from "../components/decor/Lanterns.tsx";
 import { Particles } from "../components/decor/Particles.tsx";
 import { StickerCard } from "../components/decor/StickerCard.tsx";
 import { Countdown } from "./Countdown.tsx";
+import { GiftList } from "./GiftList.tsx";
 
 /* Shown outside the birthday window: just the friend's identity and a countdown
    to their next birthday — no greeting, gift, games or scoring. */
@@ -34,7 +35,14 @@ export function LockedPage({ friend }: { friend: PublicFriend }) {
 
         <div className="flex flex-col items-center gap-1">
           <h1 className="text-4xl">{friend.displayName}</h1>
-          <p className="text-[var(--color-text-soft)]">{friend.username}</p>
+          <a
+            href={`https://t.me/${friend.username.replace(/^@/, "")}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[var(--color-text-soft)] transition-colors hover:text-[var(--color-secondary-deep)]"
+          >
+            {friend.username}
+          </a>
         </div>
 
         <Countdown birthday={friend.birthday} />
@@ -50,6 +58,10 @@ export function LockedPage({ friend }: { friend: PublicFriend }) {
               : ` — через ${friend.access.daysUntilBirthday} дн. 🎉`}
           </p>
         </StickerCard>
+
+        {friend.giftHistory && friend.giftHistory.length > 0 && (
+          <GiftList gifts={friend.giftHistory} />
+        )}
       </div>
     </main>
   );

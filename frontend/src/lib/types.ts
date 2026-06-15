@@ -26,6 +26,17 @@ export interface PublicFriend {
   games: { gameId: string; config?: Record<string, unknown> }[];
   avatarUrl: string; /* "/friends/<slug>/<file>" */
   puzzleAvatarUrl?: string;
+  giftHistory?: {
+    name: string;
+    emoji?: string;
+    lottie?: string;
+    link?: string;
+    imageUrl?: string;
+    date?: string;
+  }[];
+  gamesEnabled: boolean;
+  giftDisplay: "current" | "all";
+  giftLayout: "list" | "blocks";
   access: AccessInfo;
 }
 

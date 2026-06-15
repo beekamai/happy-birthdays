@@ -144,6 +144,72 @@ export default class FriendRepository {
     }
 
     /* ----------------------------------------------------------------- */
+    /* Admin writes                                                       */
+    /* ----------------------------------------------------------------- */
+
+    /** All friend slugs (directory names with a valid config). */
+    static listSlugs(): string[] {
+        try {
+            if (!fs.existsSync(FRIENDS_DIR)) return [];
+            return fs
+                .readdirSync(FRIENDS_DIR, { withFileTypes: true })
+                .filter((e) => e.isDirectory())
+                .map((e) => e.name)
+                .filter((slug) => fs.existsSync(path.join(this.friendDir(slug), "config.json")));
+        } catch (error) {
+            Logger.error("FriendRepository", `listSlugs failed: ${error}`);
+            return [];
+        }
+    }
+
+    /**
+     * Validate + write a friend config to disk, then bust the cache so the next
+     * read reflects it. Returns the parsed config or null on failure.
+     */
+    static writeConfig(slug: string, raw: unknown): FriendConfig | null {
+        try {
+            if (!/^[a-z0-9-]+$/.test(slug)) {
+                Logger.warn("FriendRepository", "writeConfig rejected bad slug", { slug });
+                return null;
+            }
+            const cfg = validateFriendConfig(raw);
+            const dir = this.friendDir(slug);
+            fs.mkdirSync(dir, { recursive: true });
+            const file = path.join(dir, "config.json");
+            fs.writeFileSync(file, JSON.stringify(cfg, null, 2) + "\n", "utf-8");
+            this.cache.delete(slug);
+            return cfg;
+        } catch (error) {
+            Logger.error("FriendRepository", `writeConfig failed: ${error}`, { slug });
+            return null;
+        }
+    }
+
+    /** Create a new friend (fails if the slug already exists). */
+    static createFriend(slug: string, raw: unknown): FriendConfig | null {
+        try {
+            const dir = this.friendDir(slug);
+            if (fs.existsSync(path.join(dir, "config.json"))) {
+                Logger.warn("FriendRepository", "createFriend: slug exists", { slug });
+                return null;
+            }
+            return this.writeConfig(slug, raw);
+        } catch (error) {
+            Logger.error("FriendRepository", `createFriend failed: ${error}`, { slug });
+            return null;
+        }
+    }
+
+    /** Absolute path to a friend's directory (for avatar uploads). */
+    static friendDirPath(slug: string): string | null {
+        try {
+            return this.friendDir(slug);
+        } catch {
+            return null;
+        }
+    }
+
+    /* ----------------------------------------------------------------- */
     /* Internals                                                          */
     /* ----------------------------------------------------------------- */
 
@@ -173,12 +239,30 @@ export default class FriendRepository {
      * THE single source of truth mapping FriendConfig -> PublicFriend.
      * Both the API and server-side page injection must go through here.
      */
+    /* Map config gift history → public shape, sorted by date ascending. */
+    private static buildGiftHistory(slug: string, cfg: FriendConfig) {
+        return (cfg.giftHistory ?? [])
+            .map((g) => ({
+                name: g.name,
+                ...(g.emoji ? { emoji: g.emoji } : {}),
+                ...(g.lottie ? { lottie: g.lottie } : {}),
+                ...(g.link ? { link: g.link } : {}),
+                ...(g.imagePath ? { imageUrl: `/friends/${slug}/${g.imagePath}` } : {}),
+                ...(g.date ? { date: g.date } : {}),
+            }))
+            .sort((a, b) => (a.date ?? "").localeCompare(b.date ?? ""));
+    }
+
     private static toPublicFriend(slug: string, cfg: FriendConfig): PublicFriend {
         const birthday = parseBirthday(cfg.birthday);
         const access = computeAccess(birthday.month, birthday.day);
+        const giftHistory = this.buildGiftHistory(slug, cfg);
+        const gamesEnabled = cfg.gamesEnabled ?? true;
+        const giftDisplay = cfg.giftDisplay ?? "current";
+        const giftLayout = cfg.giftLayout ?? "blocks";
 
-        /* Locked pages expose only identity + countdown — no greeting, gift or
-           games (the celebration is hidden until the birthday window). */
+        /* Locked pages expose identity + countdown + the gift history list — but
+           no greeting or games (the celebration itself stays hidden). */
         if (access.state === "locked") {
             return {
                 slug,
@@ -189,6 +273,10 @@ export default class FriendRepository {
                 accent: cfg.accent ?? DEFAULT_ACCENT,
                 games: [],
                 avatarUrl: `/friends/${slug}/${cfg.avatar}`,
+                ...(giftHistory.length ? { giftHistory } : {}),
+                gamesEnabled,
+                giftDisplay,
+                giftLayout,
                 access,
             };
         }
@@ -200,8 +288,12 @@ export default class FriendRepository {
             birthday,
             message: cfg.message,
             accent: cfg.accent ?? DEFAULT_ACCENT,
-            games: cfg.games,
+            games: gamesEnabled ? cfg.games : [],
             avatarUrl: `/friends/${slug}/${cfg.avatar}`,
+            ...(giftHistory.length ? { giftHistory } : {}),
+            gamesEnabled,
+            giftDisplay,
+            giftLayout,
             access,
         };
 

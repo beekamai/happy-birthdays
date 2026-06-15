@@ -1,10 +1,13 @@
 import { Elysia } from "elysia";
 import { staticPlugin } from "@elysiajs/static";
+import { jwt } from "@elysiajs/jwt";
 
-import { DIST_DIR } from "./config/constants";
+import { DIST_DIR, SESSION_SECRET } from "./config/constants";
 import { ErrorHandler } from "./handlers/errorHandler";
 
 import apiRoutes from "./routes/apiRoutes";
+import authRoutes from "./routes/authRoutes";
+import adminRoutes from "./routes/adminRoutes";
 import ogRoutes from "./routes/ogRoutes";
 import assetRoutes from "./routes/assetRoutes";
 import pageRoutes from "./routes/pageRoutes";
@@ -19,7 +22,13 @@ import pageRoutes from "./routes/pageRoutes";
  */
 const app = new Elysia()
     .onError(ErrorHandler)
-    .group("/api", (group) => group.use(apiRoutes))
+    .use(jwt({ name: "jwt", secret: SESSION_SECRET }))
+    .group("/api", (group) =>
+        group
+            .use(apiRoutes)
+            .group("/auth", (g) => g.use(authRoutes))
+            .group("/admin", (g) => g.use(adminRoutes)),
+    )
     .use(ogRoutes)
     .use(assetRoutes)
     .use(

@@ -41,6 +41,15 @@ export const DIST_DIR = path.join(ROOT_DIR, "dist");
 export const FONTS_DIR = path.join(ROOT_DIR, "assets", "fonts");
 export const TWEMOJI_DIR = path.join(ROOT_DIR, "assets", "twemoji");
 
+/* Auth / admin. Telegram Login Widget verifies against the bot token; the owner
+   (matched by Telegram username, case-insensitive, no @) can manage every page,
+   a friend can edit only the page whose username matches their own. */
+export const TG_BOT_TOKEN = process.env.TG_BOT_TOKEN ?? "";
+export const TG_BOT_USERNAME = process.env.TG_BOT_USERNAME ?? "";
+export const OWNER_TG_USERNAME = (process.env.OWNER_TG_USERNAME ?? "").replace(/^@/, "").toLowerCase();
+export const SESSION_SECRET = process.env.SESSION_SECRET ?? "dev-insecure-secret-change-me";
+export const AUTH_TTL_DAYS = 30;
+
 /* SQLite database files. */
 export const SCORES_DB_PATH = path.join(ROOT_DIR, "scores.db");
 export const BIRTHDAYS_DB_PATH = path.join(ROOT_DIR, "birthdays.db");

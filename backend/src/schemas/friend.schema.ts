@@ -158,6 +158,15 @@ export function validateFriendConfig(obj: unknown): FriendConfig {
         });
     }
 
+    /* Display settings. */
+    if (typeof obj.gamesEnabled === "boolean") result.gamesEnabled = obj.gamesEnabled;
+    if (obj.giftDisplay === "current" || obj.giftDisplay === "all") {
+        result.giftDisplay = obj.giftDisplay;
+    }
+    if (obj.giftLayout === "list" || obj.giftLayout === "blocks") {
+        result.giftLayout = obj.giftLayout;
+    }
+
     return result;
 }
 
@@ -201,6 +210,21 @@ export const PublicFriend_Object_Schema = {
     games: t.Array(t.Object(Game_Object_Schema)),
     avatarUrl: t.String(),
     puzzleAvatarUrl: t.Optional(t.String()),
+    giftHistory: t.Optional(
+        t.Array(
+            t.Object({
+                name: t.String(),
+                emoji: t.Optional(t.String()),
+                lottie: t.Optional(t.String()),
+                link: t.Optional(t.String()),
+                imageUrl: t.Optional(t.String()),
+                date: t.Optional(t.String()),
+            }),
+        ),
+    ),
+    gamesEnabled: t.Boolean(),
+    giftDisplay: t.Union([t.Literal("current"), t.Literal("all")]),
+    giftLayout: t.Union([t.Literal("list"), t.Literal("blocks")]),
     access: t.Object(Access_Object_Schema),
 };
 

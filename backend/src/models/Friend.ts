@@ -31,6 +31,10 @@ export interface FriendConfig {
         imagePath?: string;
         date?: string;
     }[];
+    /* Owner/friend-tunable display settings. */
+    gamesEnabled?: boolean; /* default true; off hides games + score badges */
+    giftDisplay?: "current" | "all"; /* in-window: single current gift or full list */
+    giftLayout?: "list" | "blocks"; /* how the gift list is rendered */
 }
 
 /* Parsed birthday components. `year` present only for full ISO dates. */
@@ -58,6 +62,18 @@ export interface PublicFriend {
     games: { gameId: string; config?: Record<string, unknown> }[];
     avatarUrl: string;
     puzzleAvatarUrl?: string;
+    /* Full gift history (sorted by date), shown as a list outside the window. */
+    giftHistory?: {
+        name: string;
+        emoji?: string;
+        lottie?: string;
+        link?: string;
+        imageUrl?: string;
+        date?: string;
+    }[];
+    gamesEnabled: boolean;
+    giftDisplay: "current" | "all";
+    giftLayout: "list" | "blocks";
     /* Access window (open / closing / locked) computed from the birthday. */
     access: AccessInfo;
 }
