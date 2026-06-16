@@ -253,6 +253,21 @@ export default class FriendRepository {
             .sort((a, b) => (a.date ?? "").localeCompare(b.date ?? ""));
     }
 
+    /* Build the public translations map. On locked pages the greeting is hidden,
+       so its translated variants are dropped too (keeping parity with `message`). */
+    private static buildTranslations(cfg: FriendConfig, hideMessage: boolean) {
+        if (!cfg.translations) return undefined;
+        const out: NonNullable<FriendConfig["translations"]> = {};
+        for (const lang of ["ru", "en"] as const) {
+            const tr = cfg.translations[lang];
+            if (!tr) continue;
+            const fields = { ...tr };
+            if (hideMessage) delete fields.message;
+            if (Object.keys(fields).length > 0) out[lang] = fields;
+        }
+        return Object.keys(out).length > 0 ? out : undefined;
+    }
+
     private static toPublicFriend(slug: string, cfg: FriendConfig): PublicFriend {
         const birthday = parseBirthday(cfg.birthday);
         const access = computeAccess(birthday.month, birthday.day);
@@ -266,6 +281,7 @@ export default class FriendRepository {
         /* Locked pages expose identity + countdown + the gift history list — but
            no greeting or games (the celebration itself stays hidden). */
         if (access.state === "locked") {
+            const translations = this.buildTranslations(cfg, true);
             return {
                 slug,
                 username: cfg.username,
@@ -281,10 +297,12 @@ export default class FriendRepository {
                 giftLayout,
                 lang,
                 theme,
+                ...(translations ? { translations } : {}),
                 access,
             };
         }
 
+        const translations = this.buildTranslations(cfg, false);
         const friend: PublicFriend = {
             slug,
             username: cfg.username,
@@ -300,6 +318,7 @@ export default class FriendRepository {
             giftLayout,
             lang,
             theme,
+            ...(translations ? { translations } : {}),
             access,
         };
 

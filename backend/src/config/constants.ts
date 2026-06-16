@@ -50,6 +50,13 @@ export const OWNER_TG_USERNAME = (process.env.OWNER_TG_USERNAME ?? "").replace(/
 export const SESSION_SECRET = process.env.SESSION_SECRET ?? "dev-insecure-secret-change-me";
 export const AUTH_TTL_DAYS = 30;
 
+/* Gemini (Google AI Studio) — auto-translates user content between ru/en.
+   Absent key disables auto-translation gracefully (content stays single-lang).
+   `gemini-flash-latest` is an alias that tracks the current stable Flash model,
+   so it won't 404 when a dated version is retired. */
+export const GEMINI_API_KEY = process.env.GEMINI_API_KEY ?? "";
+export const GEMINI_MODEL = process.env.GEMINI_MODEL ?? "gemini-flash-latest";
+
 /* SQLite database files. */
 export const SCORES_DB_PATH = path.join(ROOT_DIR, "scores.db");
 export const BIRTHDAYS_DB_PATH = path.join(ROOT_DIR, "birthdays.db");

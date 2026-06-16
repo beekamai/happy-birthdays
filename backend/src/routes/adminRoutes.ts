@@ -6,6 +6,7 @@ import {
     updateFriend,
     createFriend,
     uploadAvatar,
+    translate,
 } from "../controllers/adminController";
 
 /* Admin endpoints (mounted under /api/admin). Each controller checks the
@@ -15,6 +16,7 @@ const adminRoutes = new Elysia()
     .post("/friends", createFriend)
     .get("/friend/:slug", getFriendConfig)
     .put("/friend/:slug", updateFriend)
-    .post("/friend/:slug/avatar", uploadAvatar);
+    .post("/friend/:slug/avatar", uploadAvatar)
+    .post("/translate", translate);
 
 export default adminRoutes;

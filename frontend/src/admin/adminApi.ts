@@ -67,6 +67,9 @@ export interface FriendConfig {
   giftLayout?: "list" | "blocks";
   lang?: "ru" | "en";
   theme?: "light" | "dark" | "halloween" | "newyear";
+  translations?: Partial<
+    Record<"ru" | "en", { displayName?: string; message?: string; giftName?: string }>
+  >;
 }
 
 /** Subset a non-owner friend may PUT for their own page. */
@@ -78,6 +81,9 @@ export interface FriendLimitedUpdate {
   giftLayout?: "list" | "blocks";
   lang?: "ru" | "en";
   theme?: "light" | "dark" | "halloween" | "newyear";
+  translations?: Partial<
+    Record<"ru" | "en", { displayName?: string; message?: string; giftName?: string }>
+  >;
 }
 
 export interface AvatarUploadResult {
@@ -266,4 +272,42 @@ export async function uploadAvatar(
   );
   if (!res.ok) throw new ApiError(res.status, await readError(res));
   return (await res.json()) as AvatarUploadResult;
+}
+
+/* ---- Admin: translation -------------------------------------------------- */
+
+export interface TranslateFieldsPayload {
+  from: "ru" | "en";
+  to: "ru" | "en";
+  displayName?: string;
+  message?: string;
+  giftName?: string;
+}
+
+export interface TranslatedFields {
+  displayName?: string;
+  message?: string;
+  giftName?: string;
+}
+
+/**
+ * Translate live form values via Gemini on the backend. Only the passed
+ * non-empty fields come back translated. Returns `null` on a non-2xx response
+ * (e.g. 502 when the provider is unavailable) so callers can surface a toast.
+ */
+export async function translateFields(
+  payload: TranslateFieldsPayload,
+): Promise<TranslatedFields | null> {
+  try {
+    const res = await fetch("/api/admin/translate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) return null;
+    const body = (await res.json()) as { ok: boolean; translations?: TranslatedFields };
+    return body.translations ?? null;
+  } catch {
+    return null;
+  }
 }

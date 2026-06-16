@@ -167,6 +167,22 @@ export function validateFriendConfig(obj: unknown): FriendConfig {
         result.giftLayout = obj.giftLayout;
     }
     if (obj.lang === "ru" || obj.lang === "en") result.lang = obj.lang;
+
+    /* Optional localized content (auto-translated, hand-editable). Lenient: only
+       string fields are kept; anything malformed is silently dropped. */
+    if (isObject(obj.translations)) {
+        const out: NonNullable<FriendConfig["translations"]> = {};
+        for (const lang of ["ru", "en"] as const) {
+            const tr = (obj.translations as Record<string, unknown>)[lang];
+            if (!isObject(tr)) continue;
+            const fields: NonNullable<FriendConfig["translations"]>["ru"] = {};
+            if (typeof tr.displayName === "string") fields.displayName = tr.displayName;
+            if (typeof tr.message === "string") fields.message = tr.message;
+            if (typeof tr.giftName === "string") fields.giftName = tr.giftName;
+            if (Object.keys(fields).length > 0) out[lang] = fields;
+        }
+        if (Object.keys(out).length > 0) result.translations = out;
+    }
     if (
         obj.theme === "light" ||
         obj.theme === "dark" ||
@@ -208,6 +224,13 @@ export const Access_Object_Schema = {
     closesInDays: t.Number(),
 };
 
+/* Per-language localized content variants (other than the page's source lang). */
+const FriendTranslations_Object_Schema = t.Object({
+    displayName: t.Optional(t.String()),
+    message: t.Optional(t.String()),
+    giftName: t.Optional(t.String()),
+});
+
 export const PublicFriend_Object_Schema = {
     slug: t.String(),
     username: t.String(),
@@ -241,6 +264,12 @@ export const PublicFriend_Object_Schema = {
         t.Literal("halloween"),
         t.Literal("newyear"),
     ]),
+    translations: t.Optional(
+        t.Object({
+            ru: t.Optional(FriendTranslations_Object_Schema),
+            en: t.Optional(FriendTranslations_Object_Schema),
+        }),
+    ),
     access: t.Object(Access_Object_Schema),
 };
 

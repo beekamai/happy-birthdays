@@ -8,6 +8,7 @@ import { getVisitorId } from "../lib/visitor.ts";
 import { unlockAudio } from "../lib/sound.ts";
 import { useTheme } from "../lib/useTheme.ts";
 import { useT, initLang } from "../lib/i18n.ts";
+import { friendMessage, friendGiftName } from "../lib/friendContent.ts";
 import { SoundToggle } from "../components/SoundToggle.tsx";
 import { ThemeSwitcher } from "../components/ThemeSwitcher.tsx";
 import { LanguageSwitcher } from "../components/LanguageSwitcher.tsx";
@@ -40,8 +41,12 @@ const prefersReducedMotion = () =>
 export function FriendPage({ friend, site }: FriendPageProps) {
   const accentStyle = { "--color-accent": friend.accent } as CSSProperties;
   const { theme, setTheme, themes } = useTheme(friend.theme);
-  const { t } = useT();
+  const { t, lang } = useT();
   const visitorId = getVisitorId();
+  /* Gift card with the name localized to the active language. */
+  const localizedGift = friend.gift
+    ? { ...friend.gift, name: friendGiftName(friend, lang) }
+    : undefined;
 
   /* Initialise language from the friend's default (a stored override wins). */
   useEffect(() => {
@@ -101,7 +106,7 @@ export function FriendPage({ friend, site }: FriendPageProps) {
 
         <StickerCard hover={false}>
           <p className="text-center text-lg leading-relaxed text-[var(--color-text)] italic">
-            {friend.message}
+            {friendMessage(friend, lang)}
           </p>
         </StickerCard>
 
@@ -111,7 +116,7 @@ export function FriendPage({ friend, site }: FriendPageProps) {
             <GiftList gifts={friend.giftHistory} />
           </div>
         ) : (
-          friend.gift && <GiftCard gift={friend.gift} />
+          localizedGift && <GiftCard gift={localizedGift} />
         )}
 
         {/* Games + scores — hidden entirely when the friend turned them off. */}

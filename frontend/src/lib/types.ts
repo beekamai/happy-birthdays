@@ -39,7 +39,16 @@ export interface PublicFriend {
   giftLayout: "list" | "blocks";
   lang: "ru" | "en";
   theme: "light" | "dark" | "halloween" | "newyear";
+  /* Localized variants of displayName/message/giftName for the non-source
+     language; the client picks per the visitor's active language. */
+  translations?: Partial<Record<"ru" | "en", FriendTranslations>>;
   access: AccessInfo;
+}
+
+export interface FriendTranslations {
+  displayName?: string;
+  message?: string;
+  giftName?: string;
 }
 
 export interface SiteConfig {

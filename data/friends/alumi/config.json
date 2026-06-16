@@ -18,5 +18,12 @@
     { "gameId": "maze" }
   ],
   "avatar": "avatar2.jpg",
-  "puzzleAvatar": "avatar1.jpg"
+  "puzzleAvatar": "avatar1.jpg",
+  "translations": {
+    "en": {
+      "displayName": "Alumi",
+      "message": "Happy birthday, little fox! 🦊 May this year be warm like a bowl of ramen and full of stars. I put together this page for you — scroll through, play, and know that you are very loved. 🍜✨",
+      "giftName": "Instant Ramen"
+    }
+  }
 }

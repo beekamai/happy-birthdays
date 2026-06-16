@@ -3,6 +3,7 @@ import { useEffect, type CSSProperties } from "react";
 import type { PublicFriend } from "../lib/types.ts";
 import { useTheme } from "../lib/useTheme.ts";
 import { useT, initLang } from "../lib/i18n.ts";
+import { friendDisplayName } from "../lib/friendContent.ts";
 import { ThemeSwitcher } from "../components/ThemeSwitcher.tsx";
 import { LanguageSwitcher } from "../components/LanguageSwitcher.tsx";
 import { Lanterns } from "../components/decor/Lanterns.tsx";
@@ -17,7 +18,8 @@ import { GiftList } from "./GiftList.tsx";
 export function LockedPage({ friend }: { friend: PublicFriend }) {
   const accentStyle = { "--color-accent": friend.accent } as CSSProperties;
   const { theme, setTheme, themes } = useTheme(friend.theme);
-  const { t } = useT();
+  const { t, lang } = useT();
+  const name = friendDisplayName(friend, lang);
 
   useEffect(() => {
     initLang(friend.lang);
@@ -38,7 +40,7 @@ export function LockedPage({ friend }: { friend: PublicFriend }) {
       <div className="relative flex flex-col items-center gap-5">
         <img
           src={friend.avatarUrl}
-          alt={friend.displayName}
+          alt={name}
           className="size-32 rounded-full border-[4px] border-white object-cover shadow-[var(--shadow-md)]"
           style={{
             outline: "3px solid var(--color-accent)",
@@ -48,7 +50,7 @@ export function LockedPage({ friend }: { friend: PublicFriend }) {
         />
 
         <div className="flex flex-col items-center gap-1">
-          <h1 className="text-4xl">{friend.displayName}</h1>
+          <h1 className="text-4xl">{name}</h1>
           <a
             href={`https://t.me/${friend.username.replace(/^@/, "")}`}
             target="_blank"

@@ -5,12 +5,45 @@ import BirthdayRepository from "../repositories/BirthdayRepository";
 import HistoryRepository from "../repositories/HistoryRepository";
 import { readUser } from "./authController";
 import type { AuthUser } from "../models/Auth";
+import type { FriendConfig } from "../models/Friend";
+import { translateContent, type Lang, type TranslatableContent } from "../services/translateService";
 import { assertInside } from "../utils/paths";
 import Logger from "../utils/Logger";
 
 /* Fields a non-owner friend may change on their OWN page. The owner may write
    the full config. */
-const FRIEND_EDITABLE = ["displayName", "accent", "gamesEnabled", "giftDisplay", "giftLayout"] as const;
+const FRIEND_EDITABLE = [
+    "displayName",
+    "accent",
+    "gamesEnabled",
+    "giftDisplay",
+    "giftLayout",
+    "translations",
+] as const;
+
+const OTHER_LANG: Record<Lang, Lang> = { ru: "en", en: "ru" };
+
+/* Auto-fill the other-language translation for any user field left blank,
+   preserving manual overrides already present. The editor owns re-translation
+   when a source field changes; this is a safety net for blank/absent variants.
+   Network/key failures leave translations untouched (never blocks a save). */
+async function autofillTranslations(cfg: FriendConfig): Promise<void> {
+    const from = (cfg.lang ?? "ru") as Lang;
+    const to = OTHER_LANG[from];
+    const existing = cfg.translations?.[to] ?? {};
+    const need: TranslatableContent = {};
+    if (!existing.displayName?.trim() && cfg.displayName?.trim()) need.displayName = cfg.displayName;
+    if (!existing.message?.trim() && cfg.message?.trim()) need.message = cfg.message;
+    if (!existing.giftName?.trim() && cfg.gift?.name?.trim()) need.giftName = cfg.gift.name;
+    if (Object.keys(need).length === 0) return;
+
+    const translated = await translateContent(need, from, to);
+    if (!translated) return;
+    cfg.translations = {
+        ...cfg.translations,
+        [to]: { ...existing, ...translated },
+    };
+}
 
 function canEdit(user: AuthUser, cfgUsername?: string): boolean {
     if (user.isOwner) return true;
@@ -89,6 +122,9 @@ export const updateFriend = async ({ params, body, jwt, cookie, set }: any) => {
 
         const saved = FriendRepository.writeConfig(params.slug, next);
         if (!saved) { set.status = 400; return { error: "Invalid config" }; }
+        /* Fill any missing other-language variants, then persist again. */
+        await autofillTranslations(saved);
+        FriendRepository.writeConfig(params.slug, saved);
         resync(params.slug);
         set.status = 200;
         return { ok: true, friend: FriendRepository.findBySlug(params.slug) };
@@ -116,6 +152,9 @@ export const createFriend = async ({ body, jwt, cookie, set }: any) => {
         const { slug: _omit, ...config } = body ?? {};
         const saved = FriendRepository.createFriend(slug, config);
         if (!saved) { set.status = 409; return { error: "Slug exists or config invalid" }; }
+        /* Seed the other-language variants for the freshly authored content. */
+        await autofillTranslations(saved);
+        FriendRepository.writeConfig(slug, saved);
         resync(slug);
         set.status = 200;
         return { ok: true, slug, friend: FriendRepository.findBySlug(slug) };
@@ -157,6 +196,33 @@ export const uploadAvatar = async ({ params, body, jwt, cookie, set }: any) => {
         return { ok: true, filename, url: `/friends/${params.slug}/${filename}` };
     } catch (error) {
         Logger.error("AdminController", `uploadAvatar error: ${error}`, { slug: params?.slug });
+        set.status = 500;
+        return { error: "Internal server error" };
+    }
+};
+
+/** POST /api/admin/translate — translate live form fields (any logged-in user).
+    Operates on the values sent in the body so unsaved edits translate too. */
+export const translate = async ({ body, jwt, cookie, set }: any) => {
+    try {
+        const user = await readUser(jwt, cookie);
+        if (!user) { set.status = 401; return { error: "Unauthorized" }; }
+
+        const from: Lang = body?.from === "en" ? "en" : "ru";
+        const to: Lang = body?.to === "ru" ? "ru" : "en";
+        if (from === to) { set.status = 400; return { error: "from and to must differ" }; }
+
+        const fields: TranslatableContent = {};
+        if (typeof body?.displayName === "string") fields.displayName = body.displayName;
+        if (typeof body?.message === "string") fields.message = body.message;
+        if (typeof body?.giftName === "string") fields.giftName = body.giftName;
+
+        const result = await translateContent(fields, from, to);
+        if (!result) { set.status = 502; return { error: "Translation unavailable" }; }
+        set.status = 200;
+        return { ok: true, translations: result };
+    } catch (error) {
+        Logger.error("AdminController", `translate error: ${error}`);
         set.status = 500;
         return { error: "Internal server error" };
     }

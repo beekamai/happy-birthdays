@@ -143,7 +143,7 @@ function TopBar({
             />
           )}
           <span className="hidden text-sm font-bold text-[var(--color-text)] sm:inline">
-            {user.username ? `@${user.username}` : (user.firstName ?? "ты")}
+            {user.username ? `@${user.username}` : (user.firstName ?? t("admin.you"))}
           </span>
           <button
             type="button"

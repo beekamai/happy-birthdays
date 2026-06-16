@@ -20,13 +20,9 @@ type View =
   | { kind: "edit"; slug: string }
   | { kind: "create" };
 
-const MONTHS = [
-  "янв", "фев", "мар", "апр", "май", "июн",
-  "июл", "авг", "сен", "окт", "ноя", "дек",
-];
-
-function birthdayLabel(b: AdminFriendSummary["birthday"]): string {
-  const m = MONTHS[(b.month - 1 + 12) % 12] ?? "?";
+function birthdayLabel(b: AdminFriendSummary["birthday"], t: (k: string) => string): string {
+  const month = ((b.month - 1 + 12) % 12) + 1;
+  const m = t(`month.short.${month}`);
   return b.year ? `${b.day} ${m} ${b.year}` : `${b.day} ${m}`;
 }
 
@@ -63,29 +59,29 @@ export function OwnerDashboard() {
 
       <div className="relative mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl">🍜 Странички</h1>
+          <h1 className="text-3xl">{t("dashboard.title")}</h1>
           <p className="text-[var(--color-text-soft)]">
-            Управляй поздравлениями друзей.
+            {t("dashboard.subtitle")}
           </p>
           <p className="mt-1 text-xs text-[var(--color-text-soft)]">
             {t("dashboard.coverage", { ru: cov.ru, en: cov.en })}
           </p>
         </div>
         <PillButton onClick={() => setView({ kind: "create" })}>
-          ➕ Создать страничку
+          {t("dashboard.create")}
         </PillButton>
       </div>
 
       {friends === null ? (
-        <Spinner label="Собираем странички…" />
+        <Spinner label={t("dashboard.loading")} />
       ) : friends.length === 0 ? (
         <StickerCard hover={false} className="text-center">
           <span className="block text-5xl select-none" aria-hidden="true">
             🗒️
           </span>
-          <h2 className="mt-3 text-2xl">Пока пусто</h2>
+          <h2 className="mt-3 text-2xl">{t("dashboard.empty.title")}</h2>
           <p className="mt-2 text-[var(--color-text-soft)]">
-            Создай первую страничку — будет тепло.
+            {t("dashboard.empty.text")}
           </p>
         </StickerCard>
       ) : (
@@ -116,7 +112,7 @@ export function OwnerDashboard() {
                 <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
                   <StateBadge state={f.state} />
                   <span className="text-sm text-[var(--color-text-soft)]">
-                    🎂 {birthdayLabel(f.birthday)}
+                    🎂 {birthdayLabel(f.birthday, t)}
                   </span>
                 </div>
               </StickerCard>

@@ -2,11 +2,13 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { ChangeEvent, CSSProperties, ReactNode } from "react";
 
 import { StickerCard } from "../components/decor/StickerCard.tsx";
+import { useT } from "../lib/i18n.ts";
 import {
   ApiError,
   createFriend,
   deriveSlug,
   fetchAdminFriend,
+  translateFields,
   updateFriend,
   uploadAvatar,
   type FriendConfig,
@@ -40,14 +42,6 @@ const GAME_IDS = [
   "maze",
 ] as const;
 
-const GAME_LABELS: Record<string, string> = {
-  "feed-fox": "🦊 Накорми лису",
-  "catch-stars": "⭐ Лови звёзды",
-  "slide-puzzle": "🧩 Пятнашки",
-  memory: "🃏 Память",
-  maze: "🌀 Лабиринт",
-};
-
 function uploadFilename(file: File, which: "main" | "puzzle"): string {
   const ext = file.type === "image/png" ? "png" : "jpg";
   return `${which}-${Math.max(1, file.size)}.${ext}`;
@@ -58,7 +52,10 @@ function cleanOptional(value: string | undefined): string | undefined {
   return trimmed ? trimmed : undefined;
 }
 
-function normalizeConfigForSave(config: FriendConfig): FriendConfig {
+function normalizeConfigForSave(
+  config: FriendConfig,
+  defaultGiftName: string,
+): FriendConfig {
   const gift = config.gift;
   const next: FriendConfig = {
     ...config,
@@ -79,7 +76,7 @@ function normalizeConfigForSave(config: FriendConfig): FriendConfig {
 
     if (name || emoji || lottie || link || imagePath) {
       next.gift = {
-        name: name ?? "Подарок",
+        name: name ?? defaultGiftName,
         emoji: emoji ?? "🎁",
         ...(lottie ? { lottie } : {}),
         ...(link ? { link } : {}),
@@ -164,12 +161,21 @@ export function FriendEditor({
   };
 
   const { toast, show } = useToast();
+  const { t } = useT();
+
+  /* Translation panel state for the target (non-page) language. Seeded from the
+     loaded config's translations; mutated by manual edits + the auto button. */
+  const [tName, setTName] = useState("");
+  const [tMessage, setTMessage] = useState("");
+  const [tGiftName, setTGiftName] = useState("");
+  const [translating, setTranslating] = useState(false);
 
   /* In create mode we start as POST; after the first successful save we behave
      like edit. `create && !editMode` is the only true "creating" state. */
   const creating = create && !editMode;
   /* Whether the form is the limited friend subset. Owners always get full. */
   const isLimited = limited && !isOwner;
+  const showFull = !isLimited;
 
   /* ---- Load existing config (edit / limited) --------------------------- */
   useEffect(() => {
@@ -190,6 +196,12 @@ export function FriendEditor({
         setConfig(detail.config);
         setIsOwner(detail.isOwner);
         setSlug(detail.slug);
+        /* Seed the translation panel from the stored other-language values. */
+        const target = (detail.config.lang ?? "ru") === "ru" ? "en" : "ru";
+        const tr = detail.config.translations?.[target];
+        setTName(tr?.displayName ?? "");
+        setTMessage(tr?.message ?? "");
+        setTGiftName(tr?.giftName ?? "");
       }
       setLoading(false);
     });
@@ -216,7 +228,7 @@ export function FriendEditor({
     [slugOverride, config?.username],
   );
 
-  if (loading) return <Spinner label="Открываем страничку…" />;
+  if (loading) return <Spinner label={t("editor.loading")} />;
 
   if (notFound || !config) {
     return (
@@ -225,13 +237,13 @@ export function FriendEditor({
           <span className="block text-5xl select-none" aria-hidden="true">
             🥺
           </span>
-          <h2 className="mt-3 text-2xl">Странички нет</h2>
+          <h2 className="mt-3 text-2xl">{t("editor.notFound.title")}</h2>
           <p className="mt-2 text-[var(--color-text-soft)]">
-            Не нашли такую — может, ссылка устарела.
+            {t("editor.notFound.text")}
           </p>
           {onBack && (
             <PillButton variant="ghost" className="mt-5" onClick={onBack}>
-              ← Назад
+              {t("editor.back")}
             </PillButton>
           )}
         </StickerCard>
@@ -276,7 +288,7 @@ export function FriendEditor({
       if (!slug) {
         if (which === "main") pendingMain.current = file;
         else pendingPuzzle.current = file;
-        show("Аватар загрузится после создания странички", "success");
+        show(t("editor.toast.avatarDeferred"), "success");
         return;
       }
 
@@ -285,14 +297,58 @@ export function FriendEditor({
         set(which === "main" ? "avatar" : "puzzleAvatar", res.filename);
         /* Drop the local blob so the tile shows the real (saved) image. */
         setPreview(which, null);
-        show("Аватар загружен 🖼️", "success");
+        show(t("editor.toast.avatarUploaded"), "success");
       } catch (err) {
         show(
-          err instanceof ApiError ? err.message : "Не вышло загрузить аватар",
+          err instanceof ApiError ? err.message : t("editor.toast.avatarFailed"),
           "error",
         );
       }
     };
+
+  /* The page language is the author language; the panel edits the other one. */
+  const pageLang: "ru" | "en" = config?.lang ?? "ru";
+  const targetLang: "ru" | "en" = pageLang === "ru" ? "en" : "ru";
+
+  /* Merge the panel values into config.translations[targetLang], keeping the
+     other language and dropping empty fields (the backend re-fills those). */
+  const withTranslations = (base: FriendConfig): FriendConfig => {
+    const entry: { displayName?: string; message?: string; giftName?: string } = {};
+    if (tName.trim()) entry.displayName = tName.trim();
+    if (showFull && tMessage.trim()) entry.message = tMessage.trim();
+    if (showFull && base.gift?.name?.trim() && tGiftName.trim())
+      entry.giftName = tGiftName.trim();
+    return {
+      ...base,
+      translations: { ...base.translations, [targetLang]: entry },
+    };
+  };
+
+  /* Run the live-value translation into the panel (overwrites panel fields). */
+  const onTranslate = async () => {
+    setTranslating(true);
+    try {
+      const result = await translateFields({
+        from: pageLang,
+        to: targetLang,
+        displayName: config?.displayName?.trim() || undefined,
+        message: showFull ? config?.message?.trim() || undefined : undefined,
+        giftName: showFull ? config?.gift?.name?.trim() || undefined : undefined,
+      });
+      if (!result) {
+        show(t("editor.toast.translateFailed"), "error");
+        return;
+      }
+      if (result.displayName !== undefined) setTName(result.displayName);
+      if (result.message !== undefined) setTMessage(result.message);
+      if (result.giftName !== undefined) setTGiftName(result.giftName);
+      show(t("editor.toast.translated"), "success");
+    } catch {
+      show(t("editor.toast.translateFailed"), "error");
+    } finally {
+      setTranslating(false);
+    }
+  };
 
   /* ---- Save ------------------------------------------------------------- */
   const onSave = async () => {
@@ -301,7 +357,10 @@ export function FriendEditor({
       if (creating) {
         const mainFile = pendingMain.current;
         const puzzleFile = pendingPuzzle.current;
-        const createConfig = normalizeConfigForSave(config);
+        const createConfig = normalizeConfigForSave(
+          withTranslations(config),
+          t("editor.giftName.default"),
+        );
 
         if (!createConfig.avatar && mainFile) {
           createConfig.avatar = uploadFilename(mainFile, "main");
@@ -310,7 +369,7 @@ export function FriendEditor({
           createConfig.puzzleAvatar = uploadFilename(puzzleFile, "puzzle");
         }
         if (!createConfig.avatar) {
-          show("Выбери главный аватар перед созданием", "error");
+          show(t("editor.toast.avatarNeeded"), "error");
           return;
         }
 
@@ -341,8 +400,9 @@ export function FriendEditor({
         setSlug(newSlug);
         setEditMode(true); /* further saves now PUT, not POST */
         setPreviewKey((k) => k + 1);
-        show("Страничка создана 🎉", "success");
+        show(t("editor.toast.created"), "success");
       } else if (isLimited) {
+        const merged = withTranslations(config);
         const subset: FriendLimitedUpdate = {
           displayName: config.displayName,
           accent: config.accent,
@@ -351,18 +411,22 @@ export function FriendEditor({
           giftLayout: config.giftLayout,
           lang: config.lang,
           theme: config.theme,
+          translations: merged.translations,
         };
         await updateFriend(slug, subset);
         setPreviewKey((k) => k + 1);
-        show("Сохранили 💛", "success");
+        show(t("editor.toast.saved"), "success");
       } else {
-        await updateFriend(slug, normalizeConfigForSave(config));
+        await updateFriend(
+          slug,
+          normalizeConfigForSave(withTranslations(config), t("editor.giftName.default")),
+        );
         setPreviewKey((k) => k + 1);
-        show("Сохранили 💛", "success");
+        show(t("editor.toast.saved"), "success");
       }
     } catch (err) {
       show(
-        err instanceof ApiError ? err.message : "Не удалось сохранить",
+        err instanceof ApiError ? err.message : t("editor.toast.saveFailed"),
         "error",
       );
     } finally {
@@ -372,7 +436,6 @@ export function FriendEditor({
 
   /* We can preview as soon as a slug exists (set on load, or after create). */
   const previewSlug = slug;
-  const showFull = !isLimited;
 
   /* ---- Avatar tile (shared by main + puzzle) --------------------------- */
   const avatarTile = (
@@ -396,7 +459,7 @@ export function FriendEditor({
         </div>
         <label className="cursor-pointer">
           <span className="inline-flex items-center gap-2 rounded-[var(--radius-full)] border-[2px] border-[var(--color-muted)] bg-[var(--color-surface)] px-4 py-2 text-sm font-bold text-[var(--color-text)] shadow-[var(--shadow-sm)] transition-transform hover:scale-[1.03]">
-            📷 Выбрать
+            {t("editor.avatarPick")}
           </span>
           <input
             type="file"
@@ -420,9 +483,9 @@ export function FriendEditor({
         <div>
           <h1 className="text-3xl">
             {creating
-              ? "Новая страничка"
+              ? t("editor.title.new")
               : isLimited
-                ? "Моя страничка"
+                ? t("editor.title.mine")
                 : config.displayName || slug}
           </h1>
           {slug && (
@@ -433,7 +496,7 @@ export function FriendEditor({
         </div>
         {onBack && (
           <PillButton variant="ghost" onClick={onBack}>
-            ← К списку
+            {t("editor.toBack")}
           </PillButton>
         )}
       </div>
@@ -442,68 +505,71 @@ export function FriendEditor({
         {/* ---- Form column ------------------------------------------------ */}
         <div className="flex flex-col gap-6">
           <StickerCard hover={false}>
-            <h2 className="mb-4 text-xl">👤 Основное</h2>
+            <h2 className="mb-4 text-xl">{t("editor.section.basic")}</h2>
             <div className="flex flex-col gap-4">
-              <Field label="Имя">
+              <Field label={t("editor.field.name")}>
                 <Input
                   value={config.displayName}
                   onChange={(e) => set("displayName", e.target.value)}
-                  placeholder="Алуми"
+                  placeholder={t("editor.placeholder.name")}
                 />
               </Field>
 
               {showFull && (
                 <>
                   <Field
-                    label="Telegram username"
-                    hint="С @ или без — например @alumi"
+                    label={t("editor.field.username")}
+                    hint={t("editor.hint.username")}
                   >
                     <Input
                       value={config.username}
                       onChange={(e) => set("username", e.target.value)}
-                      placeholder="@alumi"
+                      placeholder={t("editor.placeholder.username")}
                     />
                   </Field>
 
                   {creating && (
                     <Field
-                      label="Слаг (адрес странички)"
+                      label={t("editor.field.slug")}
                       hint={
                         derivedSlug
-                          ? `Будет: /${derivedSlug}`
-                          : "Заполни username — слаг подставится сам"
+                          ? t("editor.hint.slug", { slug: derivedSlug })
+                          : t("editor.hint.slugEmpty")
                       }
                     >
                       <Input
                         value={slugOverride}
                         onChange={(e) => setSlugOverride(e.target.value)}
-                        placeholder={deriveSlug(config.username) || "alumi"}
+                        placeholder={deriveSlug(config.username) || t("editor.placeholder.slug")}
                       />
                     </Field>
                   )}
 
                   <Field
-                    label="Дата рождения"
-                    hint="ММ-ДД (07-21) или с годом ГГГГ-ММ-ДД (2001-07-21)"
+                    label={t("editor.field.birthday")}
+                    hint={t("editor.hint.birthday")}
                   >
                     <Input
                       value={config.birthday}
                       onChange={(e) => set("birthday", e.target.value)}
-                      placeholder="07-21"
+                      placeholder={t("editor.placeholder.birthday")}
                     />
                   </Field>
 
-                  <Field label="Поздравление">
+                  <Field label={t("editor.field.message")}>
                     <Textarea
                       value={config.message}
                       onChange={(e) => set("message", e.target.value)}
-                      placeholder="Тёплые слова имениннику…"
+                      placeholder={t("editor.placeholder.message")}
                     />
                   </Field>
                 </>
               )}
 
-              <Field label="Цвет-акцент" hint="Подкрашивает кнопки и рамки">
+              <Field
+                label={t("editor.field.accent")}
+                hint={t("editor.hint.accent")}
+              >
                 <div className="flex items-center gap-3">
                   <input
                     type="color"
@@ -523,16 +589,16 @@ export function FriendEditor({
           </StickerCard>
 
           <StickerCard hover={false}>
-            <h2 className="mb-4 text-xl">🖼️ Аватары</h2>
+            <h2 className="mb-4 text-xl">{t("editor.section.avatars")}</h2>
             <div className="flex flex-col gap-4">
               {avatarTile(
-                "Главный аватар",
+                t("editor.field.avatarMain"),
                 mainPreview ?? (config.avatar ? `/friends/${slug}/${config.avatar}` : null),
                 onPickAvatar("main"),
               )}
               {showFull &&
                 avatarTile(
-                  "Аватар для пазла (необязательно)",
+                  t("editor.field.avatarPuzzle"),
                   puzzlePreview ??
                     (config.puzzleAvatar
                       ? `/friends/${slug}/${config.puzzleAvatar}`
@@ -544,34 +610,34 @@ export function FriendEditor({
 
           {showFull && (
             <StickerCard hover={false}>
-              <h2 className="mb-4 text-xl">🎁 Подарок</h2>
+              <h2 className="mb-4 text-xl">{t("editor.section.gift")}</h2>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <Field label="Название">
+                <Field label={t("editor.field.giftName")}>
                   <Input
                     value={config.gift?.name ?? ""}
                     onChange={(e) => setGift({ name: e.target.value })}
-                    placeholder="Подарочный NFT"
+                    placeholder={t("editor.placeholder.giftName")}
                   />
                 </Field>
-                <Field label="Эмодзи">
+                <Field label={t("editor.field.giftEmoji")}>
                   <Input
                     value={config.gift?.emoji ?? ""}
                     onChange={(e) => setGift({ emoji: e.target.value })}
-                    placeholder="🎁"
+                    placeholder={t("editor.placeholder.giftEmoji")}
                   />
                 </Field>
-                <Field label="Lottie (необязательно)">
+                <Field label={t("editor.field.giftLottie")}>
                   <Input
                     value={config.gift?.lottie ?? ""}
                     onChange={(e) => setGift({ lottie: e.target.value })}
-                    placeholder="имя_анимации.json"
+                    placeholder={t("editor.placeholder.giftLottie")}
                   />
                 </Field>
-                <Field label="Ссылка (необязательно)">
+                <Field label={t("editor.field.giftLink")}>
                   <Input
                     value={config.gift?.link ?? ""}
                     onChange={(e) => setGift({ link: e.target.value })}
-                    placeholder="https://t.me/nft/…"
+                    placeholder={t("editor.placeholder.giftLink")}
                   />
                 </Field>
               </div>
@@ -580,7 +646,7 @@ export function FriendEditor({
 
           {showFull && (
             <StickerCard hover={false}>
-              <h2 className="mb-4 text-xl">🎮 Игры</h2>
+              <h2 className="mb-4 text-xl">{t("editor.section.games")}</h2>
               <div className="flex flex-col gap-2">
                 {GAME_IDS.map((id) => {
                   const checked = config.games.some((g) => g.gameId === id);
@@ -604,7 +670,7 @@ export function FriendEditor({
                         className="size-5 accent-[var(--color-accent)]"
                       />
                       <span className="font-bold text-[var(--color-text)]">
-                        {GAME_LABELS[id]}
+                        {t(`editor.game.${id}`)}
                       </span>
                     </label>
                   );
@@ -614,15 +680,15 @@ export function FriendEditor({
           )}
 
           <StickerCard hover={false}>
-            <h2 className="mb-4 text-xl">⚙️ Настройки</h2>
+            <h2 className="mb-4 text-xl">{t("editor.section.settings")}</h2>
             <div className="flex flex-col gap-5">
               <Toggle
                 checked={config.gamesEnabled ?? true}
                 onChange={(v) => set("gamesEnabled", v)}
-                label="Игры включены"
+                label={t("editor.field.gamesEnabled")}
               />
 
-              <Field label="Показ подарков">
+              <Field label={t("editor.field.giftDisplay")}>
                 <div className="flex gap-2">
                   {(["current", "all"] as const).map((opt) => (
                     <SegBtn
@@ -630,13 +696,13 @@ export function FriendEditor({
                       active={(config.giftDisplay ?? "current") === opt}
                       onClick={() => set("giftDisplay", opt)}
                     >
-                      {opt === "current" ? "Только текущий" : "Вся история"}
+                      {t(`editor.giftDisplay.${opt}`)}
                     </SegBtn>
                   ))}
                 </div>
               </Field>
 
-              <Field label="Раскладка подарков">
+              <Field label={t("editor.field.giftLayout")}>
                 <div className="flex gap-2">
                   {(["list", "blocks"] as const).map((opt) => (
                     <SegBtn
@@ -644,13 +710,13 @@ export function FriendEditor({
                       active={(config.giftLayout ?? "list") === opt}
                       onClick={() => set("giftLayout", opt)}
                     >
-                      {opt === "list" ? "Список" : "Блоки"}
+                      {t(`editor.giftLayout.${opt}`)}
                     </SegBtn>
                   ))}
                 </div>
               </Field>
 
-              <Field label="Язык страницы">
+              <Field label={t("editor.field.lang")}>
                 <div className="flex gap-2">
                   {(["ru", "en"] as const).map((opt) => (
                     <SegBtn
@@ -658,13 +724,13 @@ export function FriendEditor({
                       active={(config.lang ?? "ru") === opt}
                       onClick={() => set("lang", opt)}
                     >
-                      {opt === "ru" ? "Русский" : "English"}
+                      {t(`editor.lang.${opt}`)}
                     </SegBtn>
                   ))}
                 </div>
               </Field>
 
-              <Field label="Тема">
+              <Field label={t("editor.field.theme")}>
                 <div className="flex flex-wrap gap-2">
                   {(["light", "dark", "halloween", "newyear"] as const).map((opt) => (
                     <SegBtn
@@ -672,13 +738,7 @@ export function FriendEditor({
                       active={(config.theme ?? "light") === opt}
                       onClick={() => set("theme", opt)}
                     >
-                      {opt === "light"
-                        ? "🌞 Светлая"
-                        : opt === "dark"
-                          ? "🌙 Тёмная"
-                          : opt === "halloween"
-                            ? "🎃 Хэллоуин"
-                            : "🎄 Новый год"}
+                      {t(`editor.theme.${opt}`)}
                     </SegBtn>
                   ))}
                 </div>
@@ -686,9 +746,60 @@ export function FriendEditor({
             </div>
           </StickerCard>
 
+          <StickerCard hover={false}>
+            <h2 className="mb-1 text-xl">
+              {t("editor.section.translation", { lang: t(`editor.lang.${targetLang}`) })}
+            </h2>
+            <p className="mb-4 text-sm text-[var(--color-text-soft)]">
+              {t("editor.translation.hint")}
+            </p>
+            <div className="flex flex-col gap-4">
+              <Field label={t("editor.field.name")}>
+                <Input
+                  value={tName}
+                  onChange={(e) => setTName(e.target.value)}
+                />
+              </Field>
+
+              {showFull && (
+                <Field label={t("editor.field.message")}>
+                  <Textarea
+                    value={tMessage}
+                    onChange={(e) => setTMessage(e.target.value)}
+                  />
+                </Field>
+              )}
+
+              {showFull && config.gift?.name?.trim() && (
+                <Field label={t("editor.field.giftName.translation")}>
+                  <Input
+                    value={tGiftName}
+                    onChange={(e) => setTGiftName(e.target.value)}
+                  />
+                </Field>
+              )}
+
+              <div className="flex justify-start">
+                <PillButton
+                  variant="ghost"
+                  onClick={onTranslate}
+                  disabled={translating}
+                >
+                  {translating
+                    ? t("editor.translation.translating")
+                    : t("editor.translation.translate")}
+                </PillButton>
+              </div>
+            </div>
+          </StickerCard>
+
           <div className="flex justify-end">
             <PillButton onClick={onSave} disabled={saving}>
-              {saving ? "Сохраняем…" : creating ? "🎉 Создать" : "💾 Сохранить"}
+              {saving
+                ? t("editor.saving")
+                : creating
+                  ? t("editor.save.create")
+                  : t("editor.save.update")}
             </PillButton>
           </div>
         </div>
@@ -697,13 +808,13 @@ export function FriendEditor({
         <div className="lg:sticky lg:top-6 lg:self-start">
           <StickerCard hover={false} className="p-3">
             <p className="mb-2 px-1 text-sm font-bold text-[var(--color-text-soft)]">
-              👀 Превью (сохранённое состояние)
+              {t("editor.preview.label")}
             </p>
             {previewSlug ? (
               <iframe
                 key={previewKey}
                 src={`/${previewSlug}`}
-                title="Превью странички"
+                title={t("editor.preview.title")}
                 className="h-[360px] w-full rounded-[var(--radius-md)] border-[2px] border-[var(--color-muted)] bg-[var(--color-cream)] lg:h-[560px]"
               />
             ) : (
@@ -711,9 +822,7 @@ export function FriendEditor({
                 <span className="text-4xl select-none" aria-hidden="true">
                   ✨
                 </span>
-                <p className="px-6 text-sm">
-                  Создай страничку — и тут появится живое превью.
-                </p>
+                <p className="px-6 text-sm">{t("editor.preview.empty")}</p>
               </div>
             )}
           </StickerCard>

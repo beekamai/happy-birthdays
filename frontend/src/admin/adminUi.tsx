@@ -6,6 +6,8 @@ import type {
   TextareaHTMLAttributes,
 } from "react";
 
+import { useT } from "../lib/i18n.ts";
+
 /* Small cozy form primitives shared across the admin screens. Kept in one place
    so the editor + dashboard don't each re-spell the same Tailwind. All match the
    "Cozy Ramen" tokens: warm surfaces, plump radii, soft shadows, accent focus
@@ -14,14 +16,16 @@ import type {
 /* ---- Spinner ------------------------------------------------------------- */
 
 /** Branded bobbing-bowl loader. */
-export function Spinner({ label = "Загружаем…" }: { label?: string }) {
+export function Spinner({ label }: { label?: string }) {
+  const { t } = useT();
+  const text = label ?? t("loading.default");
   return (
     <div className="flex min-h-[60dvh] flex-col items-center justify-center gap-4 text-center">
       <span className="animate-bob text-5xl select-none" aria-hidden="true">
         🍜
       </span>
       <p className="font-[var(--font-display)] font-bold text-[var(--color-text)]">
-        {label}
+        {text}
       </p>
     </div>
   );
@@ -181,12 +185,17 @@ export function Toast({ toast }: { toast: ToastState | null }) {
 
 /** Coloured pill describing a friend page's access state. */
 export function StateBadge({ state }: { state: string }) {
-  const map: Record<string, { label: string; color: string }> = {
-    open: { label: "🎉 открыта", color: "var(--color-success)" },
-    closing: { label: "🎂 закрывается", color: "var(--color-ramen-gold)" },
-    locked: { label: "🔒 закрыта", color: "var(--color-text-soft)" },
+  const { t } = useT();
+  const colors: Record<string, string> = {
+    open: "var(--color-success)",
+    closing: "var(--color-ramen-gold)",
+    locked: "var(--color-text-soft)",
   };
-  const m = map[state] ?? { label: state, color: "var(--color-text-soft)" };
+  const known = state in colors;
+  const m = {
+    label: known ? t(`state.${state}`) : state,
+    color: colors[state] ?? "var(--color-text-soft)",
+  };
   return (
     <span
       className="inline-flex items-center rounded-[var(--radius-full)] border-[2px] px-3 py-1 text-xs font-bold"
