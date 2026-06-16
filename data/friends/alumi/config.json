@@ -3,27 +3,50 @@
   "displayName": "Алуми",
   "birthday": "06-15",
   "message": "С днём рождения, лисичка! 🦊 Пусть этот год будет тёплым, как миска рамёна, и полным звёзд. Я собрал для тебя эту страничку — полистай, поиграй и знай, что тебя очень любят. 🍜✨",
+  "avatar": "avatar2.jpg",
+  "games": [
+    {
+      "gameId": "feed-fox"
+    },
+    {
+      "gameId": "catch-stars"
+    },
+    {
+      "gameId": "slide-puzzle"
+    },
+    {
+      "gameId": "memory"
+    },
+    {
+      "gameId": "maze"
+    }
+  ],
   "accent": "#7EC2E8",
+  "puzzleAvatar": "avatar1.jpg",
   "gift": {
     "name": "Instant Ramen",
     "emoji": "🍜",
     "lottie": "/gifts/instant-ramen.json",
     "link": "https://t.me/nft/InstantRamen-349224"
   },
-  "games": [
-    { "gameId": "feed-fox" },
-    { "gameId": "catch-stars" },
-    { "gameId": "slide-puzzle" },
-    { "gameId": "memory" },
-    { "gameId": "maze" }
-  ],
-  "avatar": "avatar2.jpg",
-  "puzzleAvatar": "avatar1.jpg",
+  "decor": {
+    "avatarFrame": "frame-gold",
+    "badge": "badge-star"
+  },
   "bio": "Голубоволосая лисичка-кицунэ из VRChat. Люблю рамён, звёзды и уютные стримы. 🦊🍜",
   "socials": [
-    { "platform": "telegram", "url": "https://t.me/resharperhost" },
-    { "platform": "twitch", "url": "https://twitch.tv/resharperhost" },
-    { "platform": "discord", "url": "https://discord.gg/resharperhost" }
+    {
+      "platform": "telegram",
+      "url": "https://t.me/resharperhost"
+    },
+    {
+      "platform": "twitch",
+      "url": "https://twitch.tv/resharperhost"
+    },
+    {
+      "platform": "discord",
+      "url": "https://discord.gg/resharperhost"
+    }
   ],
   "translations": {
     "en": {

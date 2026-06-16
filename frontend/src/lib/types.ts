@@ -42,6 +42,8 @@ export interface PublicFriend {
   /* Personal profile (shown on /u/<slug>). */
   bio?: string;
   socials?: SocialLink[];
+  /* Equipped shop decorations applied to both pages. */
+  decor?: Decor;
   /* Localized variants of displayName/message/giftName/bio for the non-source
      language; the client picks per the visitor's active language. */
   translations?: Partial<Record<"ru" | "en", FriendTranslations>>;
@@ -51,6 +53,13 @@ export interface PublicFriend {
 export interface SocialLink {
   platform: string;
   url: string;
+}
+
+export interface Decor {
+  avatarFrame?: string;
+  background?: string;
+  badge?: string;
+  effect?: string;
 }
 
 export interface FriendTranslations {

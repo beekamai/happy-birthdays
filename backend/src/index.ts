@@ -4,6 +4,7 @@ import { PORT, HOSTNAME, BASE_URL, OG_CACHE_DIR } from "./config/constants";
 import ScoreRepository from "./repositories/ScoreRepository";
 import BirthdayRepository from "./repositories/BirthdayRepository";
 import HistoryRepository from "./repositories/HistoryRepository";
+import PurchaseRepository from "./repositories/PurchaseRepository";
 import FriendRepository from "./repositories/FriendRepository";
 import PageRenderService from "./services/pageRenderService";
 import Logger from "./utils/Logger";
@@ -13,6 +14,7 @@ import app from "./app";
 ScoreRepository.init();
 BirthdayRepository.init();
 HistoryRepository.init();
+PurchaseRepository.init();
 
 /* Rebuild the birthdays index + history from the friend configs on boot, so the
    DBs never drift: birthdays mirror configs, gift history is folded in, and any

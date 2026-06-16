@@ -40,6 +40,9 @@ export interface FriendConfig {
     /* Personal profile (shown on /u/<slug>, independent of the birthday window). */
     bio?: string;
     socials?: SocialLink[];
+    /* Equipped shop decorations (one per slot). Ownership lives in the shop DB;
+       this only records which owned item is currently applied to the pages. */
+    decor?: Decor;
     /* Localized variants of the user-authored fields, keyed by target language.
        The authored fields above are in `lang`; the other language is auto-filled
        by Gemini on save and may be hand-edited. */
@@ -51,6 +54,15 @@ export interface FriendConfig {
 export interface SocialLink {
     platform: string;
     url: string;
+}
+
+/* Equipped decoration ids, one per slot. Each value is a shop item id the
+   friend owns; absent = nothing equipped in that slot. */
+export interface Decor {
+    avatarFrame?: string;
+    background?: string;
+    badge?: string;
+    effect?: string;
 }
 
 /* Translatable user content (per language). Missing fields fall back to the
@@ -104,6 +116,8 @@ export interface PublicFriend {
     /* Personal profile fields (always present; the profile page is not gated). */
     bio?: string;
     socials?: SocialLink[];
+    /* Equipped shop decorations applied to both pages. */
+    decor?: Decor;
     /* Localized variants of displayName/message/giftName/bio (other language than
        `lang`); the client picks per the visitor's active language. */
     translations?: Partial<Record<"ru" | "en", FriendTranslations>>;

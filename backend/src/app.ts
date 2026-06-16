@@ -8,6 +8,7 @@ import { ErrorHandler } from "./handlers/errorHandler";
 import apiRoutes from "./routes/apiRoutes";
 import authRoutes from "./routes/authRoutes";
 import adminRoutes from "./routes/adminRoutes";
+import shopRoutes from "./routes/shopRoutes";
 import ogRoutes from "./routes/ogRoutes";
 import assetRoutes from "./routes/assetRoutes";
 import pageRoutes from "./routes/pageRoutes";
@@ -27,7 +28,8 @@ const app = new Elysia()
         group
             .use(apiRoutes)
             .group("/auth", (g) => g.use(authRoutes))
-            .group("/admin", (g) => g.use(adminRoutes)),
+            .group("/admin", (g) => g.use(adminRoutes))
+            .group("/shop", (g) => g.use(shopRoutes)),
     )
     .use(ogRoutes)
     .use(assetRoutes)

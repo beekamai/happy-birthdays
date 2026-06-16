@@ -2,6 +2,7 @@ import type { PublicFriend } from "../lib/types.ts";
 import { useT } from "../lib/i18n.ts";
 import { friendDisplayName } from "../lib/friendContent.ts";
 import { Steam } from "../components/decor/Steam.tsx";
+import { DecoratedAvatar, DecorBadge } from "../components/decor/Decorations.tsx";
 
 import { Countdown } from "./Countdown.tsx";
 
@@ -14,23 +15,33 @@ interface HeroProps {
 
 /** Centered avatar + name + countdown hero block. */
 export function Hero({ friend }: HeroProps) {
-  const { lang } = useT();
+  const { t, lang } = useT();
   const name = friendDisplayName(friend, lang);
   return (
     <div className="flex flex-col items-center gap-4 text-center">
       {/* Relative anchor so the absolutely-positioned Steam rises above the avatar. */}
       <div className="relative">
         <Steam count={4} />
-        <img
-          src={friend.avatarUrl}
-          alt={name}
-          className="animate-bob size-32 rounded-full border-[4px] border-white object-cover shadow-[var(--shadow-md)]"
-          style={{ outline: "3px solid var(--color-accent)", outlineOffset: "3px" }}
-        />
+        {/* The avatar links through to the friend's personal profile. */}
+        <a
+          href={`/u/${friend.slug}`}
+          title={t("hero.viewProfile")}
+          className="block transition-transform duration-200 ease-[var(--ease-bounce)] hover:scale-105"
+        >
+          <DecoratedAvatar
+            src={friend.avatarUrl}
+            alt={name}
+            frameId={friend.decor?.avatarFrame}
+            animate
+          />
+        </a>
       </div>
 
       <div className="flex flex-col items-center gap-1">
-        <h1 className="text-4xl">{name}</h1>
+        <h1 className="text-4xl">
+          {name}
+          <DecorBadge id={friend.decor?.badge} />
+        </h1>
         <a
           href={`https://t.me/${friend.username.replace(/^@/, "")}`}
           target="_blank"

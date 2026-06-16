@@ -114,9 +114,32 @@ const ru: Record<string, string> = {
   "friend.footer": "с любовью, {name}",
 
   /* Profile page (/u/<slug>) */
+  "hero.viewProfile": "Открыть профиль",
   "profile.points": "Очки: {n}",
   "profile.birthdayPage": "🎂 Страница поздравления",
   "profile.edit": "✏️ Редактировать",
+
+  /* Shop (decoration store) */
+  "shop.open": "🛍️ Магазин",
+  "shop.title": "🛍️ Магазин украшений",
+  "shop.close": "Закрыть",
+  "shop.balance": "🏅 {balance} из {earned}",
+  "shop.spent": "потрачено {spent}",
+  "shop.cost": "{n} очков",
+  "shop.buy": "Купить",
+  "shop.owned": "Куплено",
+  "shop.equip": "Надеть",
+  "shop.unequip": "Снять",
+  "shop.empty": "Каталог пока пуст",
+  "shop.section.avatarFrame": "Рамки аватара",
+  "shop.section.background": "Фоны",
+  "shop.section.badge": "Бейджи",
+  "shop.section.effect": "Эффекты",
+  "shop.toast.bought": "Куплено ✨",
+  "shop.toast.equipped": "Надели 💛",
+  "shop.toast.unequipped": "Сняли",
+  "shop.toast.notEnough": "Не хватает очков",
+  "shop.toast.error": "Что-то пошло не так",
 
   /* Locked page */
   "locked.opensOn": "Праздничная страничка откроется в день рождения",
@@ -360,9 +383,32 @@ const en: Record<string, string> = {
   "friend.footer": "with love, {name}",
 
   /* Profile page (/u/<slug>) */
+  "hero.viewProfile": "Open profile",
   "profile.points": "Points: {n}",
   "profile.birthdayPage": "🎂 Birthday page",
   "profile.edit": "✏️ Edit",
+
+  /* Shop (decoration store) */
+  "shop.open": "🛍️ Shop",
+  "shop.title": "🛍️ Decoration shop",
+  "shop.close": "Close",
+  "shop.balance": "🏅 {balance} of {earned}",
+  "shop.spent": "spent {spent}",
+  "shop.cost": "{n} points",
+  "shop.buy": "Buy",
+  "shop.owned": "Owned",
+  "shop.equip": "Equip",
+  "shop.unequip": "Unequip",
+  "shop.empty": "The catalogue is empty for now",
+  "shop.section.avatarFrame": "Avatar frames",
+  "shop.section.background": "Backgrounds",
+  "shop.section.badge": "Badges",
+  "shop.section.effect": "Effects",
+  "shop.toast.bought": "Bought ✨",
+  "shop.toast.equipped": "Equipped 💛",
+  "shop.toast.unequipped": "Unequipped",
+  "shop.toast.notEnough": "Not enough points",
+  "shop.toast.error": "Something went wrong",
 
   /* Locked page */
   "locked.opensOn": "The festive page opens on the birthday",

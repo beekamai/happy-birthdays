@@ -12,7 +12,14 @@ import { SocialLinks } from "../components/SocialLinks.tsx";
 import { Lanterns } from "../components/decor/Lanterns.tsx";
 import { Particles } from "../components/decor/Particles.tsx";
 import { ThemeDecor } from "../components/decor/ThemeDecor.tsx";
+import {
+  DecoratedAvatar,
+  DecorBadge,
+  DecorBackground,
+  DecorEffect,
+} from "../components/decor/Decorations.tsx";
 import { StickerCard } from "../components/decor/StickerCard.tsx";
+import { Shop } from "../components/Shop.tsx";
 
 /* The personal profile at /u/<slug> — always available, independent of the
    birthday window. Shows identity, bio, social links, the friend's points
@@ -50,6 +57,7 @@ export function ProfilePage({ friend }: { friend: PublicFriend }) {
   const visitorId = getVisitorId();
   const { totals } = useTotals(friend.slug, visitorId);
   const canEdit = useCanEdit(friend);
+  const [shopOpen, setShopOpen] = useState(false);
 
   useEffect(() => {
     initLang(friend.lang);
@@ -67,20 +75,24 @@ export function ProfilePage({ friend }: { friend: PublicFriend }) {
     >
       <ThemeSwitcher theme={theme} setTheme={setTheme} themes={themes} />
       <LanguageSwitcher />
+      <DecorBackground id={friend.decor?.background} />
       <ThemeDecor theme={theme} />
+      <DecorEffect id={friend.decor?.effect} />
       <Particles count={8} />
       <Lanterns count={5} />
 
       <div className="relative flex w-full max-w-md flex-col items-center gap-5">
-        <img
+        <DecoratedAvatar
           src={friend.avatarUrl}
           alt={name}
-          className="size-32 rounded-full border-[4px] border-white object-cover shadow-[var(--shadow-md)]"
-          style={{ outline: "3px solid var(--color-accent)", outlineOffset: "3px" }}
+          frameId={friend.decor?.avatarFrame}
         />
 
         <div className="flex flex-col items-center gap-1">
-          <h1 className="text-4xl">{name}</h1>
+          <h1 className="text-4xl">
+            {name}
+            <DecorBadge id={friend.decor?.badge} />
+          </h1>
           <a
             href={`https://t.me/${friend.username.replace(/^@/, "")}`}
             target="_blank"
@@ -115,15 +127,33 @@ export function ProfilePage({ friend }: { friend: PublicFriend }) {
             {t("profile.birthdayPage")}
           </a>
           {canEdit && (
-            <a
-              href="/admin"
-              className="inline-flex items-center gap-2 rounded-[var(--radius-full)] border-[2px] border-[var(--color-muted)] bg-[var(--color-surface)] px-6 py-3 font-bold text-[var(--color-text)] shadow-[var(--shadow-sm)] transition-transform duration-200 ease-[var(--ease-bounce)] hover:scale-[1.03]"
-            >
-              {t("profile.edit")}
-            </a>
+            <>
+              <button
+                type="button"
+                onClick={() => setShopOpen(true)}
+                className="inline-flex items-center gap-2 rounded-[var(--radius-full)] border-[2px] border-[var(--color-muted)] bg-[var(--color-surface)] px-6 py-3 font-bold text-[var(--color-text)] shadow-[var(--shadow-sm)] transition-transform duration-200 ease-[var(--ease-bounce)] hover:scale-[1.03]"
+              >
+                {t("shop.open")}
+              </button>
+              <a
+                href="/admin"
+                className="inline-flex items-center gap-2 rounded-[var(--radius-full)] border-[2px] border-[var(--color-muted)] bg-[var(--color-surface)] px-6 py-3 font-bold text-[var(--color-text)] shadow-[var(--shadow-sm)] transition-transform duration-200 ease-[var(--ease-bounce)] hover:scale-[1.03]"
+              >
+                {t("profile.edit")}
+              </a>
+            </>
           )}
         </div>
       </div>
+
+      {canEdit && (
+        <Shop
+          slug={friend.slug}
+          open={shopOpen}
+          onClose={() => setShopOpen(false)}
+          onChange={() => window.location.reload()}
+        />
+      )}
     </main>
   );
 }

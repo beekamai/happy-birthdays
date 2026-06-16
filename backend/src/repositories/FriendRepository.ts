@@ -299,6 +299,7 @@ export default class FriendRepository {
                 theme,
                 ...(cfg.bio ? { bio: cfg.bio } : {}),
                 ...(cfg.socials?.length ? { socials: cfg.socials } : {}),
+                ...(cfg.decor ? { decor: cfg.decor } : {}),
                 ...(translations ? { translations } : {}),
                 access,
             };
@@ -322,6 +323,7 @@ export default class FriendRepository {
             theme,
             ...(cfg.bio ? { bio: cfg.bio } : {}),
             ...(cfg.socials?.length ? { socials: cfg.socials } : {}),
+            ...(cfg.decor ? { decor: cfg.decor } : {}),
             ...(translations ? { translations } : {}),
             access,
         };

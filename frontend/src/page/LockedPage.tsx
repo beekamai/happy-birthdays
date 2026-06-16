@@ -9,6 +9,12 @@ import { LanguageSwitcher } from "../components/LanguageSwitcher.tsx";
 import { Lanterns } from "../components/decor/Lanterns.tsx";
 import { Particles } from "../components/decor/Particles.tsx";
 import { ThemeDecor } from "../components/decor/ThemeDecor.tsx";
+import {
+  DecoratedAvatar,
+  DecorBadge,
+  DecorBackground,
+  DecorEffect,
+} from "../components/decor/Decorations.tsx";
 import { StickerCard } from "../components/decor/StickerCard.tsx";
 import { Countdown } from "./Countdown.tsx";
 import { GiftList } from "./GiftList.tsx";
@@ -33,24 +39,25 @@ export function LockedPage({ friend }: { friend: PublicFriend }) {
     >
       <ThemeSwitcher theme={theme} setTheme={setTheme} themes={themes} />
       <LanguageSwitcher />
+      <DecorBackground id={friend.decor?.background} />
       <ThemeDecor theme={theme} />
+      <DecorEffect id={friend.decor?.effect} />
       <Particles count={8} />
       <Lanterns count={5} />
 
       <div className="relative flex flex-col items-center gap-5">
-        <img
+        <DecoratedAvatar
           src={friend.avatarUrl}
           alt={name}
-          className="size-32 rounded-full border-[4px] border-white object-cover shadow-[var(--shadow-md)]"
-          style={{
-            outline: "3px solid var(--color-accent)",
-            outlineOffset: "3px",
-            filter: "grayscale(0.25)",
-          }}
+          frameId={friend.decor?.avatarFrame}
+          grayscale
         />
 
         <div className="flex flex-col items-center gap-1">
-          <h1 className="text-4xl">{name}</h1>
+          <h1 className="text-4xl">
+            {name}
+            <DecorBadge id={friend.decor?.badge} />
+          </h1>
           <a
             href={`https://t.me/${friend.username.replace(/^@/, "")}`}
             target="_blank"

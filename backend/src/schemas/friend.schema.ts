@@ -168,6 +168,16 @@ export function validateFriendConfig(obj: unknown): FriendConfig {
     }
     if (obj.lang === "ru" || obj.lang === "en") result.lang = obj.lang;
 
+    /* Equipped shop decorations (one item id per slot). */
+    if (isObject(obj.decor)) {
+        const decor: NonNullable<FriendConfig["decor"]> = {};
+        for (const slot of ["avatarFrame", "background", "badge", "effect"] as const) {
+            const v = (obj.decor as Record<string, unknown>)[slot];
+            if (typeof v === "string" && v.length > 0) decor[slot] = v;
+        }
+        if (Object.keys(decor).length > 0) result.decor = decor;
+    }
+
     /* Personal profile: free-text bio + social links. */
     if (typeof obj.bio === "string") result.bio = obj.bio;
     if (Array.isArray(obj.socials)) {
@@ -253,6 +263,13 @@ const Social_Object_Schema = t.Object({
     url: t.String(),
 });
 
+const Decor_Object_Schema = t.Object({
+    avatarFrame: t.Optional(t.String()),
+    background: t.Optional(t.String()),
+    badge: t.Optional(t.String()),
+    effect: t.Optional(t.String()),
+});
+
 export const PublicFriend_Object_Schema = {
     slug: t.String(),
     username: t.String(),
@@ -288,6 +305,7 @@ export const PublicFriend_Object_Schema = {
     ]),
     bio: t.Optional(t.String()),
     socials: t.Optional(t.Array(Social_Object_Schema)),
+    decor: t.Optional(Decor_Object_Schema),
     translations: t.Optional(
         t.Object({
             ru: t.Optional(FriendTranslations_Object_Schema),

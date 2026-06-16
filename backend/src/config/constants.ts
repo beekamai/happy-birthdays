@@ -61,3 +61,4 @@ export const GEMINI_MODEL = process.env.GEMINI_MODEL ?? "gemini-flash-latest";
 export const SCORES_DB_PATH = path.join(ROOT_DIR, "scores.db");
 export const BIRTHDAYS_DB_PATH = path.join(ROOT_DIR, "birthdays.db");
 export const HISTORY_DB_PATH = path.join(ROOT_DIR, "history.db");
+export const SHOP_DB_PATH = path.join(ROOT_DIR, "shop.db");
