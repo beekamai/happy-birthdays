@@ -28,6 +28,14 @@ interface OgTemplateArgs {
     accent: string;
 }
 
+interface ProfileOgArgs {
+    displayName: string;
+    username: string;
+    bio: string;
+    avatarDataUri: string;
+    accent: string;
+}
+
 /** Build the satori node tree for a friend's OG card. */
 export function buildOgNode(args: OgTemplateArgs): object {
     const { displayName, username, dateText, avatarDataUri, giftEmojiDataUri, accent } = args;
@@ -136,6 +144,102 @@ export function buildOgNode(args: OgTemplateArgs): object {
                     },
                 },
             ],
+        },
+    };
+}
+
+/** Build the satori node tree for a friend's personal profile OG card. */
+export function buildProfileOgNode(args: ProfileOgArgs): object {
+    const { displayName, username, bio, avatarDataUri, accent } = args;
+
+    const children: object[] = [
+        /* Avatar with accent ring. */
+        {
+            type: "img",
+            props: {
+                src: avatarDataUri,
+                width: 240,
+                height: 240,
+                style: {
+                    borderRadius: 9999,
+                    objectFit: "cover",
+                    border: `10px solid ${accent}`,
+                },
+            },
+        },
+        /* Display name. */
+        {
+            type: "div",
+            props: {
+                style: {
+                    display: "flex",
+                    marginTop: "40px",
+                    fontFamily: "Comfortaa",
+                    fontWeight: 700,
+                    fontSize: "68px",
+                    color: COCOA,
+                    textAlign: "center",
+                    lineHeight: 1.1,
+                    maxWidth: "1040px",
+                },
+                children: displayName,
+            },
+        },
+        /* Username. */
+        {
+            type: "div",
+            props: {
+                style: {
+                    display: "flex",
+                    marginTop: "16px",
+                    fontFamily: "Nunito",
+                    fontWeight: 700,
+                    fontSize: "30px",
+                    color: accent,
+                },
+                children: username,
+            },
+        },
+    ];
+
+    /* Optional bio snippet. */
+    if (bio) {
+        children.push({
+            type: "div",
+            props: {
+                style: {
+                    display: "flex",
+                    marginTop: "26px",
+                    fontFamily: "Nunito",
+                    fontWeight: 400,
+                    fontSize: "32px",
+                    color: SOFT,
+                    textAlign: "center",
+                    lineHeight: 1.3,
+                    maxWidth: "900px",
+                },
+                children: bio,
+            },
+        });
+    }
+
+    return {
+        type: "div",
+        props: {
+            style: {
+                position: "relative",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                width: `${OG_WIDTH}px`,
+                height: `${OG_HEIGHT}px`,
+                backgroundColor: CREAM,
+                backgroundImage: `radial-gradient(circle at 18% 20%, ${CORAL_GLOW} 0%, rgba(255,247,237,0) 45%), radial-gradient(circle at 82% 85%, ${BLUE_GLOW} 0%, rgba(255,247,237,0) 50%)`,
+                fontFamily: "Nunito",
+                padding: "56px",
+            },
+            children,
         },
     };
 }

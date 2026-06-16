@@ -1,7 +1,7 @@
 import { Elysia } from "elysia";
 
 import { getFriendAsset, getOwnerAsset, getGiftAsset } from "../controllers/assetController";
-import { serveFavicon, serveRobots } from "../controllers/pageController";
+import { serveFavicon, serveFaviconSvg, serveRobots } from "../controllers/pageController";
 
 /*
  * Static-ish asset routes served from disk via the repositories' guarded path
@@ -13,6 +13,7 @@ const assetRoutes = new Elysia()
     .get("/owner/:file", getOwnerAsset)
     .get("/gifts/:file", getGiftAsset)
     .get("/favicon.ico", serveFavicon)
+    .get("/favicon.svg", serveFaviconSvg)
     .get("/robots.txt", serveRobots);
 
 export default assetRoutes;

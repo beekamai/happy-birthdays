@@ -40,3 +40,37 @@ export const getOgImage = async ({ params, set }: any) => {
         return { error: "Not found" };
     }
 };
+
+/**
+ * GET /og/u/:file — serve a friend's personal-profile OG PNG (avatar + name +
+ * bio). `file` must end in ".png"; the slug is the stem.
+ */
+export const getProfileOgImage = async ({ params, set }: any) => {
+    try {
+        const file: string = params.file ?? "";
+        if (!file.toLowerCase().endsWith(".png")) {
+            set.status = 404;
+            return { error: "Not found" };
+        }
+
+        const slug = file.slice(0, -".png".length);
+        const result = await OgImageService.renderProfileOgPng(slug);
+        if (!result) {
+            set.status = 404;
+            return { error: "Not found" };
+        }
+
+        set.status = 200;
+        return new Response(result.png as unknown as Uint8Array, {
+            headers: {
+                "content-type": "image/png",
+                "cache-control": CACHE_CONTROL,
+                etag: `"${result.hash}"`,
+            },
+        });
+    } catch (error) {
+        Logger.error("OgController", `getProfileOgImage error: ${error}`);
+        set.status = 404;
+        return { error: "Not found" };
+    }
+};

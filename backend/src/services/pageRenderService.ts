@@ -91,6 +91,28 @@ export default class PageRenderService {
         }
     }
 
+    /** Render a friend's personal profile page (/u/<slug>): nick title + profile
+        OG card. Injects the friend payload so the SPA hydrates without a flash. */
+    static renderProfilePage(slug: string): RenderResult {
+        try {
+            const friend = FriendRepository.findBySlug(slug);
+            if (!friend) return this.renderNotFound();
+
+            const site = this.resolveSite();
+            const hash = OgImageService.profileOgHash(slug);
+
+            let html = this.shell;
+            html = this.injectData(html, friend, site);
+            html = this.injectHead(html, this.buildProfileOgMeta(friend, site, hash));
+            html = this.setTitle(html, friend.displayName);
+
+            return { html, status: 200 };
+        } catch (error) {
+            Logger.error("PageRenderService", `renderProfilePage failed: ${error}`, { slug });
+            return this.renderNotFound();
+        }
+    }
+
     /** Render the generic 404 page (no friend data injected). */
     static renderNotFound(): RenderResult {
         const meta = [
@@ -158,6 +180,34 @@ export default class PageRenderService {
 
         const tags = [
             `<meta property="og:type" content="website" />`,
+            `<meta property="og:url" content="${escapeAttr(url)}" />`,
+            `<meta property="og:title" content="${escapeAttr(title)}" />`,
+            `<meta property="og:description" content="${escapeAttr(description)}" />`,
+            `<meta property="og:image" content="${escapeAttr(image)}" />`,
+            `<meta property="og:image:width" content="1200" />`,
+            `<meta property="og:image:height" content="630" />`,
+            `<meta property="og:image:type" content="image/png" />`,
+            `<meta name="twitter:card" content="summary_large_image" />`,
+            `<meta name="twitter:title" content="${escapeAttr(title)}" />`,
+            `<meta name="twitter:description" content="${escapeAttr(description)}" />`,
+            `<meta name="twitter:image" content="${escapeAttr(image)}" />`,
+        ];
+        return tags.join("\n    ");
+    }
+
+    /* Build profile (/u/<slug>) Open Graph + Twitter meta tags. */
+    private static buildProfileOgMeta(
+        friend: PublicFriend,
+        site: SiteConfig,
+        hash: string | null,
+    ): string {
+        const url = `${site.baseUrl}/u/${friend.slug}`;
+        const title = `${friend.displayName} ${friend.username}`.trim();
+        const description = (friend.bio?.trim() || `Профиль ${friend.displayName}`).slice(0, 150);
+        const image = `${site.baseUrl}/og/u/${friend.slug}.png${hash ? `?v=${hash}` : ""}`;
+
+        const tags = [
+            `<meta property="og:type" content="profile" />`,
             `<meta property="og:url" content="${escapeAttr(url)}" />`,
             `<meta property="og:title" content="${escapeAttr(title)}" />`,
             `<meta property="og:description" content="${escapeAttr(description)}" />`,

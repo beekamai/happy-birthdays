@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="15" fill="#FFF7ED"/>
+
+  <!-- steam -->
+  <g fill="none" stroke="#EAD9C5" stroke-width="2.6" stroke-linecap="round">
+    <path d="M25 15 q-3.5 -4 0 -8.5"/>
+    <path d="M32 15 q3.5 -4 0 -8.5"/>
+    <path d="M39 15 q-3.5 -4 0 -8.5"/>
+  </g>
+
+  <!-- bowl body -->
+  <path d="M11 27 a21 21 0 0 0 42 0 Z" fill="#FF8A65"/>
+  <!-- foot -->
+  <rect x="27" y="50" width="10" height="6" rx="2.5" fill="#F4673B"/>
+
+  <!-- broth surface -->
+  <ellipse cx="32" cy="27" rx="21" ry="6.5" fill="#F2B441"/>
+  <ellipse cx="32" cy="26" rx="18" ry="5" fill="#FFCF6B"/>
+
+  <!-- noodles -->
+  <path d="M19 26 q6.5 -6 13 0 t13 0" fill="none" stroke="#FFF3DD" stroke-width="2.6" stroke-linecap="round"/>
+  <!-- egg -->
+  <circle cx="40" cy="26" r="3.2" fill="#FFFDF9"/>
+  <circle cx="40" cy="26" r="1.5" fill="#F4673B"/>
+  <!-- scallion -->
+  <circle cx="24" cy="27" r="1.7" fill="#9CCB6A"/>
+</svg>
