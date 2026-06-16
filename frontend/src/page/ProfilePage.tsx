@@ -161,6 +161,15 @@ export function ProfilePage({ friend }: { friend: PublicFriend }) {
             {t("profile.birthdayPage")}
           </a>
         </div>
+
+        <footer className="mt-2 flex justify-center text-[var(--color-text-soft)]">
+          <a
+            href="/"
+            className="text-sm opacity-70 transition-opacity duration-200 hover:opacity-100"
+          >
+            {t("nav.home")}
+          </a>
+        </footer>
       </div>
 
       {/* A bought fox companion follows the friend onto their profile too. */}

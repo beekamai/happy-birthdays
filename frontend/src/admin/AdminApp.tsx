@@ -124,7 +124,7 @@ function TopBar() {
     <header className="sticky top-0 z-30 border-b-[2px] border-[var(--color-muted)] bg-[var(--color-surface)]/90 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3">
         <a
-          href="/account"
+          href="/"
           className="flex items-center gap-2 font-[var(--font-display)] font-bold text-[var(--color-text)]"
         >
           <span className="text-xl select-none" aria-hidden="true">

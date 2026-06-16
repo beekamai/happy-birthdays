@@ -230,6 +230,13 @@ const ru: Record<string, string> = {
   "editor.toast.avatarUploaded": "Аватар загружен 🖼️",
   "editor.toast.avatarFailed": "Не вышло загрузить аватар",
   "editor.toast.avatarNeeded": "Выбери главный аватар перед созданием",
+  "editor.validation.required": "Заполни это поле",
+  "editor.validation.name": "Впиши имя",
+  "editor.validation.username": "Впиши Telegram-username",
+  "editor.validation.birthday": "Дата рождения: ММ-ДД или ГГГГ-ММ-ДД",
+  "editor.validation.message": "Впиши поздравление",
+  "editor.validation.avatar": "Нужен главный аватар",
+  "editor.validation.fix": "Проверь выделенные поля",
   "editor.toast.created": "Страничка создана 🎉",
   "editor.toast.saved": "Сохранили 💛",
   "editor.toast.saveFailed": "Не удалось сохранить",
@@ -315,6 +322,20 @@ const ru: Record<string, string> = {
   "editor.field.giftName.translation": "Название подарка",
   "editor.toast.translated": "Перевод готов ✨",
   "editor.toast.translateFailed": "Не вышло перевести",
+
+  /* About page + home navigation */
+  "about.title": "О проекте",
+  "about.intro":
+    "Happy Birthdays — уютные многоразовые странички-поздравления ко дню рождения: с подарками, мини-играми и личными профилями.",
+  "about.hostingTitle": "Хостинг",
+  "about.hosting": "Сайт живёт на серверах senko.digital.",
+  "about.statsTitle": "Сейчас на сайте",
+  "about.statsPages": "{n} праздничных страничек",
+  "about.thanksTitle": "Благодарности",
+  "about.thanks": "Сделано с инструментами Anthropic (Claude) для разработки 🖤",
+  "about.back": "← На главную",
+  "watermark.about": "о проекте",
+  "nav.home": "🍜 На главную",
 };
 
 const en: Record<string, string> = {
@@ -530,6 +551,13 @@ const en: Record<string, string> = {
   "editor.toast.avatarUploaded": "Avatar uploaded 🖼️",
   "editor.toast.avatarFailed": "Couldn't upload the avatar",
   "editor.toast.avatarNeeded": "Choose the main avatar before creating",
+  "editor.validation.required": "This field is required",
+  "editor.validation.name": "Enter a name",
+  "editor.validation.username": "Enter a Telegram username",
+  "editor.validation.birthday": "Birthday: MM-DD or YYYY-MM-DD",
+  "editor.validation.message": "Enter a greeting",
+  "editor.validation.avatar": "A main avatar is required",
+  "editor.validation.fix": "Check the highlighted fields",
   "editor.toast.created": "Page created 🎉",
   "editor.toast.saved": "Saved 💛",
   "editor.toast.saveFailed": "Couldn't save",
@@ -615,6 +643,20 @@ const en: Record<string, string> = {
   "editor.field.giftName.translation": "Gift name",
   "editor.toast.translated": "Translation ready ✨",
   "editor.toast.translateFailed": "Couldn't translate",
+
+  /* About page + home navigation */
+  "about.title": "About",
+  "about.intro":
+    "Happy Birthdays — cozy, reusable birthday greeting pages: with gifts, mini-games and personal profiles.",
+  "about.hostingTitle": "Hosting",
+  "about.hosting": "This site is hosted on senko.digital servers.",
+  "about.statsTitle": "Live right now",
+  "about.statsPages": "{n} birthday pages",
+  "about.thanksTitle": "Credits",
+  "about.thanks": "Built with Anthropic's Claude developer tools 🖤",
+  "about.back": "← Home",
+  "watermark.about": "about",
+  "nav.home": "🍜 Home",
 };
 
 export const translations: { ru: Record<string, string>; en: Record<string, string> } = {

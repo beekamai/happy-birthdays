@@ -147,15 +147,23 @@ export function FriendPage({ friend, site }: FriendPageProps) {
           </>
         )}
 
-        <footer className="mt-2 flex items-center justify-center gap-2 text-[var(--color-text-soft)]">
-          <span>{t("friend.footer", { name: site?.owner.displayName ?? "beekamai" })}</span>
-          {site?.owner.avatarUrl && (
-            <img
-              src={site.owner.avatarUrl}
-              alt={site.owner.displayName}
-              className="size-7 rounded-full border-[2px] border-white object-cover shadow-[var(--shadow-sm)]"
-            />
-          )}
+        <footer className="mt-2 flex flex-col items-center gap-2 text-[var(--color-text-soft)]">
+          <div className="flex items-center justify-center gap-2">
+            <span>{t("friend.footer", { name: site?.owner.displayName ?? "beekamai" })}</span>
+            {site?.owner.avatarUrl && (
+              <img
+                src={site.owner.avatarUrl}
+                alt={site.owner.displayName}
+                className="size-7 rounded-full border-[2px] border-white object-cover shadow-[var(--shadow-sm)]"
+              />
+            )}
+          </div>
+          <a
+            href="/"
+            className="text-sm opacity-70 transition-opacity duration-200 hover:opacity-100"
+          >
+            {t("nav.home")}
+          </a>
         </footer>
       </div>
 

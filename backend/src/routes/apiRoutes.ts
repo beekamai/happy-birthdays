@@ -7,6 +7,7 @@ import { postScore, getTotals, getScores } from "../controllers/scoreController"
 import { startGame } from "../controllers/gameSessionController";
 import { getBirthdays } from "../controllers/birthdayController";
 import { getHistory } from "../controllers/historyController";
+import { getStats } from "../controllers/statsController";
 import {
     getFriend_Request_Schema,
     getSite_Request_Schema,
@@ -29,6 +30,7 @@ import {
 const apiRoutes = new Elysia()
     .get("/friend/:slug", getFriend, withResponseFilter(getFriend_Request_Schema))
     .get("/site", getSite, withResponseFilter(getSite_Request_Schema))
+    .get("/stats", getStats)
     .get("/birthdays", getBirthdays, withResponseFilter(getBirthdays_Request_Schema))
     .get("/history/:slug", getHistory, withResponseFilter(getHistory_Request_Schema))
     .post("/games/start", startGame, withResponseFilter(startGame_Request_Schema))

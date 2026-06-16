@@ -12,6 +12,9 @@ const pageRoutes = new Elysia()
        serve the shell (200), not a 404 page. */
     .get("/account", serveLanding)
     .get("/admin", serveLanding)
+    /* /about is the public "about this project" SPA page — serve the shell;
+       the page pulls its data (stats) client-side. */
+    .get("/about", serveLanding)
     /* /u/<slug> is the personal profile — nick title + profile OG injection. */
     .get("/u/:slug", serveProfilePage)
     .get("/:slug", serveFriendPage);

@@ -8,6 +8,7 @@ import { FriendPage } from "./page/FriendPage.tsx";
 import { LockedPage } from "./page/LockedPage.tsx";
 import { ProfilePage } from "./page/ProfilePage.tsx";
 import { Landing } from "./page/Landing.tsx";
+import { AboutPage } from "./page/AboutPage.tsx";
 import { NotFound } from "./page/NotFound.tsx";
 
 /* The admin bundle is code-split: the public birthday pages never download it. */
@@ -32,6 +33,9 @@ export function App() {
       </Suspense>
     );
   }
+
+  /* /about is the public "about this project" page. */
+  if (slug === "about") return <AboutPage />;
 
   /* /u/<slug> is the personal profile, independent of the birthday window. */
   if (slug === "u") {

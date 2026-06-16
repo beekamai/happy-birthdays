@@ -66,6 +66,27 @@ function uploadFilename(file: File, which: "main" | "puzzle"): string {
   return `${which}-${Math.max(1, file.size)}.${ext}`;
 }
 
+/* The form fields validation can flag. Keys map 1:1 to the inline error slots
+   shown under each control; the values are i18n keys for the message. */
+type ValidationField =
+  | "displayName"
+  | "username"
+  | "birthday"
+  | "message"
+  | "avatar";
+type FieldErrors = Partial<Record<ValidationField, string>>;
+
+/* Mirror the backend birthday rule: "MM-DD" or "YYYY-MM-DD" with a sane month
+   (01-12) and day (01-31). Returns true for a well-formed string only. */
+function isValidBirthday(raw: string): boolean {
+  const trimmed = raw.trim();
+  if (!/^(\d{2}-\d{2}|\d{4}-\d{2}-\d{2})$/.test(trimmed)) return false;
+  const parts = trimmed.split("-");
+  const month = Number(parts[parts.length - 2]);
+  const day = Number(parts[parts.length - 1]);
+  return month >= 1 && month <= 12 && day >= 1 && day <= 31;
+}
+
 function cleanOptional(value: string | undefined): string | undefined {
   const trimmed = value?.trim();
   return trimmed ? trimmed : undefined;
@@ -162,6 +183,8 @@ export function FriendEditor({
   const [isOwner, setIsOwner] = useState(create);
   const [loading, setLoading] = useState(!create);
   const [saving, setSaving] = useState(false);
+  /* Per-field validation messages, cleared as the user edits each field. */
+  const [errors, setErrors] = useState<FieldErrors>({});
   const [notFound, setNotFound] = useState(false);
   /* The slug we currently edit/preview. In create it's empty until first save. */
   const [slug, setSlug] = useState(slugProp ?? "");
@@ -291,8 +314,18 @@ export function FriendEditor({
   }
 
   /* ---- Field setters --------------------------------------------------- */
-  const set = <K extends keyof FriendConfig>(key: K, value: FriendConfig[K]) =>
+  /* Drop a single field's validation error (on edit/focus, so it doesn't nag). */
+  const clearError = (field: ValidationField) =>
+    setErrors((e) => {
+      if (!(field in e)) return e;
+      const { [field]: _drop, ...rest } = e;
+      return rest;
+    });
+
+  const set = <K extends keyof FriendConfig>(key: K, value: FriendConfig[K]) => {
+    if (key in errors) clearError(key as ValidationField);
     setConfig((c) => (c ? { ...c, [key]: value } : c));
+  };
 
   const setGift = (patch: Partial<NonNullable<FriendConfig["gift"]>>) =>
     setConfig((c) =>
@@ -350,6 +383,7 @@ export function FriendEditor({
 
       /* Instant local preview (revokes this slot's previous blob, if any). */
       setPreview(which, URL.createObjectURL(file));
+      if (which === "main") clearError("avatar");
 
       /* No slug yet (create, pre-save): defer the upload. */
       if (!slug) {
@@ -425,8 +459,46 @@ export function FriendEditor({
     }
   };
 
+  /* ---- Validation ------------------------------------------------------- */
+  /* Catch the typical 400s client-side: required non-empty strings + a parseable
+     birthday. Limited friends only own displayName + birthday; owners (create /
+     edit) own the full set, plus a main avatar in create mode. Returns the map
+     of field -> i18n error key (empty = valid). */
+  const validate = (): FieldErrors => {
+    const next: FieldErrors = {};
+
+    if (!config.displayName.trim()) next.displayName = t("editor.validation.name");
+
+    if (!config.birthday.trim()) {
+      next.birthday = t("editor.validation.birthday");
+    } else if (!isValidBirthday(config.birthday)) {
+      next.birthday = t("editor.validation.birthday");
+    }
+
+    if (showFull) {
+      /* Username drives the slug — empty, or normalizing to nothing, is invalid. */
+      if (!config.username.trim() || !derivedSlug) {
+        next.username = t("editor.validation.username");
+      }
+      if (!config.message.trim()) next.message = t("editor.validation.message");
+      /* Avatar is required to create; an existing page already has one on disk. */
+      if (creating && !config.avatar.trim() && !pendingMain.current) {
+        next.avatar = t("editor.validation.avatar");
+      }
+    }
+
+    return next;
+  };
+
   /* ---- Save ------------------------------------------------------------- */
   const onSave = async () => {
+    const found = validate();
+    if (Object.keys(found).length > 0) {
+      setErrors(found);
+      show(t("editor.validation.fix"), "error");
+      return;
+    }
+    setErrors({});
     setSaving(true);
     try {
       if (creating) {
@@ -544,12 +616,16 @@ export function FriendEditor({
     label: string,
     src: string | null,
     onPick: (e: ChangeEvent<HTMLInputElement>) => void,
+    error?: string,
   ) => (
-    <Field label={label}>
+    <Field label={label} error={error}>
       <div className="flex items-center gap-4">
         <div
           className="size-20 shrink-0 overflow-hidden rounded-full border-[3px] border-white bg-[var(--color-cream)] shadow-[var(--shadow-sm)]"
-          style={{ outline: "3px solid var(--color-accent)", outlineOffset: "2px" }}
+          style={{
+            outline: `3px solid ${error ? "var(--color-lantern)" : "var(--color-accent)"}`,
+            outlineOffset: "2px",
+          }}
         >
           {src ? (
             <img src={src} alt={label} className="size-full object-cover" />
@@ -609,9 +685,10 @@ export function FriendEditor({
           <StickerCard hover={false}>
             <h2 className="mb-4 text-xl">{t("editor.section.basic")}</h2>
             <div className="flex flex-col gap-4">
-              <Field label={t("editor.field.name")}>
+              <Field label={t("editor.field.name")} error={errors.displayName}>
                 <Input
                   value={config.displayName}
+                  invalid={!!errors.displayName}
                   onChange={(e) => set("displayName", e.target.value)}
                   placeholder={t("editor.placeholder.name")}
                 />
@@ -622,9 +699,11 @@ export function FriendEditor({
                   <Field
                     label={t("editor.field.username")}
                     hint={t("editor.hint.username")}
+                    error={errors.username}
                   >
                     <Input
                       value={config.username}
+                      invalid={!!errors.username}
                       onChange={(e) => set("username", e.target.value)}
                       placeholder={t("editor.placeholder.username")}
                     />
@@ -641,7 +720,10 @@ export function FriendEditor({
                     >
                       <Input
                         value={slugOverride}
-                        onChange={(e) => setSlugOverride(e.target.value)}
+                        onChange={(e) => {
+                          clearError("username");
+                          setSlugOverride(e.target.value);
+                        }}
                         placeholder={deriveSlug(config.username) || t("editor.placeholder.slug")}
                       />
                     </Field>
@@ -653,18 +735,21 @@ export function FriendEditor({
               <Field
                 label={t("editor.field.birthday")}
                 hint={t("editor.hint.birthday")}
+                error={errors.birthday}
               >
                 <Input
                   value={config.birthday}
+                  invalid={!!errors.birthday}
                   onChange={(e) => set("birthday", e.target.value)}
                   placeholder={t("editor.placeholder.birthday")}
                 />
               </Field>
 
               {showFull && (
-                <Field label={t("editor.field.message")}>
+                <Field label={t("editor.field.message")} error={errors.message}>
                   <Textarea
                     value={config.message}
+                    invalid={!!errors.message}
                     onChange={(e) => set("message", e.target.value)}
                     placeholder={t("editor.placeholder.message")}
                   />
@@ -770,6 +855,7 @@ export function FriendEditor({
                 t("editor.field.avatarMain"),
                 mainPreview ?? (config.avatar ? `/friends/${slug}/${config.avatar}` : null),
                 onPickAvatar("main"),
+                errors.avatar,
               )}
               {showFull &&
                 avatarTile(

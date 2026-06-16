@@ -36,18 +36,27 @@ export function Spinner({ label }: { label?: string }) {
 interface FieldProps {
   label: string;
   hint?: string;
+  /** Validation message shown in lantern-red below the control (overrides hint). */
+  error?: string;
   children: ReactNode;
   className?: string;
 }
 
-/** A labelled form row with optional helper text below the control. */
-export function Field({ label, hint, children, className = "" }: FieldProps) {
+/** A labelled form row with optional helper text (or a validation error) below
+    the control. When `error` is set the hint is replaced by the red message. */
+export function Field({ label, hint, error, children, className = "" }: FieldProps) {
   return (
     <label className={`flex flex-col gap-1.5 ${className}`}>
       <span className="text-sm font-bold text-[var(--color-text)]">{label}</span>
       {children}
-      {hint && (
-        <span className="text-xs text-[var(--color-text-soft)]">{hint}</span>
+      {error ? (
+        <span className="text-xs font-bold text-[var(--color-lantern)]">
+          {error}
+        </span>
+      ) : (
+        hint && (
+          <span className="text-xs text-[var(--color-text-soft)]">{hint}</span>
+        )
       )}
     </label>
   );
@@ -58,16 +67,33 @@ export function Field({ label, hint, children, className = "" }: FieldProps) {
 const controlClasses =
   "rounded-[var(--radius-md)] border-[2px] border-[var(--color-muted)] bg-[var(--color-surface)] px-4 py-2.5 text-[var(--color-text)] outline-none transition-shadow placeholder:text-[var(--color-text-soft)]/60 focus:border-[var(--color-accent)] focus:shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-accent)_35%,transparent)] disabled:cursor-not-allowed disabled:opacity-60";
 
-export function Input(props: InputHTMLAttributes<HTMLInputElement>) {
-  const { className = "", ...rest } = props;
-  return <input className={`${controlClasses} ${className}`} {...rest} />;
+/* Lantern-red border + glow for fields that failed validation. */
+const invalidClasses =
+  "border-[var(--color-lantern)] focus:border-[var(--color-lantern)] focus:shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-lantern)_35%,transparent)]";
+
+/** Text input. Pass `invalid` to paint the lantern-red error border. */
+export function Input(
+  props: InputHTMLAttributes<HTMLInputElement> & { invalid?: boolean },
+) {
+  const { className = "", invalid, ...rest } = props;
+  return (
+    <input
+      aria-invalid={invalid || undefined}
+      className={`${controlClasses} ${invalid ? invalidClasses : ""} ${className}`}
+      {...rest}
+    />
+  );
 }
 
-export function Textarea(props: TextareaHTMLAttributes<HTMLTextAreaElement>) {
-  const { className = "", ...rest } = props;
+/** Multiline input. Pass `invalid` to paint the lantern-red error border. */
+export function Textarea(
+  props: TextareaHTMLAttributes<HTMLTextAreaElement> & { invalid?: boolean },
+) {
+  const { className = "", invalid, ...rest } = props;
   return (
     <textarea
-      className={`${controlClasses} min-h-[110px] resize-y leading-relaxed ${className}`}
+      aria-invalid={invalid || undefined}
+      className={`${controlClasses} ${invalid ? invalidClasses : ""} min-h-[110px] resize-y leading-relaxed ${className}`}
       {...rest}
     />
   );

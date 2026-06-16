@@ -32,6 +32,20 @@ export async function fetchSite(): Promise<SiteConfig | null> {
   }
 }
 
+/**
+ * Fetch public site stats (count of published birthday pages).
+ * @returns the count, or `null` on failure.
+ */
+export async function fetchStats(): Promise<{ pages: number } | null> {
+  try {
+    const res = await fetch("/api/stats");
+    if (!res.ok) return null;
+    return (await res.json()) as { pages: number };
+  } catch {
+    return null;
+  }
+}
+
 export interface ScorePayload {
   gameId: string;
   score: number;
