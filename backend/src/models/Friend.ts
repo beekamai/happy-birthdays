@@ -40,6 +40,8 @@ export interface FriendConfig {
     /* Personal profile (shown on /u/<slug>, independent of the birthday window). */
     bio?: string;
     socials?: SocialLink[];
+    /* How social links render: branded icons (default) or plain text buttons. */
+    socialStyle?: "icon" | "text";
     /* Equipped shop decorations (one per slot). Ownership lives in the shop DB;
        this only records which owned item is currently applied to the pages. */
     decor?: Decor;
@@ -63,6 +65,7 @@ export interface Decor {
     background?: string;
     badge?: string;
     effect?: string;
+    companion?: string;
 }
 
 /* Translatable user content (per language). Missing fields fall back to the
@@ -116,6 +119,7 @@ export interface PublicFriend {
     /* Personal profile fields (always present; the profile page is not gated). */
     bio?: string;
     socials?: SocialLink[];
+    socialStyle?: "icon" | "text";
     /* Equipped shop decorations applied to both pages. */
     decor?: Decor;
     /* Localized variants of displayName/message/giftName/bio (other language than

@@ -5,7 +5,7 @@
    surfaces the HTTP status so the UI can toast 402 (not enough points) / 409
    (already owned) distinctly. */
 
-export type DecorType = "avatarFrame" | "background" | "badge" | "effect";
+export type DecorType = "avatarFrame" | "background" | "badge" | "effect" | "companion";
 
 export interface ShopItem {
   id: string;

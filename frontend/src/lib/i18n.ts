@@ -153,6 +153,7 @@ const ru: Record<string, string> = {
   "shop.section.background": "Фоны",
   "shop.section.badge": "Бейджи",
   "shop.section.effect": "Эффекты",
+  "shop.section.companion": "Питомцы",
   "shop.toast.bought": "Куплено ✨",
   "shop.toast.equipped": "Надели 💛",
   "shop.toast.unequipped": "Сняли",
@@ -205,7 +206,7 @@ const ru: Record<string, string> = {
   "state.locked": "🔒 закрыта",
 
   /* ---- Owner dashboard ---- */
-  "dashboard.title": "🍜 Странички",
+  "dashboard.title": "Странички",
   "dashboard.subtitle": "Управляй поздравлениями друзей.",
   "dashboard.create": "➕ Создать страничку",
   "dashboard.loading": "Собираем странички…",
@@ -442,6 +443,7 @@ const en: Record<string, string> = {
   "shop.section.background": "Backgrounds",
   "shop.section.badge": "Badges",
   "shop.section.effect": "Effects",
+  "shop.section.companion": "Companions",
   "shop.toast.bought": "Bought ✨",
   "shop.toast.equipped": "Equipped 💛",
   "shop.toast.unequipped": "Unequipped",
@@ -494,7 +496,7 @@ const en: Record<string, string> = {
   "state.locked": "🔒 locked",
 
   /* ---- Owner dashboard ---- */
-  "dashboard.title": "🍜 Pages",
+  "dashboard.title": "Pages",
   "dashboard.subtitle": "Manage your friends' greetings.",
   "dashboard.create": "➕ Create a page",
   "dashboard.loading": "Gathering pages…",

@@ -11,6 +11,7 @@ import { LanguageSwitcher } from "../components/LanguageSwitcher.tsx";
 import { SocialLinks } from "../components/SocialLinks.tsx";
 import { ControlBar } from "../components/ControlBar.tsx";
 import { AccountButton } from "../components/AccountButton.tsx";
+import { PetCompanion } from "../pet/PetCompanion.tsx";
 import { Lanterns } from "../components/decor/Lanterns.tsx";
 import { Particles } from "../components/decor/Particles.tsx";
 import { ThemeDecor } from "../components/decor/ThemeDecor.tsx";
@@ -162,6 +163,9 @@ export function ProfilePage({ friend }: { friend: PublicFriend }) {
         </div>
       </div>
 
+      {/* A bought fox companion follows the friend onto their profile too. */}
+      {decor?.companion === "pet-fox" && <PetCompanion slug={friend.slug} />}
+
       {canEdit && (
         <Shop
           slug={friend.slug}
@@ -173,6 +177,7 @@ export function ProfilePage({ friend }: { friend: PublicFriend }) {
               background: equipped.background,
               badge: equipped.badge,
               effect: equipped.effect,
+              companion: equipped.companion,
             })
           }
         />

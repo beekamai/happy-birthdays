@@ -25,6 +25,7 @@ const SECTION_ORDER: DecorType[] = [
   "background",
   "badge",
   "effect",
+  "companion",
 ];
 
 interface ToastState {

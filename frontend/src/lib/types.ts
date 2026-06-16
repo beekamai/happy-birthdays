@@ -42,6 +42,7 @@ export interface PublicFriend {
   /* Personal profile (shown on /u/<slug>). */
   bio?: string;
   socials?: SocialLink[];
+  socialStyle?: "icon" | "text";
   /* Equipped shop decorations applied to both pages. */
   decor?: Decor;
   /* Localized variants of displayName/message/giftName/bio for the non-source
@@ -60,6 +61,7 @@ export interface Decor {
   background?: string;
   badge?: string;
   effect?: string;
+  companion?: string;
 }
 
 export interface FriendTranslations {

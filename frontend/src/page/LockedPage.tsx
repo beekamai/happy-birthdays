@@ -51,12 +51,20 @@ export function LockedPage({ friend }: { friend: PublicFriend }) {
       <Lanterns count={5} />
 
       <div className="relative flex flex-col items-center gap-5">
-        <DecoratedAvatar
-          src={friend.avatarUrl}
-          alt={name}
-          frameId={friend.decor?.avatarFrame}
-          grayscale
-        />
+        {/* The avatar links through to the friend's personal profile (same as
+           the active birthday page). */}
+        <a
+          href={`/u/${friend.slug}`}
+          title={t("hero.viewProfile")}
+          className="block transition-transform duration-200 ease-[var(--ease-bounce)] hover:scale-105"
+        >
+          <DecoratedAvatar
+            src={friend.avatarUrl}
+            alt={name}
+            frameId={friend.decor?.avatarFrame}
+            grayscale
+          />
+        </a>
 
         <div className="flex flex-col items-center gap-1">
           <h1 className="text-4xl">

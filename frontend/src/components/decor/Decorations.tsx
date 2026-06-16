@@ -247,5 +247,8 @@ export function DecorPreview({ id, type }: { id: string; type: string }) {
       <span className="text-3xl select-none">{id === "fx-hearts" ? "💕" : "✨"}</span>
     );
   }
+  if (type === "companion") {
+    return <span className="text-3xl select-none">🦊</span>;
+  }
   return null;
 }

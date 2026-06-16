@@ -171,7 +171,7 @@ export function validateFriendConfig(obj: unknown): FriendConfig {
     /* Equipped shop decorations (one item id per slot). */
     if (isObject(obj.decor)) {
         const decor: NonNullable<FriendConfig["decor"]> = {};
-        for (const slot of ["avatarFrame", "background", "badge", "effect"] as const) {
+        for (const slot of ["avatarFrame", "background", "badge", "effect", "companion"] as const) {
             const v = (obj.decor as Record<string, unknown>)[slot];
             if (typeof v === "string" && v.length > 0) decor[slot] = v;
         }
@@ -180,6 +180,7 @@ export function validateFriendConfig(obj: unknown): FriendConfig {
 
     /* Personal profile: free-text bio + social links. */
     if (typeof obj.bio === "string") result.bio = obj.bio;
+    if (obj.socialStyle === "icon" || obj.socialStyle === "text") result.socialStyle = obj.socialStyle;
     if (Array.isArray(obj.socials)) {
         const socials = obj.socials
             .filter(
@@ -268,6 +269,7 @@ const Decor_Object_Schema = t.Object({
     background: t.Optional(t.String()),
     badge: t.Optional(t.String()),
     effect: t.Optional(t.String()),
+    companion: t.Optional(t.String()),
 });
 
 export const PublicFriend_Object_Schema = {
@@ -305,6 +307,7 @@ export const PublicFriend_Object_Schema = {
     ]),
     bio: t.Optional(t.String()),
     socials: t.Optional(t.Array(Social_Object_Schema)),
+    socialStyle: t.Optional(t.Union([t.Literal("icon"), t.Literal("text")])),
     decor: t.Optional(Decor_Object_Schema),
     translations: t.Optional(
         t.Object({
