@@ -6,6 +6,7 @@ import { useT, initLang } from "../lib/i18n.ts";
 import { friendDisplayName } from "../lib/friendContent.ts";
 import { ThemeSwitcher } from "../components/ThemeSwitcher.tsx";
 import { LanguageSwitcher } from "../components/LanguageSwitcher.tsx";
+import { AccountButton } from "../components/AccountButton.tsx";
 import { Lanterns } from "../components/decor/Lanterns.tsx";
 import { Particles } from "../components/decor/Particles.tsx";
 import { ThemeDecor } from "../components/decor/ThemeDecor.tsx";
@@ -39,6 +40,7 @@ export function LockedPage({ friend }: { friend: PublicFriend }) {
     >
       <ThemeSwitcher theme={theme} setTheme={setTheme} themes={themes} />
       <LanguageSwitcher />
+      <AccountButton />
       <DecorBackground id={friend.decor?.background} />
       <ThemeDecor theme={theme} />
       <DecorEffect id={friend.decor?.effect} />

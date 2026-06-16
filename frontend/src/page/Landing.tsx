@@ -4,6 +4,7 @@ import { useTheme } from "../lib/useTheme.ts";
 import { useT, initLang } from "../lib/i18n.ts";
 import { ThemeSwitcher } from "../components/ThemeSwitcher.tsx";
 import { LanguageSwitcher } from "../components/LanguageSwitcher.tsx";
+import { AccountButton } from "../components/AccountButton.tsx";
 import { ThemeDecor } from "../components/decor/ThemeDecor.tsx";
 import { Particles } from "../components/decor/Particles.tsx";
 import { Lanterns } from "../components/decor/Lanterns.tsx";
@@ -26,6 +27,7 @@ export function Landing() {
     <main className="relative flex min-h-[100dvh] flex-col items-center justify-center overflow-hidden px-6 text-center">
       <ThemeSwitcher theme={theme} setTheme={setTheme} themes={themes} />
       <LanguageSwitcher />
+      <AccountButton />
       <ThemeDecor theme={theme} />
       <Particles />
       <Lanterns count={5} />

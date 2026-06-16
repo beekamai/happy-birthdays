@@ -113,6 +113,16 @@ const ru: Record<string, string> = {
   "friend.pageTotal": "Всего на странице: {n}",
   "friend.footer": "с любовью, {name}",
 
+  /* Generic confirm dialog */
+  "dialog.cancel": "Отмена",
+  "dialog.confirm": "Подтвердить",
+
+  /* Account / login */
+  "account.login": "Войти",
+  "account.account": "Аккаунт",
+  "account.settings": "✏️ Моя страница",
+  "account.logout": "Выйти",
+
   /* Profile page (/u/<slug>) */
   "hero.viewProfile": "Открыть профиль",
   "profile.points": "Очки: {n}",
@@ -132,6 +142,8 @@ const ru: Record<string, string> = {
   "shop.unequip": "Снять",
   "shop.refund": "↩︎ Вернуть {n}",
   "shop.refundHint": "Удалить украшение и вернуть {n} очков",
+  "shop.confirmRefundTitle": "Вернуть украшение?",
+  "shop.confirmDelete": "Удалить",
   "shop.confirmRefund": "Удалить «{name}» и вернуть {n} очков?",
   "shop.needMore": "Не хватает {n} очков",
   "shop.empty": "Каталог пока пуст",
@@ -387,6 +399,16 @@ const en: Record<string, string> = {
   "friend.pageTotal": "Page total: {n}",
   "friend.footer": "with love, {name}",
 
+  /* Generic confirm dialog */
+  "dialog.cancel": "Cancel",
+  "dialog.confirm": "Confirm",
+
+  /* Account / login */
+  "account.login": "Log in",
+  "account.account": "Account",
+  "account.settings": "✏️ My page",
+  "account.logout": "Log out",
+
   /* Profile page (/u/<slug>) */
   "hero.viewProfile": "Open profile",
   "profile.points": "Points: {n}",
@@ -406,6 +428,8 @@ const en: Record<string, string> = {
   "shop.unequip": "Unequip",
   "shop.refund": "↩︎ Refund {n}",
   "shop.refundHint": "Remove the decoration and refund {n} points",
+  "shop.confirmRefundTitle": "Refund decoration?",
+  "shop.confirmDelete": "Remove",
   "shop.confirmRefund": "Remove “{name}” and refund {n} points?",
   "shop.needMore": "Need {n} more points",
   "shop.empty": "The catalogue is empty for now",

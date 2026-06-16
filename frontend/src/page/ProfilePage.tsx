@@ -1,6 +1,6 @@
 import { useEffect, useState, type CSSProperties } from "react";
 
-import type { PublicFriend } from "../lib/types.ts";
+import type { Decor, PublicFriend } from "../lib/types.ts";
 import { getVisitorId } from "../lib/visitor.ts";
 import { useTotals } from "../lib/useTotals.ts";
 import { useTheme } from "../lib/useTheme.ts";
@@ -9,6 +9,7 @@ import { friendDisplayName, friendBio } from "../lib/friendContent.ts";
 import { ThemeSwitcher } from "../components/ThemeSwitcher.tsx";
 import { LanguageSwitcher } from "../components/LanguageSwitcher.tsx";
 import { SocialLinks } from "../components/SocialLinks.tsx";
+import { AccountButton } from "../components/AccountButton.tsx";
 import { Lanterns } from "../components/decor/Lanterns.tsx";
 import { Particles } from "../components/decor/Particles.tsx";
 import { ThemeDecor } from "../components/decor/ThemeDecor.tsx";
@@ -58,6 +59,9 @@ export function ProfilePage({ friend }: { friend: PublicFriend }) {
   const { totals } = useTotals(friend.slug, visitorId);
   const canEdit = useCanEdit(friend);
   const [shopOpen, setShopOpen] = useState(false);
+  /* Equipped decor lives in local state so shop purchases re-render the page
+     instantly, with no reload. Seeded from the loaded friend. */
+  const [decor, setDecor] = useState<Decor | undefined>(friend.decor);
 
   useEffect(() => {
     initLang(friend.lang);
@@ -75,9 +79,10 @@ export function ProfilePage({ friend }: { friend: PublicFriend }) {
     >
       <ThemeSwitcher theme={theme} setTheme={setTheme} themes={themes} />
       <LanguageSwitcher />
-      <DecorBackground id={friend.decor?.background} />
+      <AccountButton />
+      <DecorBackground id={decor?.background} />
       <ThemeDecor theme={theme} />
-      <DecorEffect id={friend.decor?.effect} />
+      <DecorEffect id={decor?.effect} />
       <Particles count={8} />
       <Lanterns count={5} />
 
@@ -85,13 +90,13 @@ export function ProfilePage({ friend }: { friend: PublicFriend }) {
         <DecoratedAvatar
           src={friend.avatarUrl}
           alt={name}
-          frameId={friend.decor?.avatarFrame}
+          frameId={decor?.avatarFrame}
         />
 
         <div className="flex flex-col items-center gap-1">
           <h1 className="text-4xl">
             {name}
-            <DecorBadge id={friend.decor?.badge} />
+            <DecorBadge id={decor?.badge} />
           </h1>
           <a
             href={`https://t.me/${friend.username.replace(/^@/, "")}`}
@@ -151,7 +156,14 @@ export function ProfilePage({ friend }: { friend: PublicFriend }) {
           slug={friend.slug}
           open={shopOpen}
           onClose={() => setShopOpen(false)}
-          onChange={() => window.location.reload()}
+          onChange={(equipped) =>
+            setDecor({
+              avatarFrame: equipped.avatarFrame,
+              background: equipped.background,
+              badge: equipped.badge,
+              effect: equipped.effect,
+            })
+          }
         />
       )}
     </main>

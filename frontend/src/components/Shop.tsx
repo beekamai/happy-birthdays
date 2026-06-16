@@ -12,6 +12,7 @@ import {
   type ShopState,
 } from "../lib/shopApi.ts";
 import { DecorPreview } from "./decor/Decorations.tsx";
+import { ConfirmDialog } from "./ConfirmDialog.tsx";
 
 /* The decoration store, shown over the profile when the viewer may edit it.
    Loads the catalogue + the friend's wallet/ownership on open, groups items by
@@ -61,8 +62,9 @@ interface ShopProps {
   slug: string;
   open: boolean;
   onClose: () => void;
-  /** Called after a successful buy/equip so the host can refresh page decor. */
-  onChange: () => void;
+  /** Called after a successful buy/equip/refund with the fresh equipped slots so
+      the host page can re-render decor live (no reload). */
+  onChange: (equipped: Record<string, string | undefined>) => void;
 }
 
 /** Modal decoration store for a friend's profile. */
@@ -73,6 +75,7 @@ export function Shop({ slug, open, onClose, onChange }: ShopProps) {
   const [loading, setLoading] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [toast, setToast] = useState<ToastState | null>(null);
+  const [pendingRefund, setPendingRefund] = useState<ShopItem | null>(null);
 
   const showToast = useCallback((message: string, kind: ToastState["kind"]) => {
     setToast({ message, kind });
@@ -113,22 +116,23 @@ export function Shop({ slug, open, onClose, onChange }: ShopProps) {
       return;
     }
     setState(res);
-    onChange();
+    onChange(res.equipped);
     showToast(t("shop.toast.bought"), "success");
   };
 
-  const handleRefund = async (item: ShopItem) => {
-    if (busyId) return;
-    if (!window.confirm(t("shop.confirmRefund", { name: itemName(item), n: item.cost }))) return;
+  const handleConfirmRefund = async () => {
+    const item = pendingRefund;
+    if (!item || busyId) return;
     setBusyId(item.id);
     const res = await refundItem(slug, item.id);
     setBusyId(null);
+    setPendingRefund(null);
     if (!res) {
       showToast(t("shop.toast.error"), "error");
       return;
     }
     setState(res);
-    onChange();
+    onChange(res.equipped);
     showToast(t("shop.toast.refunded"), "success");
   };
 
@@ -143,7 +147,7 @@ export function Shop({ slug, open, onClose, onChange }: ShopProps) {
       return;
     }
     setState(res);
-    onChange();
+    onChange(res.equipped);
     showToast(t(isOn ? "shop.toast.unequipped" : "shop.toast.equipped"), "success");
   };
 
@@ -242,7 +246,7 @@ export function Shop({ slug, open, onClose, onChange }: ShopProps) {
                                 <button
                                   type="button"
                                   disabled={busy}
-                                  onClick={() => handleRefund(item)}
+                                  onClick={() => setPendingRefund(item)}
                                   title={t("shop.refundHint", { n: item.cost })}
                                   className="rounded-[var(--radius-full)] border-[2px] border-[var(--color-lantern)] bg-[var(--color-surface)] px-3 py-1 text-xs font-bold text-[var(--color-lantern)] transition-transform duration-200 hover:scale-105 disabled:cursor-not-allowed disabled:opacity-60"
                                 >
@@ -300,6 +304,20 @@ export function Shop({ slug, open, onClose, onChange }: ShopProps) {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={pendingRefund !== null}
+        title={t("shop.confirmRefundTitle")}
+        message={t("shop.confirmRefund", {
+          name: pendingRefund ? itemName(pendingRefund) : "",
+          n: pendingRefund?.cost ?? 0,
+        })}
+        confirmLabel={t("shop.confirmDelete")}
+        confirmVariant="danger"
+        disabled={busyId !== null}
+        onConfirm={handleConfirmRefund}
+        onCancel={() => setPendingRefund(null)}
+      />
     </div>
   );
 }

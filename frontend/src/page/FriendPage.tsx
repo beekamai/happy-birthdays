@@ -12,6 +12,7 @@ import { friendMessage, friendGiftName } from "../lib/friendContent.ts";
 import { SoundToggle } from "../components/SoundToggle.tsx";
 import { ThemeSwitcher } from "../components/ThemeSwitcher.tsx";
 import { LanguageSwitcher } from "../components/LanguageSwitcher.tsx";
+import { AccountButton } from "../components/AccountButton.tsx";
 import { Lanterns } from "../components/decor/Lanterns.tsx";
 import { Particles } from "../components/decor/Particles.tsx";
 import { ThemeDecor } from "../components/decor/ThemeDecor.tsx";
@@ -92,6 +93,7 @@ export function FriendPage({ friend, site }: FriendPageProps) {
       <SoundToggle />
       <ThemeSwitcher theme={theme} setTheme={setTheme} themes={themes} />
       <LanguageSwitcher />
+      <AccountButton />
       {/* Ambient decor — non-interactive, behind the content. */}
       <DecorBackground id={friend.decor?.background} />
       <ThemeDecor theme={theme} />
