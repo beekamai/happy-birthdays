@@ -95,6 +95,30 @@ export const listFriends = async ({ jwt, cookie, set }: any) => {
     return { friends: friends.filter(Boolean) };
 };
 
+/** GET /api/admin/mine — pages the logged-in user may edit. Owner: all pages;
+    a friend: the page(s) whose username matches theirs — so they find their own
+    page even when its slug differs from their Telegram handle. */
+export const myPages = async ({ jwt, cookie, set }: any) => {
+    const user = await readUser(jwt, cookie);
+    if (!user) { set.status = 401; return { error: "Unauthorized" }; }
+
+    const pages = FriendRepository.listSlugs()
+        .map((slug) => {
+            const cfg = FriendRepository.getRawConfig(slug);
+            if (!cfg || !canEdit(user, cfg.username)) return null;
+            return {
+                slug,
+                displayName: cfg.displayName,
+                username: cfg.username,
+                avatarUrl: `/friends/${slug}/${cfg.avatar}`,
+            };
+        })
+        .filter(Boolean);
+
+    set.status = 200;
+    return { pages, isOwner: user.isOwner };
+};
+
 /** GET /api/admin/friend/:slug — raw config for editing (owner or that friend). */
 export const getFriendConfig = async ({ params, jwt, cookie, set }: any) => {
     const user = await readUser(jwt, cookie);

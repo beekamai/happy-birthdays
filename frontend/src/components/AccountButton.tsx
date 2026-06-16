@@ -67,7 +67,7 @@ export function AccountButton() {
 
   if (!user) {
     return (
-      <a href="/admin" className={`fixed top-4 left-4 z-50 ${pill}`} title={t("account.login")}>
+      <a href="/account" className={`fixed top-4 left-4 z-50 ${pill}`} title={t("account.login")}>
         <span aria-hidden="true">👤</span>
         <span className="text-sm">{t("account.login")}</span>
       </a>
@@ -104,7 +104,7 @@ export function AccountButton() {
             </span>
           )}
           <a
-            href="/admin"
+            href="/account"
             onClick={() => setOpen(false)}
             className="rounded-[var(--radius-sm)] px-3 py-2 text-sm font-bold text-[var(--color-text)] transition-colors hover:bg-[var(--color-muted)]/40"
           >

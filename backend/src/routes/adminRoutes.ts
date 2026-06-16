@@ -2,6 +2,7 @@ import { Elysia } from "elysia";
 
 import {
     listFriends,
+    myPages,
     getFriendConfig,
     updateFriend,
     createFriend,
@@ -14,6 +15,7 @@ import { buyItem, equipItem, refundItem } from "../controllers/shopController";
    session + permission (owner vs the friend themselves). */
 const adminRoutes = new Elysia()
     .get("/friends", listFriends)
+    .get("/mine", myPages)
     .post("/friends", createFriend)
     .get("/friend/:slug", getFriendConfig)
     .put("/friend/:slug", updateFriend)

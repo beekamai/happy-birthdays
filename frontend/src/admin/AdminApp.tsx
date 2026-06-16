@@ -10,7 +10,7 @@ import { Particles } from "../components/decor/Particles.tsx";
 import { Steam } from "../components/decor/Steam.tsx";
 import { StickerCard } from "../components/decor/StickerCard.tsx";
 
-import { deriveSlug, fetchAdminFriend, type AuthUser } from "./adminApi.ts";
+import { fetchMyPages, type AuthUser, type MyPage } from "./adminApi.ts";
 import { useAuth } from "./useAuth.ts";
 import { Spinner } from "./adminUi.tsx";
 import { TelegramLoginButton } from "./TelegramLoginButton.tsx";
@@ -61,7 +61,7 @@ export default function AdminApp() {
     <div className="min-h-[100dvh] bg-[var(--color-cream)]">
       {switcher}
       <TopBar user={user} onLogout={logout} />
-      {user.isOwner ? <OwnerDashboard /> : <FriendArea user={user} />}
+      {user.isOwner ? <OwnerDashboard /> : <FriendArea />}
     </div>
   );
 }
@@ -126,7 +126,7 @@ function TopBar({
     <header className="sticky top-0 z-40 border-b-[2px] border-[var(--color-muted)] bg-[var(--color-surface)]/90 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
         <a
-          href="/admin"
+          href="/account"
           className="flex items-center gap-2 font-[var(--font-display)] font-bold text-[var(--color-text)]"
         >
           <span className="text-xl select-none" aria-hidden="true">
@@ -159,37 +159,31 @@ function TopBar({
 }
 
 /* ---- Friend area (non-owner) -------------------------------------------- */
-/* A non-owner can only edit their own page. We probe for a page whose slug
-   matches their username; if the probe 403/404s they have nothing to edit. */
-function FriendArea({ user }: { user: AuthUser }) {
+/* A non-owner edits only their own page(s). The backend matches pages by the
+   user's handle (not the slug), so this works even when a page slug differs
+   from the friend's Telegram username. */
+function FriendArea() {
   const { t } = useT();
   const [state, setState] = useState<"checking" | "has" | "none">("checking");
+  const [pages, setPages] = useState<MyPage[]>([]);
   const [slug, setSlug] = useState<string | null>(null);
 
   useEffect(() => {
-    const candidate = deriveSlug(user.username ?? "");
-    if (!candidate) {
-      setState("none");
-      return;
-    }
     let alive = true;
-    fetchAdminFriend(candidate).then((detail) => {
+    fetchMyPages().then((mine) => {
       if (!alive) return;
-      if (detail) {
-        setSlug(detail.slug);
-        setState("has");
-      } else {
-        setState("none");
-      }
+      setPages(mine);
+      if (mine.length === 1) setSlug(mine[0].slug);
+      setState(mine.length > 0 ? "has" : "none");
     });
     return () => {
       alive = false;
     };
-  }, [user.username]);
+  }, []);
 
   if (state === "checking") return <Spinner label={t("admin.searchingPage")} />;
 
-  if (state === "none" || !slug) {
+  if (state === "none") {
     return (
       <div className="mx-auto max-w-md px-4 py-12 text-center">
         <StickerCard hover={false}>
@@ -201,6 +195,35 @@ function FriendArea({ user }: { user: AuthUser }) {
             {t("admin.noPage.text")}
           </p>
         </StickerCard>
+      </div>
+    );
+  }
+
+  /* More than one page tied to this handle — let them choose which to edit. */
+  if (!slug) {
+    return (
+      <div className="mx-auto max-w-md px-4 py-12">
+        <h2 className="mb-4 text-center text-2xl">{t("admin.myPages.title")}</h2>
+        <div className="flex flex-col gap-3">
+          {pages.map((p) => (
+            <button
+              key={p.slug}
+              type="button"
+              onClick={() => setSlug(p.slug)}
+              className="flex items-center gap-3 rounded-[var(--radius-md)] border-[2px] border-[var(--color-muted)] bg-[var(--color-surface)] p-3 text-left transition-transform hover:scale-[1.02]"
+            >
+              <img
+                src={p.avatarUrl}
+                alt=""
+                className="size-12 rounded-full border-[2px] border-white object-cover"
+              />
+              <div className="flex flex-col">
+                <span className="font-bold text-[var(--color-text)]">{p.displayName}</span>
+                <span className="text-sm text-[var(--color-text-soft)]">/{p.slug}</span>
+              </div>
+            </button>
+          ))}
+        </div>
       </div>
     );
   }

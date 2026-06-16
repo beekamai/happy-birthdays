@@ -195,6 +195,26 @@ export async function fetchAdminFriends(): Promise<AdminFriendSummary[]> {
   }
 }
 
+/** A page the current user may edit (their own, matched by handle). */
+export interface MyPage {
+  slug: string;
+  displayName: string;
+  username: string;
+  avatarUrl: string;
+}
+
+/** Pages the logged-in user may edit (matched by handle, not slug). `[]` on error. */
+export async function fetchMyPages(): Promise<MyPage[]> {
+  try {
+    const res = await fetch("/api/admin/mine");
+    if (!res.ok) return [];
+    const body = (await res.json()) as { pages: MyPage[] };
+    return body.pages ?? [];
+  } catch {
+    return [];
+  }
+}
+
 export interface AdminFriendDetail {
   slug: string;
   config: FriendConfig;

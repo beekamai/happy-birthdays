@@ -141,7 +141,7 @@ export function ProfilePage({ friend }: { friend: PublicFriend }) {
                 {t("shop.open")}
               </button>
               <a
-                href="/admin"
+                href="/account"
                 className="inline-flex items-center gap-2 rounded-[var(--radius-full)] border-[2px] border-[var(--color-muted)] bg-[var(--color-surface)] px-6 py-3 font-bold text-[var(--color-text)] shadow-[var(--shadow-sm)] transition-transform duration-200 ease-[var(--ease-bounce)] hover:scale-[1.03]"
               >
                 {t("profile.edit")}

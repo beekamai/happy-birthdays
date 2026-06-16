@@ -8,7 +8,9 @@ import { serveFriendPage, serveProfilePage, serveLanding } from "../controllers/
  */
 const pageRoutes = new Elysia()
     .get("/", serveLanding)
-    /* /admin is the SPA admin app — serve the shell (200), not a 404 page. */
+    /* /account (and the legacy /admin alias) is the personal cabinet SPA —
+       serve the shell (200), not a 404 page. */
+    .get("/account", serveLanding)
     .get("/admin", serveLanding)
     /* /u/<slug> is the personal profile — nick title + profile OG injection. */
     .get("/u/:slug", serveProfilePage)

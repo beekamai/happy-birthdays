@@ -23,9 +23,9 @@ export function App() {
   const slug = readSlug();
   const pathname = window.location.pathname;
 
-  /* /admin is its own app — branch on the path before any friend lookup so it
-     renders regardless of whether a friend named "admin" exists. */
-  if (slug === "admin" || pathname.startsWith("/admin")) {
+  /* The personal cabinet SPA — /account (and the legacy /admin alias). Branch on
+     the path before any friend lookup so it renders regardless of slugs. */
+  if (slug === "account" || slug === "admin" || pathname.startsWith("/account") || pathname.startsWith("/admin")) {
     return (
       <Suspense fallback={<LoadingState />}>
         <AdminApp />

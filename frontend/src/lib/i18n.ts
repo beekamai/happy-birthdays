@@ -179,14 +179,15 @@ const ru: Record<string, string> = {
   "lang.ru": "РУ",
   "lang.en": "EN",
 
-  /* ---- Admin: shell + login ---- */
+  /* ---- Cabinet: shell + login ---- */
   "admin.brand": "Happy Birthdays",
-  "admin.login.title": "Админка",
-  "admin.login.subtitle": "Войди через Telegram, чтобы редактировать странички.",
+  "admin.login.title": "Вход",
+  "admin.login.subtitle": "Войди через Telegram, чтобы настроить свою страничку.",
   "admin.login.configError": "Не удалось загрузить настройки входа.",
   "admin.logout": "Выйти",
   "admin.you": "ты",
   "admin.searchingPage": "Ищем твою страничку…",
+  "admin.myPages.title": "Твои странички",
   "admin.noPage.title": "У тебя пока нет странички",
   "admin.noPage.text": "Когда владелец создаст её — сможешь редактировать тут.",
 
@@ -465,14 +466,15 @@ const en: Record<string, string> = {
   "lang.ru": "РУ",
   "lang.en": "EN",
 
-  /* ---- Admin: shell + login ---- */
+  /* ---- Cabinet: shell + login ---- */
   "admin.brand": "Happy Birthdays",
-  "admin.login.title": "Admin",
-  "admin.login.subtitle": "Sign in with Telegram to edit pages.",
+  "admin.login.title": "Sign in",
+  "admin.login.subtitle": "Sign in with Telegram to set up your page.",
   "admin.login.configError": "Couldn't load sign-in settings.",
   "admin.logout": "Log out",
   "admin.you": "you",
   "admin.searchingPage": "Looking for your page…",
+  "admin.myPages.title": "Your pages",
   "admin.noPage.title": "You don't have a page yet",
   "admin.noPage.text": "Once the owner creates it — you'll be able to edit it here.",
 
