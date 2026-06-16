@@ -168,6 +168,21 @@ export function validateFriendConfig(obj: unknown): FriendConfig {
     }
     if (obj.lang === "ru" || obj.lang === "en") result.lang = obj.lang;
 
+    /* Personal profile: free-text bio + social links. */
+    if (typeof obj.bio === "string") result.bio = obj.bio;
+    if (Array.isArray(obj.socials)) {
+        const socials = obj.socials
+            .filter(
+                (s): s is { platform: unknown; url: unknown } =>
+                    isObject(s) && typeof s.url === "string" && s.url.length > 0,
+            )
+            .map((s) => ({
+                platform: typeof s.platform === "string" ? s.platform : "link",
+                url: s.url as string,
+            }));
+        if (socials.length > 0) result.socials = socials;
+    }
+
     /* Optional localized content (auto-translated, hand-editable). Lenient: only
        string fields are kept; anything malformed is silently dropped. */
     if (isObject(obj.translations)) {
@@ -179,6 +194,7 @@ export function validateFriendConfig(obj: unknown): FriendConfig {
             if (typeof tr.displayName === "string") fields.displayName = tr.displayName;
             if (typeof tr.message === "string") fields.message = tr.message;
             if (typeof tr.giftName === "string") fields.giftName = tr.giftName;
+            if (typeof tr.bio === "string") fields.bio = tr.bio;
             if (Object.keys(fields).length > 0) out[lang] = fields;
         }
         if (Object.keys(out).length > 0) result.translations = out;
@@ -229,6 +245,12 @@ const FriendTranslations_Object_Schema = t.Object({
     displayName: t.Optional(t.String()),
     message: t.Optional(t.String()),
     giftName: t.Optional(t.String()),
+    bio: t.Optional(t.String()),
+});
+
+const Social_Object_Schema = t.Object({
+    platform: t.String(),
+    url: t.String(),
 });
 
 export const PublicFriend_Object_Schema = {
@@ -264,6 +286,8 @@ export const PublicFriend_Object_Schema = {
         t.Literal("halloween"),
         t.Literal("newyear"),
     ]),
+    bio: t.Optional(t.String()),
+    socials: t.Optional(t.Array(Social_Object_Schema)),
     translations: t.Optional(
         t.Object({
             ru: t.Optional(FriendTranslations_Object_Schema),

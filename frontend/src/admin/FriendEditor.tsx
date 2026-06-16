@@ -28,8 +28,9 @@ import {
 /* The core editor. Three shapes from one component:
    - create  : owner builds a brand-new page (full form, slug derived/overridable)
    - edit     : owner edits an existing page (full form)
-   - limited  : a friend edits their own page (displayName, accent, avatar,
-                gamesEnabled, giftDisplay, giftLayout only)
+   - limited  : a friend edits their own page (displayName, birthday, accent,
+                avatar, bio, socials, gamesEnabled, giftDisplay, giftLayout,
+                lang, theme, translations — not username/slug/message/gift)
 
    A live <iframe> preview of the SAVED page sits beside the form on desktop and
    below it on mobile; it reloads (via a bumped key) after each successful save. */
@@ -42,6 +43,22 @@ const GAME_IDS = [
   "maze",
 ] as const;
 
+/* Known social platforms offered in the repeater. Unknown keys fall back to a
+   generic "link" badge on the backend; we only expose the curated set here. */
+const SOCIAL_PLATFORMS = [
+  "telegram",
+  "discord",
+  "x",
+  "instagram",
+  "youtube",
+  "twitch",
+  "github",
+  "vk",
+  "tiktok",
+  "steam",
+  "website",
+] as const;
+
 function uploadFilename(file: File, which: "main" | "puzzle"): string {
   const ext = file.type === "image/png" ? "png" : "jpg";
   return `${which}-${Math.max(1, file.size)}.${ext}`;
@@ -50,6 +67,17 @@ function uploadFilename(file: File, which: "main" | "puzzle"): string {
 function cleanOptional(value: string | undefined): string | undefined {
   const trimmed = value?.trim();
   return trimmed ? trimmed : undefined;
+}
+
+/* Drop social rows with an empty URL and trim the rest; undefined when none
+   survive, so the field is omitted from the saved config. */
+function cleanSocials(
+  socials: { platform: string; url: string }[] | undefined,
+): { platform: string; url: string }[] | undefined {
+  const kept = (socials ?? [])
+    .map((s) => ({ platform: s.platform, url: s.url.trim() }))
+    .filter((s) => s.url);
+  return kept.length ? kept : undefined;
 }
 
 function normalizeConfigForSave(
@@ -65,6 +93,8 @@ function normalizeConfigForSave(
     message: config.message.trim(),
     avatar: config.avatar.trim(),
     puzzleAvatar: cleanOptional(config.puzzleAvatar),
+    bio: cleanOptional(config.bio),
+    socials: cleanSocials(config.socials),
   };
 
   if (gift) {
@@ -168,6 +198,7 @@ export function FriendEditor({
   const [tName, setTName] = useState("");
   const [tMessage, setTMessage] = useState("");
   const [tGiftName, setTGiftName] = useState("");
+  const [tBio, setTBio] = useState("");
   const [translating, setTranslating] = useState(false);
 
   /* In create mode we start as POST; after the first successful save we behave
@@ -202,6 +233,7 @@ export function FriendEditor({
         setTName(tr?.displayName ?? "");
         setTMessage(tr?.message ?? "");
         setTGiftName(tr?.giftName ?? "");
+        setTBio(tr?.bio ?? "");
       }
       setLoading(false);
     });
@@ -274,6 +306,34 @@ export function FriendEditor({
       };
     });
 
+  /* ---- Socials repeater ------------------------------------------------ */
+  const addSocial = () =>
+    setConfig((c) =>
+      c
+        ? { ...c, socials: [...(c.socials ?? []), { platform: "telegram", url: "" }] }
+        : c,
+    );
+
+  const setSocial = (
+    index: number,
+    patch: Partial<{ platform: string; url: string }>,
+  ) =>
+    setConfig((c) =>
+      c
+        ? {
+            ...c,
+            socials: (c.socials ?? []).map((s, i) =>
+              i === index ? { ...s, ...patch } : s,
+            ),
+          }
+        : c,
+    );
+
+  const removeSocial = (index: number) =>
+    setConfig((c) =>
+      c ? { ...c, socials: (c.socials ?? []).filter((_, i) => i !== index) } : c,
+    );
+
   /* ---- Avatar handling ------------------------------------------------- */
   const onPickAvatar =
     (which: "main" | "puzzle") => async (e: ChangeEvent<HTMLInputElement>) => {
@@ -313,11 +373,17 @@ export function FriendEditor({
   /* Merge the panel values into config.translations[targetLang], keeping the
      other language and dropping empty fields (the backend re-fills those). */
   const withTranslations = (base: FriendConfig): FriendConfig => {
-    const entry: { displayName?: string; message?: string; giftName?: string } = {};
+    const entry: {
+      displayName?: string;
+      message?: string;
+      giftName?: string;
+      bio?: string;
+    } = {};
     if (tName.trim()) entry.displayName = tName.trim();
     if (showFull && tMessage.trim()) entry.message = tMessage.trim();
     if (showFull && base.gift?.name?.trim() && tGiftName.trim())
       entry.giftName = tGiftName.trim();
+    if (base.bio?.trim() && tBio.trim()) entry.bio = tBio.trim();
     return {
       ...base,
       translations: { ...base.translations, [targetLang]: entry },
@@ -334,6 +400,7 @@ export function FriendEditor({
         displayName: config?.displayName?.trim() || undefined,
         message: showFull ? config?.message?.trim() || undefined : undefined,
         giftName: showFull ? config?.gift?.name?.trim() || undefined : undefined,
+        bio: config?.bio?.trim() || undefined,
       });
       if (!result) {
         show(t("editor.toast.translateFailed"), "error");
@@ -342,6 +409,7 @@ export function FriendEditor({
       if (result.displayName !== undefined) setTName(result.displayName);
       if (result.message !== undefined) setTMessage(result.message);
       if (result.giftName !== undefined) setTGiftName(result.giftName);
+      if (result.bio !== undefined) setTBio(result.bio);
       show(t("editor.toast.translated"), "success");
     } catch {
       show(t("editor.toast.translateFailed"), "error");
@@ -405,12 +473,15 @@ export function FriendEditor({
         const merged = withTranslations(config);
         const subset: FriendLimitedUpdate = {
           displayName: config.displayName,
+          birthday: config.birthday.trim(),
           accent: config.accent,
           gamesEnabled: config.gamesEnabled,
           giftDisplay: config.giftDisplay,
           giftLayout: config.giftLayout,
           lang: config.lang,
           theme: config.theme,
+          bio: cleanOptional(config.bio),
+          socials: cleanSocials(config.socials),
           translations: merged.translations,
         };
         await updateFriend(slug, subset);
@@ -544,27 +615,42 @@ export function FriendEditor({
                       />
                     </Field>
                   )}
-
-                  <Field
-                    label={t("editor.field.birthday")}
-                    hint={t("editor.hint.birthday")}
-                  >
-                    <Input
-                      value={config.birthday}
-                      onChange={(e) => set("birthday", e.target.value)}
-                      placeholder={t("editor.placeholder.birthday")}
-                    />
-                  </Field>
-
-                  <Field label={t("editor.field.message")}>
-                    <Textarea
-                      value={config.message}
-                      onChange={(e) => set("message", e.target.value)}
-                      placeholder={t("editor.placeholder.message")}
-                    />
-                  </Field>
                 </>
               )}
+
+              {/* Birthday — editable by owner and friend alike. */}
+              <Field
+                label={t("editor.field.birthday")}
+                hint={t("editor.hint.birthday")}
+              >
+                <Input
+                  value={config.birthday}
+                  onChange={(e) => set("birthday", e.target.value)}
+                  placeholder={t("editor.placeholder.birthday")}
+                />
+              </Field>
+
+              {showFull && (
+                <Field label={t("editor.field.message")}>
+                  <Textarea
+                    value={config.message}
+                    onChange={(e) => set("message", e.target.value)}
+                    placeholder={t("editor.placeholder.message")}
+                  />
+                </Field>
+              )}
+
+              {/* Bio — personal profile blurb, editable in both modes. */}
+              <Field
+                label={t("editor.field.bio")}
+                hint={t("editor.field.bio.hint")}
+              >
+                <Textarea
+                  value={config.bio ?? ""}
+                  onChange={(e) => set("bio", e.target.value)}
+                  placeholder={t("editor.placeholder.bio")}
+                />
+              </Field>
 
               <Field
                 label={t("editor.field.accent")}
@@ -585,6 +671,49 @@ export function FriendEditor({
                   />
                 </div>
               </Field>
+            </div>
+          </StickerCard>
+
+          {/* ---- Socials repeater (both modes) -------------------------- */}
+          <StickerCard hover={false}>
+            <h2 className="mb-4 text-xl">{t("editor.section.socials")}</h2>
+            <div className="flex flex-col gap-3">
+              {(config.socials ?? []).map((social, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <select
+                    value={social.platform}
+                    onChange={(e) => setSocial(i, { platform: e.target.value })}
+                    aria-label={t("editor.socials.platform")}
+                    className="shrink-0 rounded-[var(--radius-md)] border-[2px] border-[var(--color-muted)] bg-[var(--color-surface)] px-3 py-2.5 text-sm font-bold text-[var(--color-text)] outline-none transition-shadow focus:border-[var(--color-accent)] focus:shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-accent)_35%,transparent)]"
+                  >
+                    {SOCIAL_PLATFORMS.map((p) => (
+                      <option key={p} value={p}>
+                        {p}
+                      </option>
+                    ))}
+                  </select>
+                  <Input
+                    value={social.url}
+                    onChange={(e) => setSocial(i, { url: e.target.value })}
+                    placeholder={t("editor.socials.url")}
+                    className="min-w-0 flex-1"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeSocial(i)}
+                    aria-label={t("editor.socials.remove")}
+                    title={t("editor.socials.remove")}
+                    className="flex size-11 shrink-0 items-center justify-center rounded-[var(--radius-md)] border-[2px] border-[var(--color-muted)] bg-[var(--color-surface)] text-[var(--color-text)] shadow-[var(--shadow-sm)] transition-transform hover:scale-[1.05]"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+              <div className="flex justify-start">
+                <PillButton variant="ghost" onClick={addSocial}>
+                  {t("editor.socials.add")}
+                </PillButton>
+              </div>
             </div>
           </StickerCard>
 
@@ -766,6 +895,15 @@ export function FriendEditor({
                   <Textarea
                     value={tMessage}
                     onChange={(e) => setTMessage(e.target.value)}
+                  />
+                </Field>
+              )}
+
+              {config.bio?.trim() && (
+                <Field label={t("editor.field.bio")}>
+                  <Textarea
+                    value={tBio}
+                    onChange={(e) => setTBio(e.target.value)}
                   />
                 </Field>
               )}

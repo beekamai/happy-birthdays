@@ -6,6 +6,7 @@ import { useSite } from "./lib/useSite.ts";
 import { LoadingState } from "./components/LoadingState.tsx";
 import { FriendPage } from "./page/FriendPage.tsx";
 import { LockedPage } from "./page/LockedPage.tsx";
+import { ProfilePage } from "./page/ProfilePage.tsx";
 import { Landing } from "./page/Landing.tsx";
 import { NotFound } from "./page/NotFound.tsx";
 
@@ -20,10 +21,11 @@ function readSlug(): string {
 
 export function App() {
   const slug = readSlug();
+  const pathname = window.location.pathname;
 
   /* /admin is its own app — branch on the path before any friend lookup so it
      renders regardless of whether a friend named "admin" exists. */
-  if (slug === "admin" || window.location.pathname.startsWith("/admin")) {
+  if (slug === "admin" || pathname.startsWith("/admin")) {
     return (
       <Suspense fallback={<LoadingState />}>
         <AdminApp />
@@ -31,8 +33,24 @@ export function App() {
     );
   }
 
+  /* /u/<slug> is the personal profile, independent of the birthday window. */
+  if (slug === "u") {
+    const profileSlug = pathname.replace(/^\/+/, "").split("/")[1] ?? "";
+    if (profileSlug) return <ProfileRoute slug={profileSlug} />;
+  }
+
   if (!slug) return <Landing />;
   return <FriendRoute slug={slug} />;
+}
+
+/* ---- Profile route ----------------------------------------------------------
+   Resolves the friend, then renders the always-available profile page. */
+function ProfileRoute({ slug }: { slug: string }) {
+  const { friend, loading } = useFriend(slug);
+
+  if (loading) return <LoadingState />;
+  if (!friend) return <NotFound />;
+  return <ProfilePage friend={friend} />;
 }
 
 /* ---- Friend route -----------------------------------------------------------

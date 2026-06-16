@@ -1,0 +1,129 @@
+import { useEffect, useState, type CSSProperties } from "react";
+
+import type { PublicFriend } from "../lib/types.ts";
+import { getVisitorId } from "../lib/visitor.ts";
+import { useTotals } from "../lib/useTotals.ts";
+import { useTheme } from "../lib/useTheme.ts";
+import { useT, initLang } from "../lib/i18n.ts";
+import { friendDisplayName, friendBio } from "../lib/friendContent.ts";
+import { ThemeSwitcher } from "../components/ThemeSwitcher.tsx";
+import { LanguageSwitcher } from "../components/LanguageSwitcher.tsx";
+import { SocialLinks } from "../components/SocialLinks.tsx";
+import { Lanterns } from "../components/decor/Lanterns.tsx";
+import { Particles } from "../components/decor/Particles.tsx";
+import { ThemeDecor } from "../components/decor/ThemeDecor.tsx";
+import { StickerCard } from "../components/decor/StickerCard.tsx";
+
+/* The personal profile at /u/<slug> — always available, independent of the
+   birthday window. Shows identity, bio, social links, the friend's points
+   wallet, and a link through to their birthday page. The owner / the friend
+   themselves additionally see an Edit shortcut to the admin editor. */
+
+/* Lightweight session probe — true when the viewer may edit this page. Kept
+   inline (not via the lazy admin bundle) so the public profile stays slim. */
+function useCanEdit(friend: PublicFriend | null): boolean {
+  const [canEdit, setCanEdit] = useState(false);
+  useEffect(() => {
+    if (!friend) return;
+    let alive = true;
+    fetch("/api/auth/me", { credentials: "include" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: { user?: { username?: string; isOwner?: boolean } | null } | null) => {
+        const user = data?.user;
+        if (!alive || !user) return;
+        const handle = friend.username.replace(/^@/, "").toLowerCase();
+        setCanEdit(Boolean(user.isOwner) || user.username === handle);
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [friend]);
+  return canEdit;
+}
+
+/** Personal profile page for one friend. */
+export function ProfilePage({ friend }: { friend: PublicFriend }) {
+  const accentStyle = { "--color-accent": friend.accent } as CSSProperties;
+  const { theme, setTheme, themes } = useTheme(friend.theme);
+  const { t, lang } = useT();
+  const visitorId = getVisitorId();
+  const { totals } = useTotals(friend.slug, visitorId);
+  const canEdit = useCanEdit(friend);
+
+  useEffect(() => {
+    initLang(friend.lang);
+  }, [friend.lang]);
+
+  const name = friendDisplayName(friend, lang);
+  const bio = friendBio(friend, lang);
+  const points = totals?.global.total ?? 0;
+
+  return (
+    <main
+      data-friend={friend.slug}
+      style={accentStyle}
+      className="relative flex min-h-[100dvh] flex-col items-center justify-center overflow-hidden px-5 py-16"
+    >
+      <ThemeSwitcher theme={theme} setTheme={setTheme} themes={themes} />
+      <LanguageSwitcher />
+      <ThemeDecor theme={theme} />
+      <Particles count={8} />
+      <Lanterns count={5} />
+
+      <div className="relative flex w-full max-w-md flex-col items-center gap-5">
+        <img
+          src={friend.avatarUrl}
+          alt={name}
+          className="size-32 rounded-full border-[4px] border-white object-cover shadow-[var(--shadow-md)]"
+          style={{ outline: "3px solid var(--color-accent)", outlineOffset: "3px" }}
+        />
+
+        <div className="flex flex-col items-center gap-1">
+          <h1 className="text-4xl">{name}</h1>
+          <a
+            href={`https://t.me/${friend.username.replace(/^@/, "")}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[var(--color-text-soft)] transition-colors hover:text-[var(--color-secondary-deep)]"
+          >
+            {friend.username}
+          </a>
+        </div>
+
+        {/* Points wallet earned by visitors playing on the birthday page. */}
+        <span className="inline-flex items-center gap-2 rounded-[var(--radius-full)] border-[2px] border-[var(--color-ramen-gold)] bg-[var(--color-ramen-gold)]/15 px-5 py-2 font-bold text-[var(--color-text)] shadow-[var(--shadow-sm)]">
+          <span aria-hidden="true">🏅</span>
+          {t("profile.points", { n: points })}
+        </span>
+
+        {bio && (
+          <StickerCard hover={false} className="max-w-sm text-center">
+            <p className="leading-relaxed text-[var(--color-text)]">{bio}</p>
+          </StickerCard>
+        )}
+
+        {friend.socials && friend.socials.length > 0 && (
+          <SocialLinks links={friend.socials} />
+        )}
+
+        <div className="mt-2 flex flex-wrap items-center justify-center gap-3">
+          <a
+            href={`/${friend.slug}`}
+            className="inline-flex items-center gap-2 rounded-[var(--radius-full)] border-[2px] border-[var(--color-primary-deep)] bg-[var(--color-primary)] px-6 py-3 font-bold text-[var(--color-on-primary)] shadow-[var(--shadow-md)] transition-transform duration-200 ease-[var(--ease-bounce)] hover:scale-[1.03]"
+          >
+            {t("profile.birthdayPage")}
+          </a>
+          {canEdit && (
+            <a
+              href="/admin"
+              className="inline-flex items-center gap-2 rounded-[var(--radius-full)] border-[2px] border-[var(--color-muted)] bg-[var(--color-surface)] px-6 py-3 font-bold text-[var(--color-text)] shadow-[var(--shadow-sm)] transition-transform duration-200 ease-[var(--ease-bounce)] hover:scale-[1.03]"
+            >
+              {t("profile.edit")}
+            </a>
+          )}
+        </div>
+      </div>
+    </main>
+  );
+}

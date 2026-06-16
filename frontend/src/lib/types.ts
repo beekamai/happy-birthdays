@@ -39,16 +39,25 @@ export interface PublicFriend {
   giftLayout: "list" | "blocks";
   lang: "ru" | "en";
   theme: "light" | "dark" | "halloween" | "newyear";
-  /* Localized variants of displayName/message/giftName for the non-source
+  /* Personal profile (shown on /u/<slug>). */
+  bio?: string;
+  socials?: SocialLink[];
+  /* Localized variants of displayName/message/giftName/bio for the non-source
      language; the client picks per the visitor's active language. */
   translations?: Partial<Record<"ru" | "en", FriendTranslations>>;
   access: AccessInfo;
+}
+
+export interface SocialLink {
+  platform: string;
+  url: string;
 }
 
 export interface FriendTranslations {
   displayName?: string;
   message?: string;
   giftName?: string;
+  bio?: string;
 }
 
 export interface SiteConfig {

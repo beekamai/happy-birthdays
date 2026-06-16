@@ -297,6 +297,8 @@ export default class FriendRepository {
                 giftLayout,
                 lang,
                 theme,
+                ...(cfg.bio ? { bio: cfg.bio } : {}),
+                ...(cfg.socials?.length ? { socials: cfg.socials } : {}),
                 ...(translations ? { translations } : {}),
                 access,
             };
@@ -318,6 +320,8 @@ export default class FriendRepository {
             giftLayout,
             lang,
             theme,
+            ...(cfg.bio ? { bio: cfg.bio } : {}),
+            ...(cfg.socials?.length ? { socials: cfg.socials } : {}),
             ...(translations ? { translations } : {}),
             access,
         };

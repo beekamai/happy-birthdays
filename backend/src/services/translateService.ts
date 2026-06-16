@@ -14,6 +14,7 @@ export interface TranslatableContent {
     displayName?: string;
     message?: string;
     giftName?: string;
+    bio?: string;
 }
 
 /**

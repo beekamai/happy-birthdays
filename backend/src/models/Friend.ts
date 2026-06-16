@@ -37,10 +37,20 @@ export interface FriendConfig {
     giftLayout?: "list" | "blocks"; /* how the gift list is rendered */
     lang?: "ru" | "en"; /* default page language (visitor can switch) */
     theme?: "light" | "dark" | "halloween" | "newyear"; /* default page theme */
+    /* Personal profile (shown on /u/<slug>, independent of the birthday window). */
+    bio?: string;
+    socials?: SocialLink[];
     /* Localized variants of the user-authored fields, keyed by target language.
        The authored fields above are in `lang`; the other language is auto-filled
        by Gemini on save and may be hand-edited. */
     translations?: Partial<Record<"ru" | "en", FriendTranslations>>;
+}
+
+/* A social/bio link. `platform` is a known key (telegram, discord, x, ...) used
+   to pick an icon; unknown keys fall back to a generic link glyph. */
+export interface SocialLink {
+    platform: string;
+    url: string;
 }
 
 /* Translatable user content (per language). Missing fields fall back to the
@@ -49,6 +59,7 @@ export interface FriendTranslations {
     displayName?: string;
     message?: string;
     giftName?: string;
+    bio?: string;
 }
 
 /* Parsed birthday components. `year` present only for full ISO dates. */
@@ -90,7 +101,10 @@ export interface PublicFriend {
     giftLayout: "list" | "blocks";
     lang: "ru" | "en";
     theme: "light" | "dark" | "halloween" | "newyear";
-    /* Localized variants of displayName/message/giftName (other language than
+    /* Personal profile fields (always present; the profile page is not gated). */
+    bio?: string;
+    socials?: SocialLink[];
+    /* Localized variants of displayName/message/giftName/bio (other language than
        `lang`); the client picks per the visitor's active language. */
     translations?: Partial<Record<"ru" | "en", FriendTranslations>>;
     /* Access window (open / closing / locked) computed from the birthday. */

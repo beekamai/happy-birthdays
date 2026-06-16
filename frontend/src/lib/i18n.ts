@@ -113,6 +113,11 @@ const ru: Record<string, string> = {
   "friend.pageTotal": "Всего на странице: {n}",
   "friend.footer": "с любовью, {name}",
 
+  /* Profile page (/u/<slug>) */
+  "profile.points": "Очки: {n}",
+  "profile.birthdayPage": "🎂 Страница поздравления",
+  "profile.edit": "✏️ Редактировать",
+
   /* Locked page */
   "locked.opensOn": "Праздничная страничка откроется в день рождения",
   "locked.today": " — сегодня! 🎉",
@@ -200,6 +205,14 @@ const ru: Record<string, string> = {
   "editor.placeholder.birthday": "07-21",
   "editor.field.message": "Поздравление",
   "editor.placeholder.message": "Тёплые слова имениннику…",
+  "editor.field.bio": "О себе",
+  "editor.field.bio.hint": "Пара строк для личной странички /u/<slug>",
+  "editor.placeholder.bio": "Кто ты, чем живёшь…",
+  "editor.section.socials": "🔗 Соцсети",
+  "editor.socials.add": "➕ Добавить ссылку",
+  "editor.socials.platform": "Платформа",
+  "editor.socials.url": "Ссылка",
+  "editor.socials.remove": "Удалить ссылку",
   "editor.field.accent": "Цвет-акцент",
   "editor.hint.accent": "Подкрашивает кнопки и рамки",
   "editor.section.avatars": "🖼️ Аватары",
@@ -346,6 +359,11 @@ const en: Record<string, string> = {
   "friend.pageTotal": "Page total: {n}",
   "friend.footer": "with love, {name}",
 
+  /* Profile page (/u/<slug>) */
+  "profile.points": "Points: {n}",
+  "profile.birthdayPage": "🎂 Birthday page",
+  "profile.edit": "✏️ Edit",
+
   /* Locked page */
   "locked.opensOn": "The festive page opens on the birthday",
   "locked.today": " — today! 🎉",
@@ -433,6 +451,14 @@ const en: Record<string, string> = {
   "editor.placeholder.birthday": "07-21",
   "editor.field.message": "Greeting",
   "editor.placeholder.message": "Warm words for the birthday person…",
+  "editor.field.bio": "About",
+  "editor.field.bio.hint": "A couple of lines for the personal page /u/<slug>",
+  "editor.placeholder.bio": "Who you are, what you're into…",
+  "editor.section.socials": "🔗 Socials",
+  "editor.socials.add": "➕ Add link",
+  "editor.socials.platform": "Platform",
+  "editor.socials.url": "Link",
+  "editor.socials.remove": "Remove link",
   "editor.field.accent": "Accent color",
   "editor.hint.accent": "Tints buttons and borders",
   "editor.section.avatars": "🖼️ Avatars",

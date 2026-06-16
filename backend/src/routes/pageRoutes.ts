@@ -10,6 +10,8 @@ const pageRoutes = new Elysia()
     .get("/", serveLanding)
     /* /admin is the SPA admin app — serve the shell (200), not a 404 page. */
     .get("/admin", serveLanding)
+    /* /u/<slug> is the personal profile (SPA shell; data fetched client-side). */
+    .get("/u/:slug", serveLanding)
     .get("/:slug", serveFriendPage);
 
 export default pageRoutes;

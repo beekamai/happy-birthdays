@@ -14,10 +14,15 @@ import Logger from "../utils/Logger";
    the full config. */
 const FRIEND_EDITABLE = [
     "displayName",
+    "birthday",
     "accent",
     "gamesEnabled",
     "giftDisplay",
     "giftLayout",
+    "bio",
+    "socials",
+    "theme",
+    "lang",
     "translations",
 ] as const;
 
@@ -35,6 +40,7 @@ async function autofillTranslations(cfg: FriendConfig): Promise<void> {
     if (!existing.displayName?.trim() && cfg.displayName?.trim()) need.displayName = cfg.displayName;
     if (!existing.message?.trim() && cfg.message?.trim()) need.message = cfg.message;
     if (!existing.giftName?.trim() && cfg.gift?.name?.trim()) need.giftName = cfg.gift.name;
+    if (!existing.bio?.trim() && cfg.bio?.trim()) need.bio = cfg.bio;
     if (Object.keys(need).length === 0) return;
 
     const translated = await translateContent(need, from, to);
@@ -216,6 +222,7 @@ export const translate = async ({ body, jwt, cookie, set }: any) => {
         if (typeof body?.displayName === "string") fields.displayName = body.displayName;
         if (typeof body?.message === "string") fields.message = body.message;
         if (typeof body?.giftName === "string") fields.giftName = body.giftName;
+        if (typeof body?.bio === "string") fields.bio = body.bio;
 
         const result = await translateContent(fields, from, to);
         if (!result) { set.status = 502; return { error: "Translation unavailable" }; }

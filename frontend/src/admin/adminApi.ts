@@ -67,22 +67,27 @@ export interface FriendConfig {
   giftLayout?: "list" | "blocks";
   lang?: "ru" | "en";
   theme?: "light" | "dark" | "halloween" | "newyear";
+  bio?: string;
+  socials?: { platform: string; url: string }[];
   translations?: Partial<
-    Record<"ru" | "en", { displayName?: string; message?: string; giftName?: string }>
+    Record<"ru" | "en", { displayName?: string; message?: string; giftName?: string; bio?: string }>
   >;
 }
 
 /** Subset a non-owner friend may PUT for their own page. */
 export interface FriendLimitedUpdate {
   displayName?: string;
+  birthday?: string;
   accent?: string;
   gamesEnabled?: boolean;
   giftDisplay?: "current" | "all";
   giftLayout?: "list" | "blocks";
   lang?: "ru" | "en";
   theme?: "light" | "dark" | "halloween" | "newyear";
+  bio?: string;
+  socials?: { platform: string; url: string }[];
   translations?: Partial<
-    Record<"ru" | "en", { displayName?: string; message?: string; giftName?: string }>
+    Record<"ru" | "en", { displayName?: string; message?: string; giftName?: string; bio?: string }>
   >;
 }
 
@@ -282,12 +287,14 @@ export interface TranslateFieldsPayload {
   displayName?: string;
   message?: string;
   giftName?: string;
+  bio?: string;
 }
 
 export interface TranslatedFields {
   displayName?: string;
   message?: string;
   giftName?: string;
+  bio?: string;
 }
 
 /**

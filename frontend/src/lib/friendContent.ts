@@ -28,3 +28,7 @@ export function friendMessage(friend: PublicFriend, lang: Lang): string {
 export function friendGiftName(friend: PublicFriend, lang: Lang): string {
   return pick(friend, lang, "giftName", friend.gift?.name ?? "");
 }
+
+export function friendBio(friend: PublicFriend, lang: Lang): string {
+  return pick(friend, lang, "bio", friend.bio ?? "");
+}

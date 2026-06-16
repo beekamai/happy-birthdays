@@ -19,11 +19,18 @@
   ],
   "avatar": "avatar2.jpg",
   "puzzleAvatar": "avatar1.jpg",
+  "bio": "Голубоволосая лисичка-кицунэ из VRChat. Люблю рамён, звёзды и уютные стримы. 🦊🍜",
+  "socials": [
+    { "platform": "telegram", "url": "https://t.me/resharperhost" },
+    { "platform": "twitch", "url": "https://twitch.tv/resharperhost" },
+    { "platform": "discord", "url": "https://discord.gg/resharperhost" }
+  ],
   "translations": {
     "en": {
       "displayName": "Alumi",
       "message": "Happy birthday, little fox! 🦊 May this year be warm like a bowl of ramen and full of stars. I put together this page for you — scroll through, play, and know that you are very loved. 🍜✨",
-      "giftName": "Instant Ramen"
+      "giftName": "Instant Ramen",
+      "bio": "A blue-haired kitsune fox from VRChat. I love ramen, stars and cozy streams. 🦊🍜"
     }
   }
 }
