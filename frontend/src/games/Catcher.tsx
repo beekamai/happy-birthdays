@@ -139,6 +139,7 @@ export default function Catcher({ config, onFinish }: GameProps) {
         score: scoreRef.current,
         durationMs: cfg.duration * 1000,
         won: scoreRef.current > 0,
+        meta: { caught: scoreRef.current },
       });
     }
   });

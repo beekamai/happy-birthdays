@@ -12,8 +12,6 @@ import {
     getPageOrder,
     savePageOrder,
 } from "../controllers/adminController";
-import { buyItem, equipItem, refundItem } from "../controllers/shopController";
-
 /* Admin endpoints (mounted under /api/admin). Each controller checks the
    session + permission (owner vs the friend themselves). */
 const adminRoutes = new Elysia()
@@ -26,9 +24,6 @@ const adminRoutes = new Elysia()
     .put("/friend/:slug", updateFriend)
     .delete("/friend/:slug", deleteFriend)
     .post("/friend/:slug/avatar", uploadAvatar)
-    .post("/translate", translate)
-    .post("/shop/:slug/buy", buyItem)
-    .post("/shop/:slug/equip", equipItem)
-    .post("/shop/:slug/refund", refundItem);
+    .post("/translate", translate);
 
 export default adminRoutes;

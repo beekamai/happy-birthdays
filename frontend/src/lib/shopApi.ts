@@ -61,7 +61,7 @@ export async function buyItem(
   itemId: string,
 ): Promise<ShopState | ShopError> {
   try {
-    const res = await fetch(`/api/admin/shop/${encodeURIComponent(slug)}/buy`, {
+    const res = await fetch(`/api/shop/${encodeURIComponent(slug)}/buy`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
@@ -84,7 +84,7 @@ export async function refundItem(
 ): Promise<ShopState | null> {
   try {
     const res = await fetch(
-      `/api/admin/shop/${encodeURIComponent(slug)}/refund`,
+      `/api/shop/${encodeURIComponent(slug)}/refund`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -110,7 +110,7 @@ export async function equipItem(
 ): Promise<ShopState | null> {
   try {
     const res = await fetch(
-      `/api/admin/shop/${encodeURIComponent(slug)}/equip`,
+      `/api/shop/${encodeURIComponent(slug)}/equip`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },

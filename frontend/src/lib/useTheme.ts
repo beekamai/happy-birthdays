@@ -39,6 +39,18 @@ function apply(theme: ThemeName): void {
   }
 }
 
+/* Briefly enable a document-wide colour transition so every detail (borders,
+   icons, shadows) eases between themes, not just the page background. Only on an
+   explicit user switch — never on initial load (that must paint instantly). */
+let animTimer: ReturnType<typeof setTimeout> | undefined;
+function animateSwap(): void {
+  if (typeof document === "undefined") return;
+  const el = document.documentElement;
+  el.classList.add("theme-anim");
+  if (animTimer) clearTimeout(animTimer);
+  animTimer = setTimeout(() => el.classList.remove("theme-anim"), 450);
+}
+
 interface UseThemeResult {
   theme: ThemeName;
   setTheme: (t: ThemeName) => void;
@@ -65,6 +77,7 @@ export function useTheme(defaultTheme: ThemeName): UseThemeResult {
   }, [defaultTheme]);
 
   const setTheme = useCallback((t: ThemeName) => {
+    animateSwap();
     setThemeState(t);
     apply(t);
     try {

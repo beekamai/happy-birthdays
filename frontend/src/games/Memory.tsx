@@ -99,6 +99,7 @@ export default function Memory({ config, onFinish }: GameProps) {
         score: Math.max(0, 1000 - moves * 20),
         durationMs: Date.now() - startRef.current,
         won: true,
+        meta: { moves },
       });
     }
   }, [deck, moves, onFinish]);

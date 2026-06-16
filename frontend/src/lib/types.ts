@@ -42,7 +42,7 @@ export interface PublicFriend {
   /* Personal profile (shown on /u/<slug>). */
   bio?: string;
   socials?: SocialLink[];
-  socialStyle?: "icon" | "text";
+  socialStyle?: "icon" | "iconOnly" | "text";
   /* Equipped shop decorations applied to both pages. */
   decor?: Decor;
   /* Localized variants of displayName/message/giftName/bio for the non-source

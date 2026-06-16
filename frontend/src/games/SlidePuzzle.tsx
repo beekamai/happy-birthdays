@@ -136,7 +136,12 @@ export default function SlidePuzzle({ friend, onFinish }: GameProps) {
     confetti({ particleCount: 140, spread: 75, origin: { y: 0.6 } });
     /* Score rewards few moves; hints cost a little so they're a help, not a cheat. */
     const score = Math.max(50, 1000 - moves * 10 - hintsUsed * 20);
-    onFinish({ score, durationMs: Date.now() - startRef.current, won: true });
+    onFinish({
+      score,
+      durationMs: Date.now() - startRef.current,
+      won: true,
+      meta: { moves, hintsUsed },
+    });
   }, [solved, moves, hintsUsed, onFinish]);
 
   return (

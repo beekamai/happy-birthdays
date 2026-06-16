@@ -180,7 +180,9 @@ export function validateFriendConfig(obj: unknown): FriendConfig {
 
     /* Personal profile: free-text bio + social links. */
     if (typeof obj.bio === "string") result.bio = obj.bio;
-    if (obj.socialStyle === "icon" || obj.socialStyle === "text") result.socialStyle = obj.socialStyle;
+    if (obj.socialStyle === "icon" || obj.socialStyle === "iconOnly" || obj.socialStyle === "text") {
+        result.socialStyle = obj.socialStyle;
+    }
     if (Array.isArray(obj.socials)) {
         const socials = obj.socials
             .filter(
@@ -307,7 +309,9 @@ export const PublicFriend_Object_Schema = {
     ]),
     bio: t.Optional(t.String()),
     socials: t.Optional(t.Array(Social_Object_Schema)),
-    socialStyle: t.Optional(t.Union([t.Literal("icon"), t.Literal("text")])),
+    socialStyle: t.Optional(
+        t.Union([t.Literal("icon"), t.Literal("iconOnly"), t.Literal("text")]),
+    ),
     decor: t.Optional(Decor_Object_Schema),
     translations: t.Optional(
         t.Object({
@@ -391,13 +395,14 @@ export const postScore_Request_Schema = {
         slug: t.String({ error: "slug is required." }),
         visitorId: t.Optional(t.String()),
         gameId: t.String({ error: "gameId is required." }),
-        score: t.Number({ error: "score must be a number." }),
         durationMs: t.Number({ error: "durationMs must be a number." }),
+        meta: t.Optional(t.Record(t.String(), t.Unknown())),
         token: t.Optional(t.String()),
     }),
     response: {
         200: t.Object({
             ok: t.Boolean(),
+            score: t.Number(),
             gameBest: t.Number(),
             personal: Totals_Object,
             global: Totals_Object,

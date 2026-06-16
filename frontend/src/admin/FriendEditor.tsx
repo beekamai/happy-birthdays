@@ -67,7 +67,9 @@ function uploadFilename(file: File, which: "main" | "puzzle"): string {
 }
 
 /* The form fields validation can flag. Keys map 1:1 to the inline error slots
-   shown under each control; the values are i18n keys for the message. */
+   shown under each control; the values are i18n KEYS (not resolved strings) so
+   the message re-localizes live when the language switches — t() is called at
+   render time, never stored. */
 type ValidationField =
   | "displayName"
   | "username"
@@ -411,8 +413,10 @@ export function FriendEditor({
   const pageLang: "ru" | "en" = config?.lang ?? "ru";
   const targetLang: "ru" | "en" = pageLang === "ru" ? "en" : "ru";
 
-  /* Merge the panel values into config.translations[targetLang], keeping the
-     other language and dropping empty fields (the backend re-fills those). */
+  /* Merge the panel values into config.translations[targetLang] verbatim — the
+     backend no longer auto-fills, so the saved translation is exactly what the
+     panel holds. Visible fields are sent as-is (empty included, so a cleared
+     translation persists); fields the panel doesn't expose stay untouched. */
   const withTranslations = (base: FriendConfig): FriendConfig => {
     const entry: {
       displayName?: string;
@@ -420,11 +424,10 @@ export function FriendEditor({
       giftName?: string;
       bio?: string;
     } = {};
-    if (tName.trim()) entry.displayName = tName.trim();
-    if (showFull && tMessage.trim()) entry.message = tMessage.trim();
-    if (showFull && base.gift?.name?.trim() && tGiftName.trim())
-      entry.giftName = tGiftName.trim();
-    if (base.bio?.trim() && tBio.trim()) entry.bio = tBio.trim();
+    entry.displayName = tName.trim();
+    if (showFull) entry.message = tMessage.trim();
+    if (showFull && base.gift?.name?.trim()) entry.giftName = tGiftName.trim();
+    if (base.bio?.trim()) entry.bio = tBio.trim();
     return {
       ...base,
       translations: { ...base.translations, [targetLang]: entry },
@@ -467,23 +470,23 @@ export function FriendEditor({
   const validate = (): FieldErrors => {
     const next: FieldErrors = {};
 
-    if (!config.displayName.trim()) next.displayName = t("editor.validation.name");
+    if (!config.displayName.trim()) next.displayName = "editor.validation.name";
 
     if (!config.birthday.trim()) {
-      next.birthday = t("editor.validation.birthday");
+      next.birthday = "editor.validation.birthday";
     } else if (!isValidBirthday(config.birthday)) {
-      next.birthday = t("editor.validation.birthday");
+      next.birthday = "editor.validation.birthday";
     }
 
     if (showFull) {
       /* Username drives the slug — empty, or normalizing to nothing, is invalid. */
       if (!config.username.trim() || !derivedSlug) {
-        next.username = t("editor.validation.username");
+        next.username = "editor.validation.username";
       }
-      if (!config.message.trim()) next.message = t("editor.validation.message");
+      if (!config.message.trim()) next.message = "editor.validation.message";
       /* Avatar is required to create; an existing page already has one on disk. */
       if (creating && !config.avatar.trim() && !pendingMain.current) {
-        next.avatar = t("editor.validation.avatar");
+        next.avatar = "editor.validation.avatar";
       }
     }
 
@@ -685,7 +688,10 @@ export function FriendEditor({
           <StickerCard hover={false}>
             <h2 className="mb-4 text-xl">{t("editor.section.basic")}</h2>
             <div className="flex flex-col gap-4">
-              <Field label={t("editor.field.name")} error={errors.displayName}>
+              <Field
+                label={t("editor.field.name")}
+                error={errors.displayName ? t(errors.displayName) : undefined}
+              >
                 <Input
                   value={config.displayName}
                   invalid={!!errors.displayName}
@@ -699,7 +705,7 @@ export function FriendEditor({
                   <Field
                     label={t("editor.field.username")}
                     hint={t("editor.hint.username")}
-                    error={errors.username}
+                    error={errors.username ? t(errors.username) : undefined}
                   >
                     <Input
                       value={config.username}
@@ -735,7 +741,7 @@ export function FriendEditor({
               <Field
                 label={t("editor.field.birthday")}
                 hint={t("editor.hint.birthday")}
-                error={errors.birthday}
+                error={errors.birthday ? t(errors.birthday) : undefined}
               >
                 <Input
                   value={config.birthday}
@@ -746,7 +752,10 @@ export function FriendEditor({
               </Field>
 
               {showFull && (
-                <Field label={t("editor.field.message")} error={errors.message}>
+                <Field
+                  label={t("editor.field.message")}
+                  error={errors.message ? t(errors.message) : undefined}
+                >
                   <Textarea
                     value={config.message}
                     invalid={!!errors.message}
@@ -831,10 +840,11 @@ export function FriendEditor({
                 </PillButton>
               </div>
 
-              {/* How the pills render on the profile: brand icons or text only. */}
+              {/* How the pills render on the profile: brand icons + label,
+                  icons only, or text only. */}
               <Field label={t("editor.field.socialStyle")}>
                 <div className="flex gap-2">
-                  {(["icon", "text"] as const).map((opt) => (
+                  {(["icon", "iconOnly", "text"] as const).map((opt) => (
                     <SegBtn
                       key={opt}
                       active={(config.socialStyle ?? "icon") === opt}
@@ -855,7 +865,7 @@ export function FriendEditor({
                 t("editor.field.avatarMain"),
                 mainPreview ?? (config.avatar ? `/friends/${slug}/${config.avatar}` : null),
                 onPickAvatar("main"),
-                errors.avatar,
+                errors.avatar ? t(errors.avatar) : undefined,
               )}
               {showFull &&
                 avatarTile(
@@ -1049,16 +1059,21 @@ export function FriendEditor({
                 </Field>
               )}
 
-              <div className="flex justify-start">
-                <PillButton
-                  variant="ghost"
-                  onClick={onTranslate}
-                  disabled={translating}
-                >
-                  {translating
-                    ? t("editor.translation.translating")
-                    : t("editor.translation.translate")}
-                </PillButton>
+              <div className="flex flex-col gap-2">
+                <div className="flex justify-start">
+                  <PillButton
+                    variant="ghost"
+                    onClick={onTranslate}
+                    disabled={translating}
+                  >
+                    {translating
+                      ? t("editor.translation.translating")
+                      : t("editor.translation.translate")}
+                  </PillButton>
+                </div>
+                <p className="text-xs text-[var(--color-text-soft)]">
+                  {t("editor.translation.note")}
+                </p>
               </div>
             </div>
           </StickerCard>

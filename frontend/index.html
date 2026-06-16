@@ -5,6 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#FFF7ED" />
 
+    <!-- Apply the saved theme before first paint to avoid a light→theme flash.
+         The server pre-sets <html data-theme> to the page's default; this only
+         layers the visitor's stored override on top, synchronously. -->
+    <script>
+      try {
+        var t = localStorage.getItem("hb-theme");
+        if (t) document.documentElement.dataset.theme = t;
+      } catch (e) {}
+    </script>
+
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/favicon.svg" />
 

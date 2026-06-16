@@ -69,7 +69,7 @@ export interface FriendConfig {
   theme?: "light" | "dark" | "halloween" | "newyear";
   bio?: string;
   socials?: { platform: string; url: string }[];
-  socialStyle?: "icon" | "text";
+  socialStyle?: "icon" | "iconOnly" | "text";
   translations?: Partial<
     Record<"ru" | "en", { displayName?: string; message?: string; giftName?: string; bio?: string }>
   >;
@@ -87,7 +87,7 @@ export interface FriendLimitedUpdate {
   theme?: "light" | "dark" | "halloween" | "newyear";
   bio?: string;
   socials?: { platform: string; url: string }[];
-  socialStyle?: "icon" | "text";
+  socialStyle?: "icon" | "iconOnly" | "text";
   translations?: Partial<
     Record<"ru" | "en", { displayName?: string; message?: string; giftName?: string; bio?: string }>
   >;

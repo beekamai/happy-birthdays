@@ -3,11 +3,12 @@ import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { SESSION_SECRET } from "../config/constants";
 
 /* Anti-cheat for game scores. A raw POST to /api/scores could previously claim
-   any number. Now a score must carry a one-time, server-signed token issued by
-   POST /api/games/start, bound to {slug, gameId, visitorId} and short-lived, AND
-   the score/duration must be plausible for that game. None of this makes a
-   client game un-cheatable (a determined player can still submit a believable
-   fake), but it blocks trivial curl-inflation and replays. */
+   any number. Now a play must carry a one-time, server-signed token issued by
+   POST /api/games/start, bound to {slug, gameId, visitorId} and short-lived, the
+   raw metrics + duration must be plausible (see services/gameScoring), and the
+   server computes the score itself. None of this makes a client game
+   un-cheatable (a determined player can still submit believable fake metrics),
+   but it blocks trivial curl-inflation and replays. */
 
 const TOKEN_TTL_MS = 30 * 60_000; /* a play must be submitted within 30 min */
 
@@ -18,16 +19,6 @@ export interface GameTokenPayload {
     iat: number;
     nonce: string;
 }
-
-/* Per-game plausibility bounds. Scores above max or plays shorter than the floor
-   are rejected. Bounds are generous — they only catch the absurd. */
-const GAME_LIMITS: Record<string, { maxScore: number; minDurationMs: number }> = {
-    "feed-fox": { maxScore: 3000, minDurationMs: 8000 },
-    "catch-stars": { maxScore: 3000, minDurationMs: 8000 },
-    "slide-puzzle": { maxScore: 1000, minDurationMs: 2000 },
-    memory: { maxScore: 1000, minDurationMs: 2500 },
-    maze: { maxScore: 1000, minDurationMs: 1500 },
-};
 
 const b64url = (buf: Buffer | string) =>
     Buffer.from(buf).toString("base64url");
@@ -89,14 +80,5 @@ export function consumeNonce(nonce: string): boolean {
     purge(now);
     if (usedNonces.has(nonce)) return false;
     usedNonces.set(nonce, now + TOKEN_TTL_MS);
-    return true;
-}
-
-/** Whether a (score, duration) pair is plausible for the game. */
-export function isPlausibleScore(gameId: string, score: number, durationMs: number): boolean {
-    const limit = GAME_LIMITS[gameId];
-    if (!limit) return false; /* unknown game → reject */
-    if (!Number.isFinite(score) || score < 0 || score > limit.maxScore) return false;
-    if (!Number.isFinite(durationMs) || durationMs < limit.minDurationMs) return false;
     return true;
 }

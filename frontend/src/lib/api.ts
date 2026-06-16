@@ -48,8 +48,9 @@ export async function fetchStats(): Promise<{ pages: number } | null> {
 
 export interface ScorePayload {
   gameId: string;
-  score: number;
   durationMs: number;
+  /** Raw play metrics; the server computes the score from these. */
+  meta?: Record<string, unknown>;
 }
 
 export interface GameBest {
@@ -64,6 +65,8 @@ export interface Totals {
 
 export interface ScoreResult {
   ok: boolean;
+  /** Server-computed score for the play just submitted (authoritative). */
+  score: number;
   /** This visitor's best score for the game just played (authoritative). */
   gameBest: number;
   /** This visitor's totals on the page. */
@@ -102,10 +105,11 @@ export async function startGame(
 }
 
 /**
- * Submit a game score for a visitor with the play's token. The SERVER verifies
- * the token + plausibility, clamps, and returns the authoritative personal +
- * global aggregates, so the UI shows the server's numbers. Returns null on
- * failure (rejected token, implausible score, network).
+ * Submit a play's raw metrics for a visitor with the play's token. The SERVER
+ * verifies the token, validates the play, COMPUTES the score, and returns it
+ * with the authoritative personal + global aggregates, so the UI shows the
+ * server's numbers. Returns null on failure (rejected token, implausible play,
+ * network).
  */
 export async function postScore(
   slug: string,

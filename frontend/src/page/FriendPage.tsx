@@ -167,8 +167,8 @@ export function FriendPage({ friend, site }: FriendPageProps) {
         </footer>
       </div>
 
-      {/* Floating overlay — lives outside the scroll column. */}
-      <PetCompanion slug={friend.slug} />
+      {/* Floating overlay — only when the fox companion has been bought. */}
+      {friend.decor?.companion === "pet-fox" && <PetCompanion slug={friend.slug} />}
     </main>
   );
 }

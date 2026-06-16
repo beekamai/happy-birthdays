@@ -1,6 +1,7 @@
 import ScoreRepository from "../repositories/ScoreRepository";
 import FriendRepository from "../repositories/FriendRepository";
-import { verifyGameToken, consumeNonce, isPlausibleScore } from "../utils/gameSession";
+import { verifyGameToken, consumeNonce } from "../utils/gameSession";
+import { computeScore, validatePlay } from "../services/gameScoring";
 import Logger from "../utils/Logger";
 
 /* Behind a reverse proxy the real client IP is in X-Forwarded-For. Used only
@@ -14,14 +15,16 @@ function clientIp(headers: Record<string, string | undefined>): string {
 
 /**
  * POST /api/scores — record a game score for a visitor.
- * Body: { slug, visitorId, gameId, score, durationMs }. The server clamps and
- * returns authoritative aggregates: the visitor's personal totals AND the
- * page-wide global totals, so the client only ever shows server numbers.
+ * Body: { slug, visitorId, gameId, token, durationMs, meta }. The client sends
+ * raw play metrics, never a score: the server validates the play, computes the
+ * score itself, and returns it alongside authoritative aggregates (the visitor's
+ * personal totals AND the page-wide global totals), so the client only ever
+ * shows server numbers.
  */
 export const postScore = async ({ body, headers, set }: any) => {
     const slug = body?.slug;
     try {
-        const { visitorId, gameId, score, durationMs, token } = body ?? {};
+        const { visitorId, gameId, durationMs, meta, token } = body ?? {};
 
         if (!slug || !gameId) {
             set.status = 400;
@@ -39,11 +42,12 @@ export const postScore = async ({ body, headers, set }: any) => {
         }
 
         const vid = typeof visitorId === "string" ? visitorId : "";
-        const numScore = Number(score) || 0;
         const numDuration = Number(durationMs) || 0;
+        const metrics =
+            meta && typeof meta === "object" ? (meta as Record<string, unknown>) : {};
 
         /* Anti-cheat: a valid one-time token from /games/start must match this
-           submission, and the score/duration must be plausible for the game. */
+           submission. */
         const payload = verifyGameToken(token);
         if (
             !payload ||
@@ -54,21 +58,28 @@ export const postScore = async ({ body, headers, set }: any) => {
             set.status = 403;
             return { error: "Invalid or missing game token" };
         }
-        if (!isPlausibleScore(gameId, numScore, numDuration)) {
+        /* The play must be realistic: duration in-bounds, not longer than the
+           wall-clock since the token was issued, metrics not absurd. */
+        const elapsedMs = Date.now() - payload.iat;
+        if (!validatePlay(gameId, numDuration, elapsedMs, metrics)) {
             set.status = 422;
-            return { error: "Implausible score" };
+            return { error: "Implausible play" };
         }
-        /* Consume the one-time token only once the score is accepted. */
+        /* Consume the one-time token only once the play is accepted. */
         if (!consumeNonce(payload.nonce)) {
             set.status = 409;
             return { error: "Token already used" };
         }
 
+        /* Score is server-computed from the raw metrics, never trusted from the
+           client. */
+        const score = computeScore(gameId, numDuration, metrics);
+
         ScoreRepository.insertScore({
             slug,
             visitorId: vid,
             gameId,
-            score: numScore,
+            score,
             durationMs: numDuration,
             ip: clientIp(headers ?? {}),
         });
@@ -76,6 +87,7 @@ export const postScore = async ({ body, headers, set }: any) => {
         set.status = 200;
         return {
             ok: true,
+            score,
             gameBest: ScoreRepository.bestScore(slug, gameId, vid),
             personal: ScoreRepository.personalTotals(slug, vid),
             global: ScoreRepository.globalTotals(slug),

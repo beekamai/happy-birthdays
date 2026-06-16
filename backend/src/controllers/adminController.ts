@@ -29,31 +29,6 @@ const FRIEND_EDITABLE = [
     "translations",
 ] as const;
 
-const OTHER_LANG: Record<Lang, Lang> = { ru: "en", en: "ru" };
-
-/* Auto-fill the other-language translation for any user field left blank,
-   preserving manual overrides already present. The editor owns re-translation
-   when a source field changes; this is a safety net for blank/absent variants.
-   Network/key failures leave translations untouched (never blocks a save). */
-async function autofillTranslations(cfg: FriendConfig): Promise<void> {
-    const from = (cfg.lang ?? "ru") as Lang;
-    const to = OTHER_LANG[from];
-    const existing = cfg.translations?.[to] ?? {};
-    const need: TranslatableContent = {};
-    if (!existing.displayName?.trim() && cfg.displayName?.trim()) need.displayName = cfg.displayName;
-    if (!existing.message?.trim() && cfg.message?.trim()) need.message = cfg.message;
-    if (!existing.giftName?.trim() && cfg.gift?.name?.trim()) need.giftName = cfg.gift.name;
-    if (!existing.bio?.trim() && cfg.bio?.trim()) need.bio = cfg.bio;
-    if (Object.keys(need).length === 0) return;
-
-    const translated = await translateContent(need, from, to);
-    if (!translated) return;
-    cfg.translations = {
-        ...cfg.translations,
-        [to]: { ...existing, ...translated },
-    };
-}
-
 function canEdit(user: AuthUser, cfgUsername?: string): boolean {
     if (user.isOwner) return true;
     if (!cfgUsername) return false;
@@ -155,9 +130,6 @@ export const updateFriend = async ({ params, body, jwt, cookie, set }: any) => {
 
         const saved = FriendRepository.writeConfig(params.slug, next);
         if (!saved) { set.status = 400; return { error: "Invalid config" }; }
-        /* Fill any missing other-language variants, then persist again. */
-        await autofillTranslations(saved);
-        FriendRepository.writeConfig(params.slug, saved);
         resync(params.slug);
         set.status = 200;
         return { ok: true, friend: FriendRepository.findBySlug(params.slug) };
@@ -216,9 +188,6 @@ export const createFriend = async ({ body, jwt, cookie, set }: any) => {
         const { slug: _omit, ...config } = body ?? {};
         const saved = FriendRepository.createFriend(slug, config);
         if (!saved) { set.status = 409; return { error: "Slug exists or config invalid" }; }
-        /* Seed the other-language variants for the freshly authored content. */
-        await autofillTranslations(saved);
-        FriendRepository.writeConfig(slug, saved);
         resync(slug);
         set.status = 200;
         return { ok: true, slug, friend: FriendRepository.findBySlug(slug) };

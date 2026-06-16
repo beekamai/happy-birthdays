@@ -153,7 +153,7 @@ export default function Maze({ friend, site, onFinish, config }: GameProps) {
       confetti({ particleCount: 160, spread: 90, origin: { y: 0.5 } });
       const durationMs = Date.now() - startRef.current;
       const t = setTimeout(() => {
-        onFinish({ score: 1000, durationMs, won: true });
+        onFinish({ score: 1000, durationMs, won: true, meta: {} });
       }, 1800);
       return () => clearTimeout(t);
     }

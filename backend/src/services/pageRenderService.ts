@@ -80,6 +80,7 @@ export default class PageRenderService {
             const hash = OgImageService.ogHash(slug);
 
             let html = this.shell;
+            html = this.setHtmlTheme(html, friend.theme);
             html = this.injectData(html, friend, site);
             html = this.injectHead(html, this.buildOgMeta(friend, site, hash));
             html = this.setTitle(html, `С днём рождения, ${friend.displayName}! 🎂`);
@@ -102,6 +103,7 @@ export default class PageRenderService {
             const hash = OgImageService.profileOgHash(slug);
 
             let html = this.shell;
+            html = this.setHtmlTheme(html, friend.theme);
             html = this.injectData(html, friend, site);
             html = this.injectHead(html, this.buildProfileOgMeta(friend, site, hash));
             html = this.setTitle(html, friend.displayName);
@@ -233,6 +235,16 @@ export default class PageRenderService {
         const siteJson = jsonForScript(site);
         const script = `<script>window.__BIRTHDAY__=${friendJson};window.__SITE__=${siteJson}</script>`;
         return this.injectHead(html, script);
+    }
+
+    /* Pre-set data-theme on the <html> tag so the page paints in the right theme
+       immediately (no light→theme flash). A visitor's localStorage override is
+       layered on top by the inline script in index.html before first paint. */
+    private static setHtmlTheme(html: string, theme: string): string {
+        if (/<html[^>]*\sdata-theme=/.test(html)) {
+            return html.replace(/(<html[^>]*\sdata-theme=)"[^"]*"/, `$1"${theme}"`);
+        }
+        return html.replace(/<html(\s|>)/, `<html data-theme="${theme}"$1`);
     }
 
     /* Replace the <title> contents, or inject one if absent. */

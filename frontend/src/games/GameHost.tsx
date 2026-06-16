@@ -74,15 +74,15 @@ export function GameHost({
       }
       setResult(r);
 
-      /* The server verifies the token + plausibility, then aggregates; we show
-         its numbers, not ours. */
+      /* The server validates the play, computes the score from the raw metrics,
+         then aggregates; we show its numbers, not ours. */
       void postScore(
         friend.slug,
         visitorId,
         {
           gameId: descriptor.id,
-          score: r.score,
           durationMs: r.durationMs,
+          meta: r.meta,
         },
         tokenRef.current,
       ).then((sr) => {
@@ -126,7 +126,9 @@ export function GameHost({
             </h2>
             <p className="mt-2 text-[var(--color-text-soft)]">
               {t("game.scoreForGame")}{" "}
-              <span className="font-bold text-[var(--color-text)]">{result.score}</span>
+              <span className="font-bold text-[var(--color-text)]">
+                {serverResult ? serverResult.score : result.score}
+              </span>
             </p>
             {serverResult && (
               <div className="mt-2 flex flex-col gap-1 text-sm text-[var(--color-text-soft)]">
