@@ -200,6 +200,32 @@ export default class FriendRepository {
         }
     }
 
+    /**
+     * Delete a friend directory (data/friends/<slug>) and everything in it.
+     * Guarded against traversal: the slug must match /^[a-z0-9-]+$/ and the
+     * resolved path must stay inside FRIENDS_DIR. Busts the cache. Returns true
+     * only when an existing page was actually removed.
+     */
+    static deleteFriend(slug: string): boolean {
+        try {
+            if (!/^[a-z0-9-]+$/.test(slug)) {
+                Logger.warn("FriendRepository", "deleteFriend rejected bad slug", { slug });
+                return false;
+            }
+            const dir = assertInside(FRIENDS_DIR, slug);
+            /* Belt-and-braces: never delete the FRIENDS_DIR root itself. */
+            if (dir === path.resolve(FRIENDS_DIR)) return false;
+            if (!fs.existsSync(dir) || !fs.statSync(dir).isDirectory()) return false;
+
+            fs.rmSync(dir, { recursive: true, force: true });
+            this.cache.delete(slug);
+            return true;
+        } catch (error) {
+            Logger.error("FriendRepository", `deleteFriend failed: ${error}`, { slug });
+            return false;
+        }
+    }
+
     /** Absolute path to a friend's directory (for avatar uploads). */
     static friendDirPath(slug: string): string | null {
         try {

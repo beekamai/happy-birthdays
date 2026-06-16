@@ -3,6 +3,9 @@ import path from "node:path";
 import FriendRepository from "../repositories/FriendRepository";
 import BirthdayRepository from "../repositories/BirthdayRepository";
 import HistoryRepository from "../repositories/HistoryRepository";
+import ScoreRepository from "../repositories/ScoreRepository";
+import PurchaseRepository from "../repositories/PurchaseRepository";
+import PageOrderRepository from "../repositories/PageOrderRepository";
 import { readUser } from "./authController";
 import type { AuthUser } from "../models/Auth";
 import type { FriendConfig } from "../models/Friend";
@@ -165,6 +168,37 @@ export const updateFriend = async ({ params, body, jwt, cookie, set }: any) => {
     }
 };
 
+/** DELETE /api/admin/friend/:slug — owner-only, irreversible. Removes the page
+    directory plus every derived DB row and the slug's place in the page order. */
+export const deleteFriend = async ({ params, jwt, cookie, set }: any) => {
+    try {
+        const user = await readUser(jwt, cookie);
+        if (!user) { set.status = 401; return { error: "Unauthorized" }; }
+        if (!user.isOwner) { set.status = 403; return { error: "Owner only" }; }
+
+        const slug = params.slug as string;
+        if (!FriendRepository.getRawConfig(slug)) { set.status = 404; return { error: "Not found" }; }
+
+        const removed = FriendRepository.deleteFriend(slug);
+        if (!removed) { set.status = 400; return { error: "Could not delete" }; }
+
+        /* Purge derived state so nothing references the dead slug. */
+        BirthdayRepository.deleteSlug(slug);
+        HistoryRepository.deleteSlug(slug);
+        ScoreRepository.deleteSlug(slug);
+        PurchaseRepository.deleteSlug(slug);
+        PageOrderRepository.removeSlug(slug);
+
+        Logger.info("AdminController", `deleted friend page`, { slug, by: user.username });
+        set.status = 200;
+        return { ok: true };
+    } catch (error) {
+        Logger.error("AdminController", `deleteFriend error: ${error}`, { slug: params?.slug });
+        set.status = 500;
+        return { error: "Internal server error" };
+    }
+};
+
 /** POST /api/admin/friends — owner-only create (auto-slug from username). */
 export const createFriend = async ({ body, jwt, cookie, set }: any) => {
     try {
@@ -254,6 +288,35 @@ export const translate = async ({ body, jwt, cookie, set }: any) => {
         return { ok: true, translations: result };
     } catch (error) {
         Logger.error("AdminController", `translate error: ${error}`);
+        set.status = 500;
+        return { error: "Internal server error" };
+    }
+};
+
+/** GET /api/admin/order — owner-only dashboard ordering (list of slugs). */
+export const getPageOrder = async ({ jwt, cookie, set }: any) => {
+    const user = await readUser(jwt, cookie);
+    if (!user) { set.status = 401; return { error: "Unauthorized" }; }
+    if (!user.isOwner) { set.status = 403; return { error: "Owner only" }; }
+    set.status = 200;
+    return { order: PageOrderRepository.getOrder() };
+};
+
+/** PUT /api/admin/order — owner-only; persist the dashboard ordering. */
+export const savePageOrder = async ({ body, jwt, cookie, set }: any) => {
+    try {
+        const user = await readUser(jwt, cookie);
+        if (!user) { set.status = 401; return { error: "Unauthorized" }; }
+        if (!user.isOwner) { set.status = 403; return { error: "Owner only" }; }
+
+        const order = Array.isArray(body?.order)
+            ? body.order.filter((s: unknown): s is string => typeof s === "string")
+            : [];
+        PageOrderRepository.setOrder(order);
+        set.status = 200;
+        return { ok: true };
+    } catch (error) {
+        Logger.error("AdminController", `savePageOrder error: ${error}`);
         set.status = 500;
         return { error: "Internal server error" };
     }

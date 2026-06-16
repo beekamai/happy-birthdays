@@ -190,4 +190,17 @@ export default class HistoryRepository {
             if (g?.name) this.addGift(slug, g);
         }
     }
+
+    /** Wipe all history for a slug — gifts, changes and the snapshot (page deletion). */
+    static deleteSlug(slug: string): void {
+        try {
+            const db = this.getDb();
+            if (!db) return;
+            db.query("DELETE FROM gifts WHERE slug = $slug;").run({ $slug: slug });
+            db.query("DELETE FROM profile_changes WHERE slug = $slug;").run({ $slug: slug });
+            db.query("DELETE FROM profile_snapshot WHERE slug = $slug;").run({ $slug: slug });
+        } catch (error) {
+            Logger.error("HistoryRepository", `deleteSlug failed: ${error}`, { slug });
+        }
+    }
 }

@@ -150,7 +150,7 @@ export function ProfilePage({ friend }: { friend: PublicFriend }) {
         )}
 
         {friend.socials && friend.socials.length > 0 && (
-          <SocialLinks links={friend.socials} />
+          <SocialLinks links={friend.socials} style={friend.socialStyle ?? "icon"} />
         )}
 
         <div className="mt-2 flex items-center justify-center">

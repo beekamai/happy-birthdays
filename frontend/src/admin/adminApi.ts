@@ -69,6 +69,7 @@ export interface FriendConfig {
   theme?: "light" | "dark" | "halloween" | "newyear";
   bio?: string;
   socials?: { platform: string; url: string }[];
+  socialStyle?: "icon" | "text";
   translations?: Partial<
     Record<"ru" | "en", { displayName?: string; message?: string; giftName?: string; bio?: string }>
   >;
@@ -86,6 +87,7 @@ export interface FriendLimitedUpdate {
   theme?: "light" | "dark" | "halloween" | "newyear";
   bio?: string;
   socials?: { platform: string; url: string }[];
+  socialStyle?: "icon" | "text";
   translations?: Partial<
     Record<"ru" | "en", { displayName?: string; message?: string; giftName?: string; bio?: string }>
   >;
@@ -297,6 +299,53 @@ export async function uploadAvatar(
   );
   if (!res.ok) throw new ApiError(res.status, await readError(res));
   return (await res.json()) as AvatarUploadResult;
+}
+
+/**
+ * Delete a friend page (owner only) — directory, derived DB rows and its place
+ * in the dashboard order. Returns `true` on success, `false` otherwise.
+ */
+export async function deleteFriendPage(slug: string): Promise<boolean> {
+  try {
+    const res = await fetch(`/api/admin/friend/${encodeURIComponent(slug)}`, {
+      method: "DELETE",
+    });
+    if (!res.ok) return false;
+    const body = (await res.json()) as { ok?: boolean };
+    return body.ok === true;
+  } catch {
+    return false;
+  }
+}
+
+/* ---- Admin: page order --------------------------------------------------- */
+
+/** The owner's saved dashboard ordering (list of slugs). `[]` on error. */
+export async function fetchPageOrder(): Promise<string[]> {
+  try {
+    const res = await fetch("/api/admin/order");
+    if (!res.ok) return [];
+    const body = (await res.json()) as { order?: string[] };
+    return body.order ?? [];
+  } catch {
+    return [];
+  }
+}
+
+/** Persist the dashboard ordering (owner only). `true` on success. */
+export async function savePageOrder(order: string[]): Promise<boolean> {
+  try {
+    const res = await fetch("/api/admin/order", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ order }),
+    });
+    if (!res.ok) return false;
+    const body = (await res.json()) as { ok?: boolean };
+    return body.ok === true;
+  } catch {
+    return false;
+  }
 }
 
 /* ---- Admin: translation -------------------------------------------------- */

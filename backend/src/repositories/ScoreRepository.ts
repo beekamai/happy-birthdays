@@ -180,6 +180,18 @@ export default class ScoreRepository {
         }
     }
 
+    /** Delete every score row for a slug (page deletion). Returns rows removed. */
+    static deleteSlug(slug: string): number {
+        try {
+            const db = this.getDb();
+            if (!db) return 0;
+            return db.query("DELETE FROM scores WHERE slug = $slug;").run({ $slug: slug }).changes;
+        } catch (error) {
+            Logger.error("ScoreRepository", `deleteSlug failed: ${error}`, { slug });
+            return 0;
+        }
+    }
+
     /** Top N scores for a (slug, gameId), highest first. */
     static topScores(slug: string, gameId: string, limit = 10): ScoreRow[] {
         try {

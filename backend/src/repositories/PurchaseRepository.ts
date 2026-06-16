@@ -64,6 +64,19 @@ export default class PurchaseRepository {
         }
     }
 
+    /** Delete every purchase row for a slug (page deletion). Returns rows removed. */
+    static deleteSlug(slug: string): number {
+        try {
+            if (!this.db) return 0;
+            return this.db
+                .query(`DELETE FROM purchases WHERE slug = $slug`)
+                .run({ $slug: slug }).changes;
+        } catch (error) {
+            Logger.error("PurchaseRepository", `deleteSlug failed: ${error}`, { slug });
+            return 0;
+        }
+    }
+
     /** All item ids the friend owns. */
     static ownedIds(slug: string): string[] {
         try {

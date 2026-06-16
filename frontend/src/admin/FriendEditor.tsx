@@ -2,10 +2,12 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { ChangeEvent, CSSProperties, ReactNode } from "react";
 
 import { StickerCard } from "../components/decor/StickerCard.tsx";
+import { ConfirmDialog } from "../components/ConfirmDialog.tsx";
 import { useT } from "../lib/i18n.ts";
 import {
   ApiError,
   createFriend,
+  deleteFriendPage,
   deriveSlug,
   fetchAdminFriend,
   translateFields,
@@ -143,6 +145,7 @@ function emptyConfig(): FriendConfig {
     giftLayout: "list",
     lang: "ru",
     theme: "light",
+    socialStyle: "icon",
   };
 }
 
@@ -200,6 +203,10 @@ export function FriendEditor({
   const [tGiftName, setTGiftName] = useState("");
   const [tBio, setTBio] = useState("");
   const [translating, setTranslating] = useState(false);
+
+  /* Page deletion (owner, edit mode only) — confirm modal + in-flight flag. */
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   /* In create mode we start as POST; after the first successful save we behave
      like edit. `create && !editMode` is the only true "creating" state. */
@@ -482,6 +489,7 @@ export function FriendEditor({
           theme: config.theme,
           bio: cleanOptional(config.bio),
           socials: cleanSocials(config.socials),
+          socialStyle: config.socialStyle ?? "icon",
           translations: merged.translations,
         };
         await updateFriend(slug, subset);
@@ -502,6 +510,29 @@ export function FriendEditor({
       );
     } finally {
       setSaving(false);
+    }
+  };
+
+  /* Permanently delete this page (owner, existing page only). Returns to the
+     list on success; surfaces a toast either way. */
+  const onDelete = async () => {
+    if (!slug) return;
+    setDeleting(true);
+    try {
+      const ok = await deleteFriendPage(slug);
+      if (!ok) {
+        show(t("editor.toast.deleteFailed"), "error");
+        setDeleting(false);
+        setConfirmDelete(false);
+        return;
+      }
+      show(t("editor.toast.deleted"), "success");
+      setConfirmDelete(false);
+      onBack?.();
+    } catch {
+      show(t("editor.toast.deleteFailed"), "error");
+      setDeleting(false);
+      setConfirmDelete(false);
     }
   };
 
@@ -714,6 +745,21 @@ export function FriendEditor({
                   {t("editor.socials.add")}
                 </PillButton>
               </div>
+
+              {/* How the pills render on the profile: brand icons or text only. */}
+              <Field label={t("editor.field.socialStyle")}>
+                <div className="flex gap-2">
+                  {(["icon", "text"] as const).map((opt) => (
+                    <SegBtn
+                      key={opt}
+                      active={(config.socialStyle ?? "icon") === opt}
+                      onClick={() => set("socialStyle", opt)}
+                    >
+                      {t(`editor.socialStyle.${opt}`)}
+                    </SegBtn>
+                  ))}
+                </div>
+              </Field>
             </div>
           </StickerCard>
 
@@ -931,7 +977,17 @@ export function FriendEditor({
             </div>
           </StickerCard>
 
-          <div className="flex justify-end">
+          <div className="flex flex-wrap items-center justify-end gap-3">
+            {!creating && isOwner && slug && (
+              <button
+                type="button"
+                onClick={() => setConfirmDelete(true)}
+                disabled={saving || deleting}
+                className="mr-auto rounded-[var(--radius-full)] border-[2px] border-[var(--color-lantern)] bg-[var(--color-surface)] px-5 py-2.5 font-bold text-[var(--color-lantern)] transition-transform duration-200 hover:scale-105 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100"
+              >
+                {t("editor.delete")}
+              </button>
+            )}
             <PillButton onClick={onSave} disabled={saving}>
               {saving
                 ? t("editor.saving")
@@ -966,6 +1022,17 @@ export function FriendEditor({
           </StickerCard>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={confirmDelete}
+        title={t("editor.delete.title")}
+        message={t("editor.delete.text", { name: config.displayName || slug })}
+        confirmLabel={t("editor.delete.confirm")}
+        confirmVariant="danger"
+        disabled={deleting}
+        onConfirm={onDelete}
+        onCancel={() => setConfirmDelete(false)}
+      />
     </div>
   );
 }

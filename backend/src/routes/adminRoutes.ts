@@ -6,8 +6,11 @@ import {
     getFriendConfig,
     updateFriend,
     createFriend,
+    deleteFriend,
     uploadAvatar,
     translate,
+    getPageOrder,
+    savePageOrder,
 } from "../controllers/adminController";
 import { buyItem, equipItem, refundItem } from "../controllers/shopController";
 
@@ -17,8 +20,11 @@ const adminRoutes = new Elysia()
     .get("/friends", listFriends)
     .get("/mine", myPages)
     .post("/friends", createFriend)
+    .get("/order", getPageOrder)
+    .put("/order", savePageOrder)
     .get("/friend/:slug", getFriendConfig)
     .put("/friend/:slug", updateFriend)
+    .delete("/friend/:slug", deleteFriend)
     .post("/friend/:slug/avatar", uploadAvatar)
     .post("/translate", translate)
     .post("/shop/:slug/buy", buyItem)

@@ -114,6 +114,17 @@ export default class BirthdayRepository {
         }
     }
 
+    /** Remove a birthday by slug (page deletion). */
+    static deleteSlug(slug: string): void {
+        try {
+            const db = this.getDb();
+            if (!db) return;
+            db.query("DELETE FROM birthdays WHERE slug = $slug;").run({ $slug: slug });
+        } catch (error) {
+            Logger.error("BirthdayRepository", `deleteSlug failed: ${error}`, { slug });
+        }
+    }
+
     /** All birthdays, each annotated with daysUntil, sorted soonest-first. */
     static list(): (BirthdayRow & { daysUntil: number })[] {
         try {

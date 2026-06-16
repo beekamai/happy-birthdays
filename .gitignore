@@ -11,3 +11,5 @@ backend/cache/
 .DS_Store
 *.log
 bun.lockb
+page-order.json
+data/page-order.json
