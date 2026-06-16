@@ -8,7 +8,7 @@ import {
     uploadAvatar,
     translate,
 } from "../controllers/adminController";
-import { buyItem, equipItem } from "../controllers/shopController";
+import { buyItem, equipItem, refundItem } from "../controllers/shopController";
 
 /* Admin endpoints (mounted under /api/admin). Each controller checks the
    session + permission (owner vs the friend themselves). */
@@ -20,6 +20,7 @@ const adminRoutes = new Elysia()
     .post("/friend/:slug/avatar", uploadAvatar)
     .post("/translate", translate)
     .post("/shop/:slug/buy", buyItem)
-    .post("/shop/:slug/equip", equipItem);
+    .post("/shop/:slug/equip", equipItem)
+    .post("/shop/:slug/refund", refundItem);
 
 export default adminRoutes;

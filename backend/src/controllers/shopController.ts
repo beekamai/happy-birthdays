@@ -81,6 +81,40 @@ export const buyItem = async ({ params, body, jwt, cookie, set }: any) => {
     }
 };
 
+/** POST /api/admin/shop/:slug/refund — remove an owned item and refund its
+    points (the spent total drops, so the balance rises). Unequips if active. */
+export const refundItem = async ({ params, body, jwt, cookie, set }: any) => {
+    try {
+        const user = await readUser(jwt, cookie);
+        if (!user) { set.status = 401; return { error: "Unauthorized" }; }
+        const cfg = FriendRepository.getRawConfig(params.slug);
+        if (!cfg) { set.status = 404; return { error: "Not found" }; }
+        if (!canEdit(user, cfg.username)) { set.status = 403; return { error: "Forbidden" }; }
+
+        const item = shopItem(String(body?.itemId ?? ""));
+        if (!item) { set.status = 400; return { error: "Unknown item" }; }
+        if (!PurchaseRepository.remove(params.slug, item.id)) {
+            set.status = 404;
+            return { error: "Not owned" };
+        }
+
+        /* Drop it from its slot if it was equipped. */
+        let decor: Decor | undefined = cfg.decor;
+        if (cfg.decor?.[item.type] === item.id) {
+            decor = { ...cfg.decor };
+            delete decor[item.type];
+            FriendRepository.writeConfig(params.slug, { ...cfg, decor });
+        }
+
+        set.status = 200;
+        return { ok: true, ...stateOf(params.slug, decor) };
+    } catch (error) {
+        Logger.error("ShopController", `refundItem error: ${error}`, { slug: params?.slug });
+        set.status = 500;
+        return { error: "Internal server error" };
+    }
+};
+
 /** POST /api/admin/shop/:slug/equip — equip an owned item, or clear a slot. */
 export const equipItem = async ({ params, body, jwt, cookie, set }: any) => {
     try {

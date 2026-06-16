@@ -75,6 +75,31 @@ export async function buyItem(
 }
 
 /**
+ * Refund an owned item: removes the purchase (points return to the balance) and
+ * unequips it. Returns the fresh state, or `null` on failure.
+ */
+export async function refundItem(
+  slug: string,
+  itemId: string,
+): Promise<ShopState | null> {
+  try {
+    const res = await fetch(
+      `/api/admin/shop/${encodeURIComponent(slug)}/refund`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ itemId }),
+      },
+    );
+    if (!res.ok) return null;
+    return (await res.json()) as ShopState;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Equip an owned item into its slot, or clear the slot when `itemId` is null.
  * Returns the fresh state, or `null` on failure.
  */

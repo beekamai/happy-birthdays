@@ -50,6 +50,20 @@ export default class PurchaseRepository {
         }
     }
 
+    /** Remove a purchase (refund). Returns true if a row was deleted. */
+    static remove(slug: string, itemId: string): boolean {
+        try {
+            if (!this.db) return false;
+            const res = this.db
+                .query(`DELETE FROM purchases WHERE slug = $slug AND itemId = $itemId`)
+                .run({ $slug: slug, $itemId: itemId });
+            return res.changes > 0;
+        } catch (error) {
+            Logger.error("PurchaseRepository", `remove failed: ${error}`, { slug, itemId });
+            return false;
+        }
+    }
+
     /** All item ids the friend owns. */
     static ownedIds(slug: string): string[] {
         try {

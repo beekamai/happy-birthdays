@@ -4,6 +4,7 @@ import { useT } from "../lib/i18n.ts";
 import {
   buyItem,
   equipItem,
+  refundItem,
   fetchCatalog,
   fetchShopState,
   type DecorType,
@@ -28,6 +29,32 @@ const SECTION_ORDER: DecorType[] = [
 interface ToastState {
   message: string;
   kind: "success" | "error";
+}
+
+/* A ring that fills with the share of the page's total points already spent, so
+   it's obvious the shop draws from a shared quota. The remaining balance sits in
+   the centre. */
+function SpentRing({ spent, earned }: { spent: number; earned: number }) {
+  const r = 26;
+  const circumference = 2 * Math.PI * r;
+  const frac = earned > 0 ? Math.min(1, spent / earned) : 0;
+  return (
+    <svg width="72" height="72" viewBox="0 0 72 72" className="shrink-0" aria-hidden="true">
+      <circle cx="36" cy="36" r={r} fill="none" stroke="var(--color-muted)" strokeWidth="7" />
+      <circle
+        cx="36"
+        cy="36"
+        r={r}
+        fill="none"
+        stroke="var(--color-ramen-gold)"
+        strokeWidth="7"
+        strokeLinecap="round"
+        strokeDasharray={circumference}
+        strokeDashoffset={circumference * (1 - frac)}
+        transform="rotate(-90 36 36)"
+      />
+    </svg>
+  );
 }
 
 interface ShopProps {
@@ -90,6 +117,21 @@ export function Shop({ slug, open, onClose, onChange }: ShopProps) {
     showToast(t("shop.toast.bought"), "success");
   };
 
+  const handleRefund = async (item: ShopItem) => {
+    if (busyId) return;
+    if (!window.confirm(t("shop.confirmRefund", { name: itemName(item), n: item.cost }))) return;
+    setBusyId(item.id);
+    const res = await refundItem(slug, item.id);
+    setBusyId(null);
+    if (!res) {
+      showToast(t("shop.toast.error"), "error");
+      return;
+    }
+    setState(res);
+    onChange();
+    showToast(t("shop.toast.refunded"), "success");
+  };
+
   const handleEquip = async (item: ShopItem) => {
     if (busyId) return;
     const isOn = state?.equipped[item.type] === item.id;
@@ -133,13 +175,17 @@ export function Shop({ slug, open, onClose, onChange }: ShopProps) {
         </header>
 
         {state && (
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b-[2px] border-[var(--color-muted)] px-5 py-3 font-bold">
-            <span>
-              {t("shop.balance", { balance: state.balance, earned: state.earned })}
-            </span>
-            <span className="text-sm font-normal text-[var(--color-text-soft)]">
-              {t("shop.spent", { spent: state.spent })}
-            </span>
+          <div className="flex items-center gap-4 border-b-[2px] border-[var(--color-muted)] px-5 py-3">
+            <SpentRing spent={state.spent} earned={state.earned} />
+            <div className="flex flex-col gap-0.5">
+              <span className="text-lg font-bold">
+                <span aria-hidden="true">🏅 </span>
+                {t("shop.remaining", { n: state.balance })}
+              </span>
+              <span className="text-sm text-[var(--color-text-soft)]">
+                {t("shop.spentOf", { spent: state.spent, earned: state.earned })}
+              </span>
+            </div>
           </div>
         )}
 
@@ -193,16 +239,34 @@ export function Shop({ slug, open, onClose, onChange }: ShopProps) {
                                 >
                                   {t(equipped ? "shop.unequip" : "shop.equip")}
                                 </button>
+                                <button
+                                  type="button"
+                                  disabled={busy}
+                                  onClick={() => handleRefund(item)}
+                                  title={t("shop.refundHint", { n: item.cost })}
+                                  className="rounded-[var(--radius-full)] border-[2px] border-[var(--color-lantern)] bg-[var(--color-surface)] px-3 py-1 text-xs font-bold text-[var(--color-lantern)] transition-transform duration-200 hover:scale-105 disabled:cursor-not-allowed disabled:opacity-60"
+                                >
+                                  {t("shop.refund", { n: item.cost })}
+                                </button>
                               </div>
                             ) : (
-                              <button
-                                type="button"
-                                disabled={busy || tooPoor}
-                                onClick={() => handleBuy(item)}
-                                className="mt-1 self-start rounded-[var(--radius-full)] border-[2px] border-[var(--color-primary-deep)] bg-[var(--color-primary)] px-3 py-1 text-xs font-bold text-[var(--color-on-primary)] shadow-[var(--shadow-sm)] transition-transform duration-200 hover:scale-105 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100"
+                              <span
+                                className="mt-1 self-start"
+                                title={
+                                  tooPoor
+                                    ? t("shop.needMore", { n: item.cost - (state?.balance ?? 0) })
+                                    : undefined
+                                }
                               >
-                                {t("shop.buy")}
-                              </button>
+                                <button
+                                  type="button"
+                                  disabled={busy || tooPoor}
+                                  onClick={() => handleBuy(item)}
+                                  className="rounded-[var(--radius-full)] border-[2px] border-[var(--color-primary-deep)] bg-[var(--color-primary)] px-3 py-1 text-xs font-bold text-[var(--color-on-primary)] shadow-[var(--shadow-sm)] transition-transform duration-200 hover:scale-105 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100"
+                                >
+                                  {t("shop.buy")}
+                                </button>
+                              </span>
                             )}
                           </div>
                         </div>
