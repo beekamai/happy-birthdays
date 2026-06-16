@@ -20,6 +20,9 @@ interface GamesGridProps {
   visitorId: string;
   /** Called after the server records a score (to refresh the page total). */
   onScored?: () => void;
+  /** Page-wide best score per gameId (from server totals). Reactive: refreshed
+      after a play so a new record shows on the launcher card right away. */
+  bestByGame?: Record<string, number>;
 }
 
 interface ResolvedGame {
@@ -28,7 +31,7 @@ interface ResolvedGame {
 }
 
 /** Grid of game launchers with a modal game host. */
-export function GamesGrid({ friend, site, visitorId, onScored }: GamesGridProps) {
+export function GamesGrid({ friend, site, visitorId, onScored, bestByGame }: GamesGridProps) {
   const { t } = useT();
   /* Resolve each slot to its descriptor once; skip unknown gameIds. */
   const games = useMemo<ResolvedGame[]>(() => {
@@ -71,28 +74,36 @@ export function GamesGrid({ friend, site, visitorId, onScored }: GamesGridProps)
       <h2 className="text-center text-3xl">{t("games.title")}</h2>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        {games.map((game, index) => (
-          <StickerCard key={`${game.descriptor.id}-${index}`} className="p-0">
-            <button
-              type="button"
-              onClick={() => {
-                playSound("start");
-                setOpenIdx(index);
-              }}
-              className="flex w-full cursor-pointer flex-col gap-2 rounded-[var(--radius-lg)] p-6 text-left focus:outline-none focus-visible:ring-[3px] focus-visible:ring-[var(--color-accent)]"
-            >
-              <span className="text-5xl select-none" aria-hidden="true">
-                {game.descriptor.icon}
-              </span>
-              <span className="text-xl font-bold text-[var(--color-text)]">
-                {t(game.descriptor.titleKey)}
-              </span>
-              <span className="text-sm text-[var(--color-text-soft)]">
-                {t(game.descriptor.blurbKey)}
-              </span>
-            </button>
-          </StickerCard>
-        ))}
+        {games.map((game, index) => {
+          const best = bestByGame?.[game.descriptor.id] ?? 0;
+          return (
+            <StickerCard key={`${game.descriptor.id}-${index}`} className="p-0">
+              <button
+                type="button"
+                onClick={() => {
+                  playSound("start");
+                  setOpenIdx(index);
+                }}
+                className="flex w-full cursor-pointer flex-col gap-2 rounded-[var(--radius-lg)] p-6 text-left focus:outline-none focus-visible:ring-[3px] focus-visible:ring-[var(--color-accent)]"
+              >
+                <span className="text-5xl select-none" aria-hidden="true">
+                  {game.descriptor.icon}
+                </span>
+                <span className="text-xl font-bold text-[var(--color-text)]">
+                  {t(game.descriptor.titleKey)}
+                </span>
+                <span className="text-sm text-[var(--color-text-soft)]">
+                  {t(game.descriptor.blurbKey)}
+                </span>
+                {best > 0 && (
+                  <span className="text-xs font-bold text-[var(--color-text-soft)]">
+                    {t("games.best", { n: best })}
+                  </span>
+                )}
+              </button>
+            </StickerCard>
+          );
+        })}
       </div>
 
       <AnimatePresence>

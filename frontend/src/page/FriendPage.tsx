@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import type { CSSProperties } from "react";
 import confetti from "canvas-confetti";
 
@@ -56,6 +56,12 @@ export function FriendPage({ friend, site }: FriendPageProps) {
     initLang(friend.lang);
   }, [friend.lang]);
   const { totals, refresh } = useTotals(friend.slug, visitorId);
+  /* Page-wide best per game, for the "🏅 Рекорд" line on each launcher card. */
+  const bestByGame = useMemo(() => {
+    const map: Record<string, number> = {};
+    for (const g of totals?.global.games ?? []) map[g.gameId] = g.best;
+    return map;
+  }, [totals]);
 
   /* One gentle welcome burst on mount — never on a reduced-motion preference,
      and guarded so React's strict double-invoke can't double-fire it. */
@@ -143,7 +149,13 @@ export function FriendPage({ friend, site }: FriendPageProps) {
               </div>
             )}
 
-            <GamesGrid friend={friend} site={site} visitorId={visitorId} onScored={refresh} />
+            <GamesGrid
+              friend={friend}
+              site={site}
+              visitorId={visitorId}
+              onScored={refresh}
+              bestByGame={bestByGame}
+            />
           </>
         )}
 

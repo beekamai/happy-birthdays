@@ -21,28 +21,32 @@ export interface ShopItem {
     cost: number;
 }
 
+/* Prices are tuned to the points a page can earn: a well-played page nets ~4000
+   across the five games (best-per-game), so badges are pocket-money, frames /
+   backgrounds are a session's worth, and effects / the fox are a save-up goal.
+   The whole catalogue (~7k) is affordable only for a popular, much-played page. */
 export const SHOP_CATALOG: ShopItem[] = [
     /* Avatar frames — a decorative ring around the avatar. */
-    { id: "frame-gold", type: "avatarFrame", nameRu: "Золотая рамка", nameEn: "Gold frame", cost: 800 },
-    { id: "frame-neon", type: "avatarFrame", nameRu: "Неоновое сияние", nameEn: "Neon glow", cost: 900 },
-    { id: "frame-flower", type: "avatarFrame", nameRu: "Цветочный венок", nameEn: "Flower wreath", cost: 1100 },
+    { id: "frame-gold", type: "avatarFrame", nameRu: "Золотая рамка", nameEn: "Gold frame", cost: 500 },
+    { id: "frame-neon", type: "avatarFrame", nameRu: "Неоновое сияние", nameEn: "Neon glow", cost: 600 },
+    { id: "frame-flower", type: "avatarFrame", nameRu: "Цветочный венок", nameEn: "Flower wreath", cost: 700 },
 
     /* Backgrounds — an ambient page pattern behind the content. */
-    { id: "bg-stars", type: "background", nameRu: "Звёздная пыль", nameEn: "Stardust", cost: 1000 },
-    { id: "bg-hearts", type: "background", nameRu: "Сердечки", nameEn: "Hearts", cost: 1000 },
-    { id: "bg-confetti", type: "background", nameRu: "Конфетти", nameEn: "Confetti", cost: 1200 },
+    { id: "bg-stars", type: "background", nameRu: "Звёздная пыль", nameEn: "Stardust", cost: 550 },
+    { id: "bg-hearts", type: "background", nameRu: "Сердечки", nameEn: "Hearts", cost: 550 },
+    { id: "bg-confetti", type: "background", nameRu: "Конфетти", nameEn: "Confetti", cost: 650 },
 
     /* Badges — a little emblem beside the name. */
-    { id: "badge-crown", type: "badge", nameRu: "Корона", nameEn: "Crown", cost: 500 },
-    { id: "badge-star", type: "badge", nameRu: "Звезда", nameEn: "Star", cost: 400 },
-    { id: "badge-fire", type: "badge", nameRu: "Огонёк", nameEn: "Fire", cost: 500 },
+    { id: "badge-crown", type: "badge", nameRu: "Корона", nameEn: "Crown", cost: 350 },
+    { id: "badge-star", type: "badge", nameRu: "Звезда", nameEn: "Star", cost: 250 },
+    { id: "badge-fire", type: "badge", nameRu: "Огонёк", nameEn: "Fire", cost: 300 },
 
     /* Effects — an ambient animated overlay. */
-    { id: "fx-hearts", type: "effect", nameRu: "Падающие сердечки", nameEn: "Falling hearts", cost: 1600 },
-    { id: "fx-sparkles", type: "effect", nameRu: "Искорки", nameEn: "Sparkles", cost: 1500 },
+    { id: "fx-hearts", type: "effect", nameRu: "Падающие сердечки", nameEn: "Falling hearts", cost: 900 },
+    { id: "fx-sparkles", type: "effect", nameRu: "Искорки", nameEn: "Sparkles", cost: 850 },
 
     /* Companions — a draggable mascot that follows the friend onto their profile. */
-    { id: "pet-fox", type: "companion", nameRu: "Лисёнок-питомец", nameEn: "Fox companion", cost: 2000 },
+    { id: "pet-fox", type: "companion", nameRu: "Лисёнок-питомец", nameEn: "Fox companion", cost: 1200 },
 ];
 
 const BY_ID = new Map(SHOP_CATALOG.map((item) => [item.id, item]));

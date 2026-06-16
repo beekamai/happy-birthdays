@@ -1,5 +1,6 @@
 import { t } from "elysia";
 import type { FriendConfig, ParsedBirthday } from "../models/Friend";
+import { normalizeSocialUrl } from "../utils/socialUrl";
 
 /* ------------------------------------------------------------------ */
 /* Birthday parsing                                                    */
@@ -189,10 +190,14 @@ export function validateFriendConfig(obj: unknown): FriendConfig {
                 (s): s is { platform: unknown; url: unknown } =>
                     isObject(s) && typeof s.url === "string" && s.url.length > 0,
             )
-            .map((s) => ({
-                platform: typeof s.platform === "string" ? s.platform : "link",
-                url: s.url as string,
-            }));
+            .map((s) => {
+                const platform = typeof s.platform === "string" ? s.platform : "link";
+                /* Force an absolute, scheme'd, platform-matching URL — drops the
+                   relative-link footgun and links pointing at the wrong service. */
+                const url = normalizeSocialUrl(platform, s.url as string);
+                return url ? { platform, url } : null;
+            })
+            .filter((s): s is { platform: string; url: string } => s !== null);
         if (socials.length > 0) result.socials = socials;
     }
 

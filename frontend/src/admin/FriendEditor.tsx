@@ -656,6 +656,35 @@ export function FriendEditor({
   /* Apply the chosen accent to the form so controls tint live as you edit. */
   const accentStyle = { "--color-accent": config.accent } as CSSProperties;
 
+  /* Save / delete actions — rendered under the form on mobile and under the
+     preview on desktop, with mirrored visibility. One shared handler set, no
+     duplicated state; `extraClass` toggles which copy is visible per breakpoint. */
+  const actionButtons = (extraClass: string) => (
+    <div
+      className={
+        "flex flex-wrap items-center justify-end gap-3 " + extraClass
+      }
+    >
+      {!creating && isOwner && slug && (
+        <button
+          type="button"
+          onClick={() => setConfirmDelete(true)}
+          disabled={saving || deleting}
+          className="mr-auto rounded-[var(--radius-full)] border-[2px] border-[var(--color-lantern)] bg-[var(--color-surface)] px-5 py-2.5 font-bold text-[var(--color-lantern)] transition-transform duration-200 hover:scale-105 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100"
+        >
+          {t("editor.delete")}
+        </button>
+      )}
+      <PillButton onClick={onSave} disabled={saving}>
+        {saving
+          ? t("editor.saving")
+          : creating
+            ? t("editor.save.create")
+            : t("editor.save.update")}
+      </PillButton>
+    </div>
+  );
+
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-6" style={accentStyle}>
       <Toast toast={toast} />
@@ -1078,25 +1107,8 @@ export function FriendEditor({
             </div>
           </StickerCard>
 
-          <div className="flex flex-wrap items-center justify-end gap-3">
-            {!creating && isOwner && slug && (
-              <button
-                type="button"
-                onClick={() => setConfirmDelete(true)}
-                disabled={saving || deleting}
-                className="mr-auto rounded-[var(--radius-full)] border-[2px] border-[var(--color-lantern)] bg-[var(--color-surface)] px-5 py-2.5 font-bold text-[var(--color-lantern)] transition-transform duration-200 hover:scale-105 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100"
-              >
-                {t("editor.delete")}
-              </button>
-            )}
-            <PillButton onClick={onSave} disabled={saving}>
-              {saving
-                ? t("editor.saving")
-                : creating
-                  ? t("editor.save.create")
-                  : t("editor.save.update")}
-            </PillButton>
-          </div>
+          {/* Mobile (single column): actions live under the form. */}
+          {actionButtons("lg:hidden")}
         </div>
 
         {/* ---- Preview column -------------------------------------------- */}
@@ -1121,6 +1133,8 @@ export function FriendEditor({
               </div>
             )}
           </StickerCard>
+          {/* Desktop (two columns): actions live under the preview panel. */}
+          {actionButtons("mt-4 hidden lg:flex")}
         </div>
       </div>
 

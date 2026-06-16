@@ -19,8 +19,9 @@ export function ThemeDecor({ theme }: { theme: ThemeName }) {
 
   return (
     <div
+      key={theme}
       aria-hidden="true"
-      className="pointer-events-none fixed inset-0 z-0 overflow-hidden select-none"
+      className="animate-theme-decor pointer-events-none fixed inset-0 z-0 overflow-hidden select-none"
     >
       {layer}
     </div>

@@ -60,6 +60,7 @@ const ru: Record<string, string> = {
   /* Games section + modal */
   "games.title": "Мини-игры 🎮",
   "games.close": "Закрыть",
+  "games.best": "🏅 Рекорд: {n}",
 
   /* Game registry titles + blurbs */
   "game.feed-fox.title": "Покорми лисичку",
@@ -384,6 +385,7 @@ const en: Record<string, string> = {
   /* Games section + modal */
   "games.title": "Mini-games 🎮",
   "games.close": "Close",
+  "games.best": "🏅 Best: {n}",
 
   /* Game registry titles + blurbs */
   "game.feed-fox.title": "Feed the fox",

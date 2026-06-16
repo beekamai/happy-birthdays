@@ -318,11 +318,26 @@ body {
 .theme-anim *::before,
 .theme-anim *::after {
   transition:
-    background-color 0.35s ease,
-    border-color 0.35s ease,
-    color 0.35s ease,
-    fill 0.35s ease,
-    stroke 0.35s ease,
-    box-shadow 0.35s ease,
-    outline-color 0.35s ease !important;
+    background-color 0.3s ease,
+    border-color 0.3s ease,
+    color 0.3s ease,
+    fill 0.3s ease,
+    stroke 0.3s ease,
+    box-shadow 0.3s ease,
+    outline-color 0.3s ease !important;
+}
+
+/* Theme-specific ambient decor (moon, stars, bats, pumpkins, snow) swaps wholesale
+   on a theme change; fade it in so it doesn't pop into existence. ThemeDecor keys
+   its wrapper by theme, so this replays on every switch. */
+@keyframes theme-decor-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.animate-theme-decor {
+  animation: theme-decor-fade 0.5s ease both;
 }

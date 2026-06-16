@@ -1,6 +1,16 @@
 import type { SocialLink } from "../lib/types.ts";
 import { socialIcon, socialLabel } from "./socialIcons.tsx";
 
+/* Defensive: a stored value missing a scheme ("name.t.me") would resolve as a
+   RELATIVE link under our own origin. The backend normalises on save, but guard
+   here too so any legacy/odd data still points outward. */
+function safeHref(url: string): string {
+  const s = url.trim();
+  if (/^\/\//.test(s)) return `https:${s}`;
+  if (!/^[a-z][a-z0-9+.-]*:\/\//i.test(s)) return `https://${s}`;
+  return s;
+}
+
 /* A row of social/bio links rendered as cozy sticker pills. Three styles:
    - "icon" (default): a brand glyph (currentColor, theme-tinted) + a readable
      label per link.
@@ -32,7 +42,7 @@ export function SocialLinks({
         return (
           <a
             key={`${link.platform}-${i}`}
-            href={link.url}
+            href={safeHref(link.url)}
             target="_blank"
             rel="noopener noreferrer"
             aria-label={iconOnly ? label : undefined}

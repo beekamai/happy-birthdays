@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import { StickerCard } from "../components/decor/StickerCard.tsx";
 import { Particles } from "../components/decor/Particles.tsx";
@@ -18,21 +18,22 @@ import { FriendEditor } from "./FriendEditor.tsx";
    show up. View state lives here (no router).
 
    Cards are reorderable by dragging the ⠿ handle with pointer events, so it
-   works with both mouse and touch. While dragging, the grid collapses to a
-   single column and a bright accent insertion bar shows exactly where the card
-   will land — no need to aim at a specific card. The order is persisted to the
-   backend and reapplied on load; new pages absent from the saved order fall to
-   the end. Clicking a card (off the handle) still opens its editor. */
+   works with both mouse and touch. The responsive grid is kept intact while
+   dragging: as the pointer moves over another card the live order is reordered
+   and every card glides to its new slot with a hand-rolled FLIP animation
+   (measure → invert → play), so nothing teleports. The dragged card is lifted
+   (scale/shadow/opacity). The order is persisted to the backend and reapplied
+   on load; new pages absent from the saved order fall to the end. Clicking a
+   card (off the handle) still opens its editor. */
 
 type View =
   | { kind: "list" }
   | { kind: "edit"; slug: string }
   | { kind: "create" };
 
-/* Live drag state: which card is being moved (`from`) and the insertion slot the
-   pointer currently points at (`target`, 0..length — a position between cards,
-   not a card index). `null` when not dragging. */
-type DragState = { from: number; target: number };
+/* Live drag state: the slug of the card being moved. The visual order lives in
+   `order` and is reordered in place as the pointer crosses other cards. */
+type DragState = { slug: string };
 
 function birthdayLabel(b: AdminFriendSummary["birthday"], t: (k: string) => string): string {
   const month = ((b.month - 1 + 12) % 12) + 1;
@@ -53,14 +54,6 @@ function applyOrder(
   return [...known, ...rest];
 }
 
-/* Map an insertion slot (0..length) to the final index of the moved card after
-   it's been spliced out of `from`. Returns null if the move is a no-op. */
-function resolveMove(from: number, target: number): number | null {
-  /* Inserting right before or right after itself changes nothing. */
-  if (target === from || target === from + 1) return null;
-  return target > from ? target - 1 : target;
-}
-
 export function OwnerDashboard() {
   const { t } = useT();
   const cov = coverage();
@@ -70,18 +63,22 @@ export function OwnerDashboard() {
 
   /* Live pointer-drag state; null when idle. */
   const [drag, setDrag] = useState<DragState | null>(null);
-  /* DOM nodes of the card wrappers, indexed by position — used to read their
-     rects and pick the nearest insertion slot under the pointer. */
-  const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
+  /* DOM nodes of the card wrappers, keyed by slug — used to read their rects for
+     the nearest-card hit test and for the FLIP measure/invert. */
+  const cardRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+  /* Rects captured just before a reorder, keyed by slug — the FLIP "first". */
+  const prevRects = useRef<Map<string, DOMRect>>(new Map());
   /* Mutable mirror of `drag` so the window listeners (bound once per drag) read
      the latest value without re-binding on every move. */
   const dragRef = useRef<DragState | null>(null);
-  /* Mutable mirror of `friends` so drop logic isn't a stale closure. */
+  /* Mutable mirror of `friends` so move/drop logic isn't a stale closure. */
   const friendsRef = useRef<AdminFriendSummary[] | null>(null);
   friendsRef.current = friends;
   /* Mutable mirror of `t` so the toast on drop uses the current language. */
   const tRef = useRef(t);
   tRef.current = t;
+  /* Set true right before a reorder so the next layout pass runs the FLIP. */
+  const flipPending = useRef(false);
 
   const load = () => {
     setFriends(null);
@@ -94,35 +91,85 @@ export function OwnerDashboard() {
     if (view.kind === "list") load();
   }, [view.kind]);
 
+  /* FLIP "invert + play": after a reorder commits, each card is offset back to
+     where it was (invert) then released to 0 on the next frame so CSS
+     transitions slide it into place. Runs in a layout effect to set the inverse
+     transform before the browser paints the new positions. */
+  useLayoutEffect(() => {
+    if (!flipPending.current) return;
+    flipPending.current = false;
+    const refs = cardRefs.current;
+    const prev = prevRects.current;
+    const moved: HTMLDivElement[] = [];
+    refs.forEach((el, slug) => {
+      const before = prev.get(slug);
+      if (!before) return;
+      const after = el.getBoundingClientRect();
+      const dx = before.left - after.left;
+      const dy = before.top - after.top;
+      if (dx === 0 && dy === 0) return;
+      /* Invert: jump back to the old spot with no transition. */
+      el.style.transition = "none";
+      el.style.transform = `translate(${dx}px, ${dy}px)`;
+      moved.push(el);
+    });
+    if (moved.length === 0) return;
+    /* Play: next frame, clear the offset with a transition so it glides. */
+    requestAnimationFrame(() => {
+      for (const el of moved) {
+        el.style.transition = "transform 200ms ease";
+        el.style.transform = "";
+      }
+    });
+  });
+
   /* Drag handlers held in a ref so the window listeners we add on pointerdown
      are the exact same function objects we remove on pointerup/unmount, while
      still calling the latest closures (toast/show, friendsRef). */
   const handlers = useRef({
-    /* Compute the insertion slot (0..count) nearest to the pointer: the card
-       whose vertical center is just below the pointer marks the slot before it;
-       past the last center the slot is the end. Single-column layout while
-       dragging keeps this one-dimensional and unambiguous. */
-    slotAt(clientY: number): number {
-      const refs = cardRefs.current;
-      for (let i = 0; i < refs.length; i++) {
-        const el = refs[i];
-        if (!el) continue;
-        const rect = el.getBoundingClientRect();
-        if (clientY < rect.top + rect.height / 2) return i;
-      }
-      return refs.length;
+    /* The slug of the card whose rect center is nearest the pointer (2D), or
+       null when there are no measurable cards. Used as the drop target the
+       dragged card swaps toward. */
+    nearestSlug(x: number, y: number): string | null {
+      let best: string | null = null;
+      let bestDist = Infinity;
+      cardRefs.current.forEach((el, slug) => {
+        const r = el.getBoundingClientRect();
+        const cx = r.left + r.width / 2;
+        const cy = r.top + r.height / 2;
+        const d = (cx - x) ** 2 + (cy - y) ** 2;
+        if (d < bestDist) {
+          bestDist = d;
+          best = slug;
+        }
+      });
+      return best;
+    },
+    /* Capture every card's current rect — the FLIP "first" snapshot. */
+    measure() {
+      prevRects.current.clear();
+      cardRefs.current.forEach((el, slug) => {
+        prevRects.current.set(slug, el.getBoundingClientRect());
+      });
     },
     onMove(e: PointerEvent) {
       /* Stop the touch from scrolling the page while we reorder. */
       e.preventDefault();
       const cur = dragRef.current;
-      if (!cur) return;
-      const target = handlers.current.slotAt(e.clientY);
-      if (target !== cur.target) {
-        const next = { ...cur, target };
-        dragRef.current = next;
-        setDrag(next);
-      }
+      const list = friendsRef.current;
+      if (!cur || !list) return;
+      const over = handlers.current.nearestSlug(e.clientX, e.clientY);
+      if (!over || over === cur.slug) return;
+      const fromIdx = list.findIndex((f) => f.slug === cur.slug);
+      const overIdx = list.findIndex((f) => f.slug === over);
+      if (fromIdx < 0 || overIdx < 0 || fromIdx === overIdx) return;
+      /* Snapshot positions, reorder, then let the layout effect play the FLIP. */
+      handlers.current.measure();
+      flipPending.current = true;
+      const next = [...list];
+      const [moved] = next.splice(fromIdx, 1);
+      next.splice(overIdx, 0, moved);
+      setFriends(next);
     },
     onUp() {
       const h = handlers.current;
@@ -134,20 +181,14 @@ export function OwnerDashboard() {
       dragRef.current = null;
       setDrag(null);
       if (!cur || !list) return;
-      const to = resolveMove(cur.from, cur.target);
-      if (to === null) return;
-      const next = [...list];
-      const [moved] = next.splice(cur.from, 1);
-      next.splice(to, 0, moved);
-      setFriends(next);
-      void savePageOrder(next.map((f) => f.slug));
+      void savePageOrder(list.map((f) => f.slug));
       show(tRef.current("dashboard.orderSaved"), "success");
     },
   });
 
-  const startDrag = (e: React.PointerEvent, index: number) => {
+  const startDrag = (e: React.PointerEvent, slug: string) => {
     e.preventDefault();
-    const state: DragState = { from: index, target: index };
+    const state: DragState = { slug };
     dragRef.current = state;
     setDrag(state);
     const h = handlers.current;
@@ -177,8 +218,6 @@ export function OwnerDashboard() {
   if (view.kind === "create") {
     return <FriendEditor create onBack={() => setView({ kind: "list" })} />;
   }
-
-  const dragging = drag !== null;
 
   return (
     <div className="relative mx-auto w-full max-w-5xl px-4 py-8">
@@ -219,45 +258,31 @@ export function OwnerDashboard() {
               {t("dashboard.reorderHint")}
             </p>
           )}
-          {/* Single column while dragging so the insertion bar reads cleanly;
-              back to the responsive grid otherwise. */}
-          <div
-            className={
-              dragging
-                ? "relative flex flex-col gap-5"
-                : "relative grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3"
-            }
-          >
-            {friends.map((f, i) => {
-              const isDragged = drag?.from === i;
-              const showBarBefore = dragging && drag!.target === i;
+          {/* Responsive grid kept intact during drag; cards FLIP into new slots. */}
+          <div className="relative grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {friends.map((f) => {
+              const isDragged = drag?.slug === f.slug;
               return (
                 <div
                   key={f.slug}
                   ref={(el) => {
-                    cardRefs.current[i] = el;
+                    if (el) cardRefs.current.set(f.slug, el);
+                    else cardRefs.current.delete(f.slug);
                   }}
                   className="relative"
+                  style={{ zIndex: isDragged ? 10 : undefined }}
                 >
-                  {/* Insertion bar — bright accent line marking where the card
-                      will land. */}
-                  {showBarBefore && (
-                    <span
-                      aria-hidden="true"
-                      className="pointer-events-none absolute -top-3 left-0 right-0 h-1 rounded-full bg-[var(--color-accent)] shadow-[0_0_8px_var(--color-accent)]"
-                    />
-                  )}
                   <StickerCard
                     className={
                       "relative h-full transition-[transform,opacity] " +
                       (isDragged
-                        ? "scale-[0.97] opacity-50 shadow-[var(--shadow-lg)]"
+                        ? "scale-[1.03] opacity-90 shadow-[var(--shadow-lg)]"
                         : "")
                     }
                   >
                     {/* Drag handle — pointer-driven, works with touch. */}
                     <span
-                      onPointerDown={(e) => startDrag(e, i)}
+                      onPointerDown={(e) => startDrag(e, f.slug)}
                       title={t("dashboard.reorderHint")}
                       aria-hidden="true"
                       className="absolute right-2 top-2 -m-2 cursor-grab touch-none select-none p-2 text-lg leading-none text-[var(--color-text-soft)] active:cursor-grabbing"
@@ -295,13 +320,6 @@ export function OwnerDashboard() {
                 </div>
               );
             })}
-            {/* Trailing insertion bar when dropping at the very end. */}
-            {dragging && drag!.target === friends.length && (
-              <span
-                aria-hidden="true"
-                className="pointer-events-none -mt-3 h-1 rounded-full bg-[var(--color-accent)] shadow-[0_0_8px_var(--color-accent)]"
-              />
-            )}
           </div>
         </>
       )}

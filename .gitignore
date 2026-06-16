@@ -13,3 +13,11 @@ backend/cache/
 bun.lockb
 page-order.json
 data/page-order.json
+
+# Friend page data is runtime content (created via the admin UI), not source.
+# Keep the folder but never commit real people's configs/avatars.
+data/friends/*
+!data/friends/.gitkeep
+!data/friends/demo/
+data/site.json
+data/owner/

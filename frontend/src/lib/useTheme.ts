@@ -48,7 +48,7 @@ function animateSwap(): void {
   const el = document.documentElement;
   el.classList.add("theme-anim");
   if (animTimer) clearTimeout(animTimer);
-  animTimer = setTimeout(() => el.classList.remove("theme-anim"), 450);
+  animTimer = setTimeout(() => el.classList.remove("theme-anim"), 350);
 }
 
 interface UseThemeResult {
