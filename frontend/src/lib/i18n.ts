@@ -120,7 +120,9 @@ const ru: Record<string, string> = {
   /* Account / login */
   "account.login": "Войти",
   "account.account": "Аккаунт",
-  "account.settings": "✏️ Моя страница",
+  "account.profile": "🙋 Моя страница",
+  "account.cabinet": "🛠️ Кабинет",
+  "account.edit": "✏️ Редактировать",
   "account.logout": "Выйти",
 
   /* Profile page (/u/<slug>) */
@@ -407,7 +409,9 @@ const en: Record<string, string> = {
   /* Account / login */
   "account.login": "Log in",
   "account.account": "Account",
-  "account.settings": "✏️ My page",
+  "account.profile": "🙋 My page",
+  "account.cabinet": "🛠️ Cabinet",
+  "account.edit": "✏️ Edit",
   "account.logout": "Log out",
 
   /* Profile page (/u/<slug>) */

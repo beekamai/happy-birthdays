@@ -4,6 +4,7 @@ import type { PublicFriend } from "../lib/types.ts";
 import { useTheme } from "../lib/useTheme.ts";
 import { useT, initLang } from "../lib/i18n.ts";
 import { friendDisplayName } from "../lib/friendContent.ts";
+import { ControlBar } from "../components/ControlBar.tsx";
 import { ThemeSwitcher } from "../components/ThemeSwitcher.tsx";
 import { LanguageSwitcher } from "../components/LanguageSwitcher.tsx";
 import { AccountButton } from "../components/AccountButton.tsx";
@@ -38,9 +39,11 @@ export function LockedPage({ friend }: { friend: PublicFriend }) {
       style={accentStyle}
       className="relative flex min-h-[100dvh] flex-col items-center justify-center overflow-hidden px-5 py-16"
     >
-      <ThemeSwitcher theme={theme} setTheme={setTheme} themes={themes} />
-      <LanguageSwitcher />
-      <AccountButton />
+      <ControlBar>
+        <LanguageSwitcher />
+        <ThemeSwitcher theme={theme} setTheme={setTheme} themes={themes} />
+        <AccountButton />
+      </ControlBar>
       <DecorBackground id={friend.decor?.background} />
       <ThemeDecor theme={theme} />
       <DecorEffect id={friend.decor?.effect} />

@@ -3,10 +3,9 @@ import { useEffect, useRef, useState } from "react";
 import type { ThemeName } from "../lib/useTheme.ts";
 import { useT } from "../lib/i18n.ts";
 
-/* Fixed cozy theme picker. Sits top-right next to the SoundToggle (which holds
-   right-4; this one offsets to right-16 so they never overlap). The pill shows
-   the active theme's icon and opens a tiny menu to pick another. Style mirrors
-   SoundToggle so the two controls read as a pair. */
+/* Cozy theme picker; positioned by the parent ControlBar (a flex child, no fixed
+   offset of its own). The pill shows the active theme's icon and opens a tiny
+   menu to pick another. Style mirrors SoundToggle so the controls read as a set. */
 
 interface ThemeSwitcherProps {
   theme: ThemeName;
@@ -46,7 +45,7 @@ export function ThemeSwitcher({ theme, setTheme, themes }: ThemeSwitcherProps) {
   }, [open]);
 
   return (
-    <div ref={rootRef} className="fixed top-4 right-16 z-50">
+    <div ref={rootRef} className="relative">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}

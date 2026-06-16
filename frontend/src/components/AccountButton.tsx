@@ -2,11 +2,13 @@ import { useEffect, useRef, useState } from "react";
 
 import { useT } from "../lib/i18n.ts";
 
-/* A discoverable account entry, fixed top-left on every public page (the
-   switcher cluster lives top-right). Logged out: a "log in" pill that leads to
-   /admin, where the Telegram Login Widget lives. Logged in: the user's avatar
-   with a small menu to edit their page or log out. Talks to /api/auth/* directly
-   so the lazy admin bundle is never pulled into the public chunk. */
+/* The account anchor — rightmost item of the top-right ControlBar on every page.
+   Logged out: a "log in" pill leading to /account (the Telegram login lives
+   there). Logged in: the user's avatar opening a menu. A friend's menu links to
+   their public profile(s) at /u/<slug> and to the editor; the owner's links to
+   the cabinet. The own-page slug is resolved lazily via /api/admin/mine (a
+   friend's slug can differ from their handle). Talks to /api/* directly so the
+   lazy admin bundle is never pulled into the public chunk. */
 
 interface SessionUser {
   username?: string;
@@ -15,11 +17,22 @@ interface SessionUser {
   isOwner?: boolean;
 }
 
-/** Fixed account / login control for public pages. */
-export function AccountButton() {
+interface MyPageLite {
+  slug: string;
+  displayName: string;
+}
+
+const PILL =
+  "flex h-11 items-center justify-center gap-2 rounded-[var(--radius-full)] border-[2px] border-white bg-[var(--color-surface)]/90 px-3 font-bold text-[var(--color-text)] shadow-[var(--shadow-sm)] backdrop-blur-sm transition-transform duration-200 hover:scale-105 active:scale-95";
+const ITEM =
+  "rounded-[var(--radius-sm)] px-3 py-2 text-left text-sm font-bold text-[var(--color-text)] transition-colors hover:bg-[var(--color-muted)]/40";
+
+/** Account / login anchor for the ControlBar. */
+export function AccountButton({ onLogout }: { onLogout?: () => void } = {}) {
   const { t } = useT();
   const [user, setUser] = useState<SessionUser | null>(null);
   const [ready, setReady] = useState(false);
+  const [pages, setPages] = useState<MyPageLite[] | null>(null);
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -40,13 +53,38 @@ export function AccountButton() {
     };
   }, []);
 
+  /* Resolve the friend's own page(s) so the menu can link to /u/<slug>. Owners
+     never get a /u page (their /mine lists everyone), so skip the call. */
+  useEffect(() => {
+    if (!user || user.isOwner) return;
+    let alive = true;
+    fetch("/api/admin/mine", { credentials: "include" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { pages?: MyPageLite[] } | null) => {
+        if (alive) setPages(d?.pages ?? []);
+      })
+      .catch(() => {
+        if (alive) setPages([]);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [user]);
+
   useEffect(() => {
     if (!open) return;
     const onDown = (e: PointerEvent) => {
       if (rootRef.current && !rootRef.current.contains(e.target as Node)) setOpen(false);
     };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
     window.addEventListener("pointerdown", onDown);
-    return () => window.removeEventListener("pointerdown", onDown);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("pointerdown", onDown);
+      window.removeEventListener("keydown", onKey);
+    };
   }, [open]);
 
   const logout = async () => {
@@ -56,26 +94,28 @@ export function AccountButton() {
       /* ignore */
     }
     setUser(null);
+    setPages(null);
     setOpen(false);
+    onLogout?.();
   };
 
-  const pill =
-    "flex h-11 items-center justify-center gap-2 rounded-[var(--radius-full)] border-[2px] border-white bg-[var(--color-surface)]/90 px-3 font-bold text-[var(--color-text)] shadow-[var(--shadow-sm)] backdrop-blur-sm transition-transform duration-200 hover:scale-105 active:scale-95";
-
-  /* Until /me resolves, show nothing to avoid a flash of the wrong state. */
-  if (!ready) return <div className="fixed top-4 left-4 z-50 size-11" aria-hidden="true" />;
+  /* Avoid a flash of the wrong state until /me resolves. */
+  if (!ready) return null;
 
   if (!user) {
     return (
-      <a href="/account" className={`fixed top-4 left-4 z-50 ${pill}`} title={t("account.login")}>
+      <a href="/account" className={PILL} title={t("account.login")}>
         <span aria-hidden="true">👤</span>
         <span className="text-sm">{t("account.login")}</span>
       </a>
     );
   }
 
+  const isOwner = !!user.isOwner;
+  const myPages = pages ?? [];
+
   return (
-    <div ref={rootRef} className="fixed top-4 left-4 z-50">
+    <div ref={rootRef} className="relative">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
@@ -96,25 +136,38 @@ export function AccountButton() {
       {open && (
         <div
           role="menu"
-          className="absolute top-13 left-0 flex min-w-44 flex-col gap-1 rounded-[var(--radius-md)] border-[2px] border-white bg-[var(--color-surface)]/95 p-2 shadow-[var(--shadow-md)] backdrop-blur-sm"
+          className="absolute top-13 right-0 flex min-w-48 flex-col gap-1 rounded-[var(--radius-md)] border-[2px] border-white bg-[var(--color-surface)]/95 p-2 shadow-[var(--shadow-md)] backdrop-blur-sm"
         >
           {user.username && (
             <span className="truncate px-3 py-1 text-xs text-[var(--color-text-soft)]">
               @{user.username}
             </span>
           )}
-          <a
-            href="/account"
-            onClick={() => setOpen(false)}
-            className="rounded-[var(--radius-sm)] px-3 py-2 text-sm font-bold text-[var(--color-text)] transition-colors hover:bg-[var(--color-muted)]/40"
-          >
-            {t("account.settings")}
-          </a>
-          <button
-            type="button"
-            onClick={logout}
-            className="rounded-[var(--radius-sm)] px-3 py-2 text-left text-sm font-bold text-[var(--color-text)] transition-colors hover:bg-[var(--color-muted)]/40"
-          >
+
+          {isOwner ? (
+            <a href="/account" onClick={() => setOpen(false)} className={ITEM}>
+              {t("account.cabinet")}
+            </a>
+          ) : (
+            <>
+              {myPages.map((p) => (
+                <a
+                  key={p.slug}
+                  href={`/u/${p.slug}`}
+                  onClick={() => setOpen(false)}
+                  className={ITEM}
+                >
+                  {t("account.profile")}
+                  {myPages.length > 1 ? ` «${p.displayName}»` : ""}
+                </a>
+              ))}
+              <a href="/account" onClick={() => setOpen(false)} className={ITEM}>
+                {t("account.edit")}
+              </a>
+            </>
+          )}
+
+          <button type="button" onClick={logout} className={ITEM}>
             {t("account.logout")}
           </button>
         </div>

@@ -9,6 +9,7 @@ import { unlockAudio } from "../lib/sound.ts";
 import { useTheme } from "../lib/useTheme.ts";
 import { useT, initLang } from "../lib/i18n.ts";
 import { friendMessage, friendGiftName } from "../lib/friendContent.ts";
+import { ControlBar } from "../components/ControlBar.tsx";
 import { SoundToggle } from "../components/SoundToggle.tsx";
 import { ThemeSwitcher } from "../components/ThemeSwitcher.tsx";
 import { LanguageSwitcher } from "../components/LanguageSwitcher.tsx";
@@ -90,10 +91,12 @@ export function FriendPage({ friend, site }: FriendPageProps) {
       style={accentStyle}
       className="relative min-h-[100dvh] overflow-hidden px-5 pt-24 pb-16"
     >
-      <SoundToggle />
-      <ThemeSwitcher theme={theme} setTheme={setTheme} themes={themes} />
-      <LanguageSwitcher />
-      <AccountButton />
+      <ControlBar>
+        <SoundToggle />
+        <LanguageSwitcher />
+        <ThemeSwitcher theme={theme} setTheme={setTheme} themes={themes} />
+        <AccountButton />
+      </ControlBar>
       {/* Ambient decor — non-interactive, behind the content. */}
       <DecorBackground id={friend.decor?.background} />
       <ThemeDecor theme={theme} />

@@ -3,14 +3,16 @@ import type { ReactNode } from "react";
 
 import { useTheme } from "../lib/useTheme.ts";
 import { useT, initLang } from "../lib/i18n.ts";
+import { ControlBar } from "../components/ControlBar.tsx";
 import { ThemeSwitcher } from "../components/ThemeSwitcher.tsx";
 import { LanguageSwitcher } from "../components/LanguageSwitcher.tsx";
+import { AccountButton } from "../components/AccountButton.tsx";
 import { Lanterns } from "../components/decor/Lanterns.tsx";
 import { Particles } from "../components/decor/Particles.tsx";
 import { Steam } from "../components/decor/Steam.tsx";
 import { StickerCard } from "../components/decor/StickerCard.tsx";
 
-import { fetchMyPages, type AuthUser, type MyPage } from "./adminApi.ts";
+import { fetchMyPages, type MyPage } from "./adminApi.ts";
 import { useAuth } from "./useAuth.ts";
 import { Spinner } from "./adminUi.tsx";
 import { TelegramLoginButton } from "./TelegramLoginButton.tsx";
@@ -30,18 +32,20 @@ export default function AdminApp() {
     initLang("ru");
   }, []);
 
-  /* The switchers are fixed-positioned, so render them once for every screen. */
-  const switcher = (
-    <>
-      <ThemeSwitcher theme={theme} setTheme={setTheme} themes={themes} />
+  /* One fixed control cluster (top-right) for every screen — switchers plus the
+     account anchor, whose logout flips this app's session state in place. */
+  const controls = (
+    <ControlBar>
       <LanguageSwitcher />
-    </>
+      <ThemeSwitcher theme={theme} setTheme={setTheme} themes={themes} />
+      <AccountButton onLogout={logout} />
+    </ControlBar>
   );
 
   if (loading)
     return (
       <>
-        {switcher}
+        {controls}
         <CozyShell>
           <Spinner />
         </CozyShell>
@@ -51,7 +55,7 @@ export default function AdminApp() {
   if (!user) {
     return (
       <>
-        {switcher}
+        {controls}
         <LoginScreen onLogin={refresh} config={config} />
       </>
     );
@@ -59,8 +63,8 @@ export default function AdminApp() {
 
   return (
     <div className="min-h-[100dvh] bg-[var(--color-cream)]">
-      {switcher}
-      <TopBar user={user} onLogout={logout} />
+      {controls}
+      <TopBar />
       {user.isOwner ? <OwnerDashboard /> : <FriendArea />}
     </div>
   );
@@ -113,18 +117,12 @@ function LoginScreen({
   );
 }
 
-/* ---- Top bar ------------------------------------------------------------ */
-function TopBar({
-  user,
-  onLogout,
-}: {
-  user: AuthUser;
-  onLogout: () => void;
-}) {
+/* ---- Top bar (brand only; account + logout live in the ControlBar anchor) -- */
+function TopBar() {
   const { t } = useT();
   return (
-    <header className="sticky top-0 z-40 border-b-[2px] border-[var(--color-muted)] bg-[var(--color-surface)]/90 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
+    <header className="sticky top-0 z-30 border-b-[2px] border-[var(--color-muted)] bg-[var(--color-surface)]/90 backdrop-blur">
+      <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3">
         <a
           href="/account"
           className="flex items-center gap-2 font-[var(--font-display)] font-bold text-[var(--color-text)]"
@@ -134,25 +132,6 @@ function TopBar({
           </span>
           {t("admin.brand")}
         </a>
-        <div className="flex items-center gap-3">
-          {user.photoUrl && (
-            <img
-              src={user.photoUrl}
-              alt={user.username ?? "user"}
-              className="size-8 rounded-full border-[2px] border-white object-cover shadow-[var(--shadow-sm)]"
-            />
-          )}
-          <span className="hidden text-sm font-bold text-[var(--color-text)] sm:inline">
-            {user.username ? `@${user.username}` : (user.firstName ?? t("admin.you"))}
-          </span>
-          <button
-            type="button"
-            onClick={onLogout}
-            className="rounded-[var(--radius-full)] border-[2px] border-[var(--color-muted)] bg-[var(--color-surface)] px-4 py-1.5 text-sm font-bold text-[var(--color-text)] shadow-[var(--shadow-sm)] transition-transform hover:scale-[1.03]"
-          >
-            {t("admin.logout")}
-          </button>
-        </div>
       </div>
     </header>
   );

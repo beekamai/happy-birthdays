@@ -9,6 +9,7 @@ import { friendDisplayName, friendBio } from "../lib/friendContent.ts";
 import { ThemeSwitcher } from "../components/ThemeSwitcher.tsx";
 import { LanguageSwitcher } from "../components/LanguageSwitcher.tsx";
 import { SocialLinks } from "../components/SocialLinks.tsx";
+import { ControlBar } from "../components/ControlBar.tsx";
 import { AccountButton } from "../components/AccountButton.tsx";
 import { Lanterns } from "../components/decor/Lanterns.tsx";
 import { Particles } from "../components/decor/Particles.tsx";
@@ -77,9 +78,11 @@ export function ProfilePage({ friend }: { friend: PublicFriend }) {
       style={accentStyle}
       className="relative flex min-h-[100dvh] flex-col items-center justify-center overflow-hidden px-5 py-16"
     >
-      <ThemeSwitcher theme={theme} setTheme={setTheme} themes={themes} />
-      <LanguageSwitcher />
-      <AccountButton />
+      <ControlBar>
+        <LanguageSwitcher />
+        <ThemeSwitcher theme={theme} setTheme={setTheme} themes={themes} />
+        <AccountButton />
+      </ControlBar>
       <DecorBackground id={decor?.background} />
       <ThemeDecor theme={theme} />
       <DecorEffect id={decor?.effect} />
@@ -87,11 +90,36 @@ export function ProfilePage({ friend }: { friend: PublicFriend }) {
       <Lanterns count={5} />
 
       <div className="relative flex w-full max-w-md flex-col items-center gap-5">
-        <DecoratedAvatar
-          src={friend.avatarUrl}
-          alt={name}
-          frameId={decor?.avatarFrame}
-        />
+        <div className="relative">
+          <DecoratedAvatar
+            src={friend.avatarUrl}
+            alt={name}
+            frameId={decor?.avatarFrame}
+          />
+          {/* Owner/friend tools tucked onto the avatar's corner — compact icons
+             so the public view stays clean. */}
+          {canEdit && (
+            <div className="absolute -top-1 -right-1 flex flex-col gap-1.5">
+              <a
+                href="/account"
+                title={t("profile.edit")}
+                aria-label={t("profile.edit")}
+                className="flex size-9 items-center justify-center rounded-[var(--radius-full)] border-[2px] border-white bg-[var(--color-surface)]/90 text-base shadow-[var(--shadow-sm)] backdrop-blur-sm transition-transform duration-200 hover:scale-110 active:scale-95"
+              >
+                <span aria-hidden="true">✏️</span>
+              </a>
+              <button
+                type="button"
+                onClick={() => setShopOpen(true)}
+                title={t("shop.open")}
+                aria-label={t("shop.open")}
+                className="flex size-9 items-center justify-center rounded-[var(--radius-full)] border-[2px] border-white bg-[var(--color-surface)]/90 text-base shadow-[var(--shadow-sm)] backdrop-blur-sm transition-transform duration-200 hover:scale-110 active:scale-95"
+              >
+                <span aria-hidden="true">🛍️</span>
+              </button>
+            </div>
+          )}
+        </div>
 
         <div className="flex flex-col items-center gap-1">
           <h1 className="text-4xl">
@@ -124,30 +152,13 @@ export function ProfilePage({ friend }: { friend: PublicFriend }) {
           <SocialLinks links={friend.socials} />
         )}
 
-        <div className="mt-2 flex flex-wrap items-center justify-center gap-3">
+        <div className="mt-2 flex items-center justify-center">
           <a
             href={`/${friend.slug}`}
             className="inline-flex items-center gap-2 rounded-[var(--radius-full)] border-[2px] border-[var(--color-primary-deep)] bg-[var(--color-primary)] px-6 py-3 font-bold text-[var(--color-on-primary)] shadow-[var(--shadow-md)] transition-transform duration-200 ease-[var(--ease-bounce)] hover:scale-[1.03]"
           >
             {t("profile.birthdayPage")}
           </a>
-          {canEdit && (
-            <>
-              <button
-                type="button"
-                onClick={() => setShopOpen(true)}
-                className="inline-flex items-center gap-2 rounded-[var(--radius-full)] border-[2px] border-[var(--color-muted)] bg-[var(--color-surface)] px-6 py-3 font-bold text-[var(--color-text)] shadow-[var(--shadow-sm)] transition-transform duration-200 ease-[var(--ease-bounce)] hover:scale-[1.03]"
-              >
-                {t("shop.open")}
-              </button>
-              <a
-                href="/account"
-                className="inline-flex items-center gap-2 rounded-[var(--radius-full)] border-[2px] border-[var(--color-muted)] bg-[var(--color-surface)] px-6 py-3 font-bold text-[var(--color-text)] shadow-[var(--shadow-sm)] transition-transform duration-200 ease-[var(--ease-bounce)] hover:scale-[1.03]"
-              >
-                {t("profile.edit")}
-              </a>
-            </>
-          )}
         </div>
       </div>
 
