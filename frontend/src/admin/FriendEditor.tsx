@@ -328,6 +328,33 @@ export function FriendEditor({
     [slugOverride, config?.username],
   );
 
+  /* Preview the current `gift.lottie` when it's a served path (existing page, or
+     a manual URL the owner typed). Skips blank values and bare filenames that
+     aren't fetchable on their own. Lives here, with the other hooks, ABOVE the
+     loading/notFound early returns — never move it below them (React #310). */
+  const giftLottie = config?.gift?.lottie ?? "";
+  useEffect(() => {
+    /* Just uploaded this one — its preview is already in state and the URL won't
+       serve until save, so don't fetch it. */
+    if (giftLottie === freshGiftAnimUrl.current) return;
+    if (!/^(https?:\/\/|\/)/.test(giftLottie)) {
+      setGiftAnim(null);
+      return;
+    }
+    let alive = true;
+    fetch(giftLottie)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((json: unknown) => {
+        if (alive) setGiftAnim(isLottie(json) ? (json as object) : null);
+      })
+      .catch(() => {
+        if (alive) setGiftAnim(null);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [giftLottie]);
+
   if (loading) return <Spinner label={t("editor.loading")} />;
 
   if (notFound || !config) {
@@ -473,32 +500,6 @@ export function FriendEditor({
       setGiftAnimUploading(false);
     }
   };
-
-  /* Load the preview from the current `gift.lottie` when it's a served path
-     (existing page, or a manual URL the owner typed). Skips blank values and
-     bare filenames that aren't fetchable on their own. */
-  const giftLottie = config?.gift?.lottie ?? "";
-  useEffect(() => {
-    /* Just uploaded this one — its preview is already in state and the URL won't
-       serve until save, so don't fetch it. */
-    if (giftLottie === freshGiftAnimUrl.current) return;
-    if (!/^(https?:\/\/|\/)/.test(giftLottie)) {
-      setGiftAnim(null);
-      return;
-    }
-    let alive = true;
-    fetch(giftLottie)
-      .then((r) => (r.ok ? r.json() : null))
-      .then((json: unknown) => {
-        if (alive) setGiftAnim(isLottie(json) ? (json as object) : null);
-      })
-      .catch(() => {
-        if (alive) setGiftAnim(null);
-      });
-    return () => {
-      alive = false;
-    };
-  }, [giftLottie]);
 
   /* The page language is the author language; the panel edits the other one. */
   const pageLang: "ru" | "en" = config?.lang ?? "ru";
