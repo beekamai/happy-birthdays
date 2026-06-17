@@ -1,7 +1,7 @@
 name: Deploy
 
 # Continuous deployment. When CI succeeds on main (or on a manual run), SSH to
-# the server and update it: pull, install, build, restart.
+# the server and update it: sync to origin/main, install, build, restart.
 #
 # Required repository secrets (Settings -> Secrets and variables -> Actions):
 #   DEPLOY_HOST     - server host / IP
@@ -13,7 +13,7 @@ name: Deploy
 # The server must be a git clone of this repo (public, so `git pull` needs no
 # credentials) with bun + pm2 installed and the app running under pm2 as
 # "happy-birthdays". Runtime data (data/, *.db, ecosystem.config.cjs, .env) is
-# gitignored and untouched by the pull.
+# gitignored, so the hard reset to origin/main leaves it untouched.
 on:
   workflow_run:
     workflows: ["CI"]
@@ -37,7 +37,8 @@ jobs:
             set -euo pipefail
             export PATH="$HOME/.bun/bin:$PATH"
             cd "${{ secrets.DEPLOY_PATH }}"
-            git pull --ff-only origin main
+            git fetch origin main
+            git reset --hard origin/main
             bun install
             bun run build
             pm2 restart happy-birthdays
