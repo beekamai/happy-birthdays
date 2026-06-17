@@ -87,6 +87,10 @@ export function OwnerDashboard() {
   tRef.current = t;
   /* Set true right before a reorder so the next layout pass runs the FLIP. */
   const flipPending = useRef(false);
+  /* Timestamp until which swaps are held off. While a FLIP is mid-flight the
+     cards' rects are transitional, so hit-testing them re-triggered swaps and the
+     order ping-ponged ("туда-сюда"). Block new swaps until the animation settles. */
+  const swapLockUntil = useRef(0);
 
   const load = () => {
     setFriends(null);
@@ -202,6 +206,10 @@ export function OwnerDashboard() {
       cur.dy = dy;
       setDrag({ slug: cur.slug, dx, dy });
 
+      /* Hold off swapping while the FLIP plays — hit-testing cards mid-animation
+         is what made the order ping-pong. The card still tracks the pointer. */
+      if (Date.now() < swapLockUntil.current) return;
+
       const over = handlers.current.overSlug(e.clientX, e.clientY, cur.slug);
       if (!over || over === cur.slug) return;
       const fromIdx = list.findIndex((f) => f.slug === cur.slug);
@@ -212,6 +220,7 @@ export function OwnerDashboard() {
          glued to the pointer even though its own slot just moved. */
       handlers.current.measure();
       flipPending.current = true;
+      swapLockUntil.current = Date.now() + 220;
       const next = [...list];
       const [moved] = next.splice(fromIdx, 1);
       next.splice(overIdx, 0, moved);

@@ -96,7 +96,7 @@ export function LockedPage({ friend }: { friend: PublicFriend }) {
         </StickerCard>
 
         {friend.giftHistory && friend.giftHistory.length > 0 && (
-          <GiftList gifts={friend.giftHistory} />
+          <GiftList gifts={friend.giftHistory} layout={friend.giftLayout} />
         )}
       </div>
     </main>

@@ -133,6 +133,9 @@ export function GiftManager({
   const rowsRef = useRef<Row[]>(rows);
   rowsRef.current = rows;
   const flipPending = useRef(false);
+  /* Hold off swaps while a FLIP is mid-flight: rows' rects are transitional then,
+     so hit-testing them re-triggered swaps and the order ping-ponged. */
+  const swapLockUntil = useRef(0);
 
   /* Resolve the featured uid against the live rows: if the starred row was
      deleted, fall back to the first remaining row (or null when empty). */
@@ -318,6 +321,10 @@ export function GiftManager({
       cur.dy = dy;
       setDrag({ uid: cur.uid, dx, dy });
 
+      /* Hold off swapping until the FLIP settles (rects are transitional during
+         it) — the row still tracks the pointer; only the reorder waits. */
+      if (Date.now() < swapLockUntil.current) return;
+
       const over = handlers.current.overUid(e.clientX, e.clientY, cur.uid);
       if (!over || over === cur.uid) return;
       const fromIdx = list.findIndex((r) => r.uid === cur.uid);
@@ -325,6 +332,7 @@ export function GiftManager({
       if (fromIdx < 0 || overIdx < 0 || fromIdx === overIdx) return;
       handlers.current.measure();
       flipPending.current = true;
+      swapLockUntil.current = Date.now() + 220;
       const next = [...list];
       const [moved] = next.splice(fromIdx, 1);
       next.splice(overIdx, 0, moved);
@@ -503,7 +511,7 @@ export function GiftManager({
                         placeholder={t("editor.placeholder.giftLink")}
                       />
                     </Field>
-                    <Field label={t("editor.gift.date")}>
+                    <Field label={t("editor.gift.date")} className="sm:col-span-2">
                       <Input
                         type="date"
                         value={row.gift.date ?? ""}
@@ -512,7 +520,7 @@ export function GiftManager({
                     </Field>
                     <Field
                       label={t("editor.field.giftAnim")}
-                      className="sm:col-span-1"
+                      className="sm:col-span-2"
                     >
                       <label
                         className={`cursor-pointer ${

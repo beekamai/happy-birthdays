@@ -129,7 +129,7 @@ export function FriendPage({ friend, site }: FriendPageProps) {
         {/* Gift: a single current card, or the full dated list (owner setting). */}
         {friend.giftDisplay === "all" && friend.giftHistory && friend.giftHistory.length > 0 ? (
           <div className="flex justify-center">
-            <GiftList gifts={friend.giftHistory} />
+            <GiftList gifts={friend.giftHistory} layout={friend.giftLayout} />
           </div>
         ) : (
           localizedGift && <GiftCard gift={localizedGift} />
