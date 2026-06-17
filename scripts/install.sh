@@ -30,7 +30,7 @@ SERVICE_NAME="happy-birthdays"
 PM2_APP_NAME="happy-birthdays"
 
 # Defaults offered in the interactive prompts.
-DEFAULT_PORT="8131"
+DEFAULT_PORT="3000"
 DEFAULT_HOST="127.0.0.1"
 
 # --------------------------------------------------------------------------
