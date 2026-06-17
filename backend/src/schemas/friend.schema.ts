@@ -409,6 +409,7 @@ export const postScore_Request_Schema = {
             ok: t.Boolean(),
             score: t.Number(),
             gameBest: t.Number(),
+            earned: t.Number(),
             personal: Totals_Object,
             global: Totals_Object,
         }),
@@ -429,7 +430,7 @@ export const getTotals_Request_Schema = {
         visitorId: t.Optional(t.String()),
     }),
     response: {
-        200: t.Object({ personal: Totals_Object, global: Totals_Object }),
+        200: t.Object({ earned: t.Number(), personal: Totals_Object, global: Totals_Object }),
         404: errorResponse,
         422: errorResponse,
         500: errorResponse,
