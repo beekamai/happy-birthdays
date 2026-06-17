@@ -19,6 +19,12 @@ export const PORT = Number(process.env.PORT ?? 3000);
 export const HOSTNAME = process.env.HOST ?? "127.0.0.1";
 export const IS_DEV = process.env.NODE_ENV !== "production";
 
+/* Header the reverse proxy sets with the real client IP (used for rate limiting
+   + abuse tagging). Empty = auto-detect (cf-connecting-ip → x-real-ip →
+   x-forwarded-for). Behind Cloudflare, set CLIENT_IP_HEADER=cf-connecting-ip so
+   a spoofed x-forwarded-for can't dodge the limiter. */
+export const CLIENT_IP_HEADER = (process.env.CLIENT_IP_HEADER ?? "").toLowerCase();
+
 /*
  * Path constants. This file lives at backend/src/config/constants.ts, so
  * import.meta.dir === <repo>/backend/src/config.

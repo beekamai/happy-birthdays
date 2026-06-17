@@ -2,16 +2,8 @@ import ScoreRepository from "../repositories/ScoreRepository";
 import FriendRepository from "../repositories/FriendRepository";
 import { verifyGameToken, consumeNonce } from "../utils/gameSession";
 import { computeScore, validatePlay } from "../services/gameScoring";
+import { clientIp } from "../utils/clientIp";
 import Logger from "../utils/Logger";
-
-/* Behind a reverse proxy the real client IP is in X-Forwarded-For. Used only
-   to tag rows (grouping / anti-abuse), never for scoring — scoring keys on the
-   visitor id the client sends. */
-function clientIp(headers: Record<string, string | undefined>): string {
-    const xff = headers["x-forwarded-for"];
-    if (xff) return xff.split(",")[0]!.trim();
-    return headers["x-real-ip"] ?? "";
-}
 
 /**
  * POST /api/scores — record a game score for a visitor.

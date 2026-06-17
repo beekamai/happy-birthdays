@@ -22,12 +22,7 @@ function sweep(now: number): void {
     }
 }
 
-/* Behind a reverse proxy the real client IP is in X-Forwarded-For. */
-function clientIp(headers: Record<string, string | undefined>): string {
-    const xff = headers["x-forwarded-for"];
-    if (xff) return xff.split(",")[0]!.trim();
-    return headers["x-real-ip"] ?? "unknown";
-}
+import { clientIp } from "../utils/clientIp";
 
 interface RateLimitOptions {
     /** Namespaces the counter so routes don't share a bucket. */
@@ -43,7 +38,9 @@ export function rateLimit(opts: RateLimitOptions) {
     return (ctx: any) => {
         const now = Date.now();
         sweep(now);
-        const who = opts.by ? opts.by(ctx) : clientIp(ctx.headers ?? {});
+        /* Fall back to a shared "unknown" bucket (not a fresh one) so callers
+           without a resolvable IP are limited together rather than unlimited. */
+        const who = (opts.by ? opts.by(ctx) : clientIp(ctx.headers ?? {})) || "unknown";
         const key = `${opts.tag}:${who}`;
         const b = buckets.get(key);
         if (!b || b.resetAt <= now) {
