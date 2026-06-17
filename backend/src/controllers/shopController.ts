@@ -1,7 +1,6 @@
 import FriendRepository from "../repositories/FriendRepository";
 import ScoreRepository from "../repositories/ScoreRepository";
 import PurchaseRepository from "../repositories/PurchaseRepository";
-import { readUser } from "./authController";
 import type { AuthUser } from "../models/Auth";
 import type { Decor } from "../models/Friend";
 import { SHOP_CATALOG, DECOR_SLOTS, shopItem, type DecorType } from "../services/shopCatalog";
@@ -44,10 +43,8 @@ export const getShopState = async ({ params, set }: any) => {
 };
 
 /** POST /api/admin/shop/:slug/buy — spend points to own an item, then equip it. */
-export const buyItem = async ({ params, body, jwt, cookie, set }: any) => {
+export const buyItem = async ({ params, body, user, set }: any) => {
     try {
-        const user = await readUser(jwt, cookie);
-        if (!user) { set.status = 401; return { error: "Unauthorized" }; }
         const cfg = FriendRepository.getRawConfig(params.slug);
         if (!cfg) { set.status = 404; return { error: "Not found" }; }
         if (!canEdit(user, cfg.username)) { set.status = 403; return { error: "Forbidden" }; }
@@ -83,10 +80,8 @@ export const buyItem = async ({ params, body, jwt, cookie, set }: any) => {
 
 /** POST /api/admin/shop/:slug/refund — remove an owned item and refund its
     points (the spent total drops, so the balance rises). Unequips if active. */
-export const refundItem = async ({ params, body, jwt, cookie, set }: any) => {
+export const refundItem = async ({ params, body, user, set }: any) => {
     try {
-        const user = await readUser(jwt, cookie);
-        if (!user) { set.status = 401; return { error: "Unauthorized" }; }
         const cfg = FriendRepository.getRawConfig(params.slug);
         if (!cfg) { set.status = 404; return { error: "Not found" }; }
         if (!canEdit(user, cfg.username)) { set.status = 403; return { error: "Forbidden" }; }
@@ -116,10 +111,8 @@ export const refundItem = async ({ params, body, jwt, cookie, set }: any) => {
 };
 
 /** POST /api/admin/shop/:slug/equip — equip an owned item, or clear a slot. */
-export const equipItem = async ({ params, body, jwt, cookie, set }: any) => {
+export const equipItem = async ({ params, body, user, set }: any) => {
     try {
-        const user = await readUser(jwt, cookie);
-        if (!user) { set.status = 401; return { error: "Unauthorized" }; }
         const cfg = FriendRepository.getRawConfig(params.slug);
         if (!cfg) { set.status = 404; return { error: "Not found" }; }
         if (!canEdit(user, cfg.username)) { set.status = 403; return { error: "Forbidden" }; }

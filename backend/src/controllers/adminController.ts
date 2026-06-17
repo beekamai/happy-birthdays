@@ -6,7 +6,6 @@ import HistoryRepository from "../repositories/HistoryRepository";
 import ScoreRepository from "../repositories/ScoreRepository";
 import PurchaseRepository from "../repositories/PurchaseRepository";
 import PageOrderRepository from "../repositories/PageOrderRepository";
-import { readUser } from "./authController";
 import type { AuthUser } from "../models/Auth";
 import type { FriendConfig } from "../models/Friend";
 import { translateContent, type Lang, type TranslatableContent } from "../services/translateService";
@@ -52,11 +51,7 @@ function resync(slug: string): void {
 }
 
 /** GET /api/admin/friends — owner-only list of all pages (summary). */
-export const listFriends = async ({ jwt, cookie, set }: any) => {
-    const user = await readUser(jwt, cookie);
-    if (!user) { set.status = 401; return { error: "Unauthorized" }; }
-    if (!user.isOwner) { set.status = 403; return { error: "Owner only" }; }
-
+export const listFriends = async ({ user, set }: any) => {
     const friends = FriendRepository.listSlugs().map((slug) => {
         const f = FriendRepository.findBySlug(slug);
         return f
@@ -77,10 +72,7 @@ export const listFriends = async ({ jwt, cookie, set }: any) => {
 /** GET /api/admin/mine — pages the logged-in user may edit. Owner: all pages;
     a friend: the page(s) whose username matches theirs — so they find their own
     page even when its slug differs from their Telegram handle. */
-export const myPages = async ({ jwt, cookie, set }: any) => {
-    const user = await readUser(jwt, cookie);
-    if (!user) { set.status = 401; return { error: "Unauthorized" }; }
-
+export const myPages = async ({ user, set }: any) => {
     const pages = FriendRepository.listSlugs()
         .map((slug) => {
             const cfg = FriendRepository.getRawConfig(slug);
@@ -99,9 +91,7 @@ export const myPages = async ({ jwt, cookie, set }: any) => {
 };
 
 /** GET /api/admin/friend/:slug — raw config for editing (owner or that friend). */
-export const getFriendConfig = async ({ params, jwt, cookie, set }: any) => {
-    const user = await readUser(jwt, cookie);
-    if (!user) { set.status = 401; return { error: "Unauthorized" }; }
+export const getFriendConfig = async ({ params, user, set }: any) => {
     const cfg = FriendRepository.getRawConfig(params.slug);
     if (!cfg) { set.status = 404; return { error: "Not found" }; }
     if (!canEdit(user, cfg.username)) { set.status = 403; return { error: "Forbidden" }; }
@@ -110,10 +100,8 @@ export const getFriendConfig = async ({ params, jwt, cookie, set }: any) => {
 };
 
 /** PUT /api/admin/friend/:slug — owner writes full config; friend writes a subset. */
-export const updateFriend = async ({ params, body, jwt, cookie, set }: any) => {
+export const updateFriend = async ({ params, body, user, set }: any) => {
     try {
-        const user = await readUser(jwt, cookie);
-        if (!user) { set.status = 401; return { error: "Unauthorized" }; }
         const current = FriendRepository.getRawConfig(params.slug);
         if (!current) { set.status = 404; return { error: "Not found" }; }
         if (!canEdit(user, current.username)) { set.status = 403; return { error: "Forbidden" }; }
@@ -143,12 +131,8 @@ export const updateFriend = async ({ params, body, jwt, cookie, set }: any) => {
 
 /** DELETE /api/admin/friend/:slug — owner-only, irreversible. Removes the page
     directory plus every derived DB row and the slug's place in the page order. */
-export const deleteFriend = async ({ params, jwt, cookie, set }: any) => {
+export const deleteFriend = async ({ params, user, set }: any) => {
     try {
-        const user = await readUser(jwt, cookie);
-        if (!user) { set.status = 401; return { error: "Unauthorized" }; }
-        if (!user.isOwner) { set.status = 403; return { error: "Owner only" }; }
-
         const slug = params.slug as string;
         if (!FriendRepository.getRawConfig(slug)) { set.status = 404; return { error: "Not found" }; }
 
@@ -173,12 +157,8 @@ export const deleteFriend = async ({ params, jwt, cookie, set }: any) => {
 };
 
 /** POST /api/admin/friends — owner-only create (auto-slug from username). */
-export const createFriend = async ({ body, jwt, cookie, set }: any) => {
+export const createFriend = async ({ body, user, set }: any) => {
     try {
-        const user = await readUser(jwt, cookie);
-        if (!user) { set.status = 401; return { error: "Unauthorized" }; }
-        if (!user.isOwner) { set.status = 403; return { error: "Owner only" }; }
-
         const provided = typeof body?.slug === "string" ? body.slug : "";
         const fromUsername = String(body?.username ?? "").replace(/^@/, "").toLowerCase();
         const slug = (provided || fromUsername)
@@ -200,10 +180,8 @@ export const createFriend = async ({ body, jwt, cookie, set }: any) => {
 };
 
 /** POST /api/admin/friend/:slug/avatar — upload an avatar; sets config.avatar. */
-export const uploadAvatar = async ({ params, body, jwt, cookie, set }: any) => {
+export const uploadAvatar = async ({ params, body, user, set }: any) => {
     try {
-        const user = await readUser(jwt, cookie);
-        if (!user) { set.status = 401; return { error: "Unauthorized" }; }
         const cfg = FriendRepository.getRawConfig(params.slug);
         if (!cfg) { set.status = 404; return { error: "Not found" }; }
         if (!canEdit(user, cfg.username)) { set.status = 403; return { error: "Forbidden" }; }
@@ -249,10 +227,8 @@ export const uploadAvatar = async ({ params, body, jwt, cookie, set }: any) => {
     animation on disk). This stores the asset only and returns its served URL plus
     the decoded Lottie for an instant editor preview; the owner points gift.lottie
     at the URL through the normal config save. */
-export const uploadGiftAnimation = async ({ params, body, jwt, cookie, set }: any) => {
+export const uploadGiftAnimation = async ({ params, body, user, set }: any) => {
     try {
-        const user = await readUser(jwt, cookie);
-        if (!user) { set.status = 401; return { error: "Unauthorized" }; }
         const cfg = FriendRepository.getRawConfig(params.slug);
         if (!cfg) { set.status = 404; return { error: "Not found" }; }
         if (!canEdit(user, cfg.username)) { set.status = 403; return { error: "Forbidden" }; }
@@ -295,11 +271,8 @@ export const uploadGiftAnimation = async ({ params, body, jwt, cookie, set }: an
 
 /** POST /api/admin/translate — translate live form fields (any logged-in user).
     Operates on the values sent in the body so unsaved edits translate too. */
-export const translate = async ({ body, jwt, cookie, set }: any) => {
+export const translate = async ({ body, user, set }: any) => {
     try {
-        const user = await readUser(jwt, cookie);
-        if (!user) { set.status = 401; return { error: "Unauthorized" }; }
-
         const from: Lang = body?.from === "en" ? "en" : "ru";
         const to: Lang = body?.to === "ru" ? "ru" : "en";
         if (from === to) { set.status = 400; return { error: "from and to must differ" }; }
@@ -322,21 +295,14 @@ export const translate = async ({ body, jwt, cookie, set }: any) => {
 };
 
 /** GET /api/admin/order — owner-only dashboard ordering (list of slugs). */
-export const getPageOrder = async ({ jwt, cookie, set }: any) => {
-    const user = await readUser(jwt, cookie);
-    if (!user) { set.status = 401; return { error: "Unauthorized" }; }
-    if (!user.isOwner) { set.status = 403; return { error: "Owner only" }; }
+export const getPageOrder = async ({ user, set }: any) => {
     set.status = 200;
     return { order: PageOrderRepository.getOrder() };
 };
 
 /** PUT /api/admin/order — owner-only; persist the dashboard ordering. */
-export const savePageOrder = async ({ body, jwt, cookie, set }: any) => {
+export const savePageOrder = async ({ body, user, set }: any) => {
     try {
-        const user = await readUser(jwt, cookie);
-        if (!user) { set.status = 401; return { error: "Unauthorized" }; }
-        if (!user.isOwner) { set.status = 403; return { error: "Owner only" }; }
-
         const order = Array.isArray(body?.order)
             ? body.order.filter((s: unknown): s is string => typeof s === "string")
             : [];

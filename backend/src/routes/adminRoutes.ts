@@ -1,5 +1,6 @@
 import { Elysia } from "elysia";
 
+import { authDerive, authMiddleware, ownerMiddleware } from "../middlewares/authMiddleware";
 import {
     listFriends,
     myPages,
@@ -13,19 +14,31 @@ import {
     getPageOrder,
     savePageOrder,
 } from "../controllers/adminController";
-/* Admin endpoints (mounted under /api/admin). Each controller checks the
-   session + permission (owner vs the friend themselves). */
+
+/* Admin endpoints (mounted under /api/admin). Auth is declared HERE, not in the
+   controllers: authDerive puts the session user in context, then the guard blocks
+   gate by session (authMiddleware → 401) or ownership (ownerMiddleware → 403).
+   The first block is owner-only administration; the second only needs a session,
+   with the per-resource owner-or-that-friend rule (canEdit) staying in the
+   controller since it depends on the target page's config. */
 const adminRoutes = new Elysia()
-    .get("/friends", listFriends)
-    .get("/mine", myPages)
-    .post("/friends", createFriend)
-    .get("/order", getPageOrder)
-    .put("/order", savePageOrder)
-    .get("/friend/:slug", getFriendConfig)
-    .put("/friend/:slug", updateFriend)
-    .delete("/friend/:slug", deleteFriend)
-    .post("/friend/:slug/avatar", uploadAvatar)
-    .post("/friend/:slug/gift-animation", uploadGiftAnimation)
-    .post("/translate", translate);
+    .derive(authDerive)
+    .guard({ beforeHandle: [authMiddleware, ownerMiddleware] }, (app) =>
+        app
+            .get("/friends", listFriends)
+            .post("/friends", createFriend)
+            .delete("/friend/:slug", deleteFriend)
+            .get("/order", getPageOrder)
+            .put("/order", savePageOrder),
+    )
+    .guard({ beforeHandle: [authMiddleware] }, (app) =>
+        app
+            .get("/mine", myPages)
+            .get("/friend/:slug", getFriendConfig)
+            .put("/friend/:slug", updateFriend)
+            .post("/friend/:slug/avatar", uploadAvatar)
+            .post("/friend/:slug/gift-animation", uploadGiftAnimation)
+            .post("/translate", translate),
+    );
 
 export default adminRoutes;
