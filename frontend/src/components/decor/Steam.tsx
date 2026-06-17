@@ -18,7 +18,7 @@ function Wisp() {
     >
       <path
         d="M12 78 C4 64 20 56 12 42 C4 28 20 20 12 4"
-        stroke="white"
+        stroke="var(--color-steam)"
         strokeWidth="6"
         strokeLinecap="round"
         opacity="0.85"

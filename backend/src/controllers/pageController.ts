@@ -114,9 +114,16 @@ export const serveFaviconSvg = async ({ set }: any) => {
     }
 };
 
-/** GET /robots.txt — permissive robots policy. */
+/** GET /robots.txt — index public pages, keep admin/auth/API out of search. */
 export const serveRobots = async ({ set }: any) => {
     set.status = 200;
     set.headers["content-type"] = "text/plain; charset=utf-8";
-    return "User-agent: *\nAllow: /\n";
+    return [
+        "User-agent: *",
+        "Allow: /",
+        "Disallow: /account",
+        "Disallow: /admin",
+        "Disallow: /api/",
+        "",
+    ].join("\n");
 };

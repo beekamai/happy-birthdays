@@ -5,6 +5,8 @@
 
 @theme {
   --color-cream: #fff7ed;
+  /* Decorative ramen-steam colour. White by default; a theme may override it. */
+  --color-steam: #ffffff;
   --color-surface: #fffdf9;
   --color-primary: #ff8a65;
   --color-primary-deep: #f4673b;

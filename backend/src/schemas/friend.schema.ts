@@ -60,6 +60,18 @@ function requireString(obj: Record<string, unknown>, key: string): string {
     return v;
 }
 
+/* Keep only http(s) links — drop javascript:/data:/relative junk so a stored
+   link can't become an href-based XSS or abuse vector when rendered. */
+function httpLink(v: unknown): string | undefined {
+    if (typeof v !== "string") return undefined;
+    try {
+        const u = new URL(v);
+        return u.protocol === "http:" || u.protocol === "https:" ? v : undefined;
+    } catch {
+        return undefined;
+    }
+}
+
 /**
  * Validate an unknown value as a FriendConfig. Returns a typed, normalized
  * object on success; throws with a descriptive message on bad shape.
@@ -135,7 +147,7 @@ export function validateFriendConfig(obj: unknown): FriendConfig {
             emoji: gift.emoji,
             ...(typeof gift.lottie === "string" ? { lottie: gift.lottie } : {}),
             ...(typeof gift.imagePath === "string" ? { imagePath: gift.imagePath } : {}),
-            ...(typeof gift.link === "string" ? { link: gift.link } : {}),
+            ...(httpLink(gift.link) ? { link: httpLink(gift.link)! } : {}),
         };
     }
 
@@ -152,7 +164,7 @@ export function validateFriendConfig(obj: unknown): FriendConfig {
                 name: g.name,
                 ...(typeof g.emoji === "string" ? { emoji: g.emoji } : {}),
                 ...(typeof g.lottie === "string" ? { lottie: g.lottie } : {}),
-                ...(typeof g.link === "string" ? { link: g.link } : {}),
+                ...(httpLink(g.link) ? { link: httpLink(g.link)! } : {}),
                 ...(typeof g.imagePath === "string" ? { imagePath: g.imagePath } : {}),
                 ...(typeof g.date === "string" ? { date: g.date } : {}),
             };
