@@ -88,7 +88,16 @@ export function GamesGrid({ friend, site, visitorId, onScored, bestByGame }: Gam
         {games.map((game, index) => {
           const best = bestByGame?.[game.descriptor.id] ?? 0;
           return (
-            <StickerCard key={`${game.descriptor.id}-${index}`} className="p-0">
+            <StickerCard key={`${game.descriptor.id}-${index}`} className="relative p-0">
+              {best > 0 && (
+                <span
+                  aria-label={t("games.best", { n: best })}
+                  className="pointer-events-none absolute top-3 right-3 z-10 inline-flex items-center gap-1 rounded-[var(--radius-full)] border-[2px] border-[var(--color-muted)] bg-[var(--color-cream)] px-2.5 py-1 text-xs font-bold text-[var(--color-text)] shadow-[var(--shadow-sm)]"
+                >
+                  <span aria-hidden="true">🏅</span>
+                  {best}
+                </span>
+              )}
               <button
                 type="button"
                 onClick={() => {
@@ -106,11 +115,6 @@ export function GamesGrid({ friend, site, visitorId, onScored, bestByGame }: Gam
                 <span className="text-sm text-[var(--color-text-soft)]">
                   {t(game.descriptor.blurbKey)}
                 </span>
-                {best > 0 && (
-                  <span className="text-xs font-bold text-[var(--color-text-soft)]">
-                    {t("games.best", { n: best })}
-                  </span>
-                )}
               </button>
             </StickerCard>
           );

@@ -662,7 +662,11 @@ export function FriendEditor({
   const actionButtons = (extraClass: string) => (
     <div
       className={
-        "flex flex-wrap items-center justify-end gap-3 " + extraClass
+        /* Mobile: stacked column, full-width tap targets, primary Save on top
+           (column-reverse keeps it above Delete). sm+ restores the desktop row:
+           wrapped, right-aligned, Delete pushed left via its sm:mr-auto. */
+        "flex flex-col-reverse gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end " +
+        extraClass
       }
     >
       {!creating && isOwner && slug && (
@@ -670,12 +674,16 @@ export function FriendEditor({
           type="button"
           onClick={() => setConfirmDelete(true)}
           disabled={saving || deleting}
-          className="mr-auto rounded-[var(--radius-full)] border-[2px] border-[var(--color-lantern)] bg-[var(--color-surface)] px-5 py-2.5 font-bold text-[var(--color-lantern)] transition-transform duration-200 hover:scale-105 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100"
+          className="w-full rounded-[var(--radius-full)] border-[2px] border-[var(--color-lantern)] bg-[var(--color-surface)] px-5 py-2.5 font-bold text-[var(--color-lantern)] transition-transform duration-200 hover:scale-105 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100 sm:mr-auto sm:w-auto"
         >
           {t("editor.delete")}
         </button>
       )}
-      <PillButton onClick={onSave} disabled={saving}>
+      <PillButton
+        onClick={onSave}
+        disabled={saving}
+        className="w-full sm:w-auto"
+      >
         {saving
           ? t("editor.saving")
           : creating

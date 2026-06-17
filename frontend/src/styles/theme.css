@@ -303,16 +303,44 @@
   --shadow-sticker: 0 6px 0 rgba(0, 0, 0, 0.4);
 }
 
-/* Smooth the cross-theme swap on the page surfaces. Reduced-motion users get an
-   instant change (the global reduce rule in global.css zeroes transitions). */
+/* Smooth the cross-theme swap on the page surfaces. The body text colour is a
+   cheap repaint and eases inline. The page GROUND is the largest repaint in the
+   document; animating its `background-color` on <body> stuttered because the
+   swap frame is already saturated (style recalc for every node from the
+   `.theme-anim *` rule + the `data-theme` var invalidation + the React re-render
+   all land together), and the full-viewport repaint competes with them on the
+   main thread. So the ground is moved off <body> onto a dedicated, isolated
+   `body::before` layer that paints + transitions on its own — independent of the
+   document tree, so its colour eases on its own compositor layer instead of
+   fighting the busy frame. Reduced-motion users get an instant change (the
+   global reduce rule in global.css zeroes transitions). */
 body {
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition: color 0.3s ease;
+}
+
+/* Dedicated page-ground layer. Fixed + full-viewport, behind all content. Owning
+   the ground colour here (not on <body>) isolates the single biggest repaint
+   from the document-wide style recalc and React reconciliation of a theme swap,
+   and `will-change` promotes it to its own compositor layer so its 0.3s colour
+   ease stays smooth and in step with the rest of the UI. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-color: var(--color-cream);
+  pointer-events: none;
+  transition: background-color 0.3s ease;
+  will-change: background-color;
 }
 
 /* During an explicit theme switch `useTheme` adds `.theme-anim` to <html> for
-   ~450ms so EVERY detail (borders, icons, shadows, outlines) eases to the new
-   palette — not just the page background. Removed right after so it never slows
-   ordinary hovers. */
+   ~350ms so EVERY detail (borders, icons, shadows, outlines) eases to the new
+   palette. `background-color` is intentionally kept ON this selector for cards,
+   chips, surfaces etc. — those are small, cheap repaints. The big page ground is
+   handled by the isolated `body::before` layer above (which already carries its
+   own background-color transition), so it never repaints inside this busy
+   document-wide pass. Removed right after so it never slows ordinary hovers. */
 .theme-anim,
 .theme-anim *,
 .theme-anim *::before,

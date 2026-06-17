@@ -10,6 +10,10 @@
 
   html {
     scroll-behavior: smooth;
+    /* Static ground colour for the viewport canvas (covers overscroll/rubber-band
+       gaps). It flips instantly on a theme switch — invisible because the
+       `body::before` cross-fade layer (theme.css) eases the change on top. */
+    background-color: var(--color-cream);
     /* Always reserve the scrollbar gutter so locking page scroll (e.g. when a
        game/shop modal opens) never reclaims the scrollbar width and shifts the
        whole layout sideways. */
@@ -41,7 +45,9 @@
   body {
     margin: 0;
     min-height: 100dvh;
-    background-color: var(--color-cream);
+    /* The page ground colour lives on a fixed `body::before` layer (theme.css)
+       so it can GPU-cross-fade on theme switches instead of repainting the whole
+       viewport. Body itself stays transparent. */
     color: var(--color-text);
     font-family: var(--font-body);
     font-weight: 400;

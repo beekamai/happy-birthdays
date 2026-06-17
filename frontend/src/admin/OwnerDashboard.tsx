@@ -18,22 +18,26 @@ import { FriendEditor } from "./FriendEditor.tsx";
    show up. View state lives here (no router).
 
    Cards are reorderable by dragging the ⠿ handle with pointer events, so it
-   works with both mouse and touch. The responsive grid is kept intact while
-   dragging: as the pointer moves over another card the live order is reordered
-   and every card glides to its new slot with a hand-rolled FLIP animation
-   (measure → invert → play), so nothing teleports. The dragged card is lifted
-   (scale/shadow/opacity). The order is persisted to the backend and reapplied
-   on load; new pages absent from the saved order fall to the end. Clicking a
-   card (off the handle) still opens its editor. */
+   works with both mouse and touch. The dragged card tracks the pointer 1:1 via a
+   translate transform (from the grab offset), so it feels glued to the finger.
+   The rest of the grid stays put until the pointer crosses a neighbour's centre
+   line in the direction of travel — that hysteresis kills the boundary jitter of
+   a nearest-centre test. On a reorder the non-dragged cards glide to their new
+   slots with a hand-rolled FLIP (measure → invert → play); the dragged card is
+   excluded from FLIP so its live translate never fights the transition. The
+   order is persisted to the backend and reapplied on load; new pages absent from
+   the saved order fall to the end. Clicking a card (off the handle) still opens
+   its editor. */
 
 type View =
   | { kind: "list" }
   | { kind: "edit"; slug: string }
   | { kind: "create" };
 
-/* Live drag state: the slug of the card being moved. The visual order lives in
-   `order` and is reordered in place as the pointer crosses other cards. */
-type DragState = { slug: string };
+/* Live drag state: the slug being moved plus a live translate offset (px) so the
+   dragged card follows the pointer. The visual order lives in `friends` and is
+   reordered in place as the pointer crosses other cards' centres. */
+type DragState = { slug: string; dx: number; dy: number };
 
 function birthdayLabel(b: AdminFriendSummary["birthday"], t: (k: string) => string): string {
   const month = ((b.month - 1 + 12) % 12) + 1;
@@ -64,13 +68,17 @@ export function OwnerDashboard() {
   /* Live pointer-drag state; null when idle. */
   const [drag, setDrag] = useState<DragState | null>(null);
   /* DOM nodes of the card wrappers, keyed by slug — used to read their rects for
-     the nearest-card hit test and for the FLIP measure/invert. */
+     the over-card hit test and for the FLIP measure/invert. */
   const cardRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   /* Rects captured just before a reorder, keyed by slug — the FLIP "first". */
   const prevRects = useRef<Map<string, DOMRect>>(new Map());
   /* Mutable mirror of `drag` so the window listeners (bound once per drag) read
      the latest value without re-binding on every move. */
   const dragRef = useRef<DragState | null>(null);
+  /* The pointer position at grab time, used to derive the live translate offset
+     so the dragged card sits exactly under the finger from where it was picked
+     up (no jump-to-cursor on the first move). */
+  const grabRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   /* Mutable mirror of `friends` so move/drop logic isn't a stale closure. */
   const friendsRef = useRef<AdminFriendSummary[] | null>(null);
   friendsRef.current = friends;
@@ -100,8 +108,29 @@ export function OwnerDashboard() {
     flipPending.current = false;
     const refs = cardRefs.current;
     const prev = prevRects.current;
+    const drag = dragRef.current;
+    const draggedSlug = drag?.slug;
+    /* The dragged card's slot just moved under it. Shift the grab origin by that
+       *slot* delta so its live translate stays continuous (no snap). measure()
+       recorded the slot's bare position (transform stripped); compare against the
+       new bare slot position the same way. */
+    if (drag && draggedSlug) {
+      const el = refs.get(draggedSlug);
+      const before = prev.get(draggedSlug);
+      if (el && before) {
+        const prevTransform = el.style.transform;
+        el.style.transform = "";
+        const after = el.getBoundingClientRect();
+        el.style.transform = prevTransform;
+        grabRef.current.x += after.left - before.left;
+        grabRef.current.y += after.top - before.top;
+      }
+    }
     const moved: HTMLDivElement[] = [];
     refs.forEach((el, slug) => {
+      /* The dragged card is positioned live by its own translate (pointer
+         tracking) — never FLIP it, or the two transforms fight and it jumps. */
+      if (slug === draggedSlug) return;
       const before = prev.get(slug);
       if (!before) return;
       const after = el.getBoundingClientRect();
@@ -127,29 +156,37 @@ export function OwnerDashboard() {
      are the exact same function objects we remove on pointerup/unmount, while
      still calling the latest closures (toast/show, friendsRef). */
   const handlers = useRef({
-    /* The slug of the card whose rect center is nearest the pointer (2D), or
-       null when there are no measurable cards. Used as the drop target the
-       dragged card swaps toward. */
-    nearestSlug(x: number, y: number): string | null {
+    /* The slug of the neighbour the pointer is currently *inside the box of*
+       (not the mere "nearest centre") — the target slot to swap toward. Using
+       full containment instead of nearest-distance gives a dead-zone in the gaps
+       between cards, so the order doesn't flip-flop every frame while the finger
+       hovers a boundary. Returns null when the pointer is over no neighbour. */
+    overSlug(x: number, y: number, draggedSlug: string): string | null {
       let best: string | null = null;
-      let bestDist = Infinity;
       cardRefs.current.forEach((el, slug) => {
+        if (slug === draggedSlug) return;
         const r = el.getBoundingClientRect();
-        const cx = r.left + r.width / 2;
-        const cy = r.top + r.height / 2;
-        const d = (cx - x) ** 2 + (cy - y) ** 2;
-        if (d < bestDist) {
-          bestDist = d;
-          best = slug;
-        }
+        const inX = x >= r.left && x <= r.right;
+        const inY = y >= r.top && y <= r.bottom;
+        if (inX && inY) best = slug;
       });
       return best;
     },
-    /* Capture every card's current rect — the FLIP "first" snapshot. */
+    /* Capture every card's current rect — the FLIP "first" snapshot. The dragged
+       card carries a live translate; strip it so we record its *slot* position
+       (the layout-effect compares bare slot to bare slot to rebase the grab). */
     measure() {
+      const draggedSlug = dragRef.current?.slug;
       prevRects.current.clear();
       cardRefs.current.forEach((el, slug) => {
-        prevRects.current.set(slug, el.getBoundingClientRect());
+        if (slug === draggedSlug) {
+          const prevTransform = el.style.transform;
+          el.style.transform = "";
+          prevRects.current.set(slug, el.getBoundingClientRect());
+          el.style.transform = prevTransform;
+        } else {
+          prevRects.current.set(slug, el.getBoundingClientRect());
+        }
       });
     },
     onMove(e: PointerEvent) {
@@ -158,12 +195,21 @@ export function OwnerDashboard() {
       const cur = dragRef.current;
       const list = friendsRef.current;
       if (!cur || !list) return;
-      const over = handlers.current.nearestSlug(e.clientX, e.clientY);
+      /* Track the pointer: update the dragged card's live translate offset. */
+      const dx = e.clientX - grabRef.current.x;
+      const dy = e.clientY - grabRef.current.y;
+      cur.dx = dx;
+      cur.dy = dy;
+      setDrag({ slug: cur.slug, dx, dy });
+
+      const over = handlers.current.overSlug(e.clientX, e.clientY, cur.slug);
       if (!over || over === cur.slug) return;
       const fromIdx = list.findIndex((f) => f.slug === cur.slug);
       const overIdx = list.findIndex((f) => f.slug === over);
       if (fromIdx < 0 || overIdx < 0 || fromIdx === overIdx) return;
-      /* Snapshot positions, reorder, then let the layout effect play the FLIP. */
+      /* Snapshot positions, reorder, then let the layout effect play the FLIP
+         (for the neighbours) and rebase the dragged card's translate so it stays
+         glued to the pointer even though its own slot just moved. */
       handlers.current.measure();
       flipPending.current = true;
       const next = [...list];
@@ -188,7 +234,8 @@ export function OwnerDashboard() {
 
   const startDrag = (e: React.PointerEvent, slug: string) => {
     e.preventDefault();
-    const state: DragState = { slug };
+    grabRef.current = { x: e.clientX, y: e.clientY };
+    const state: DragState = { slug, dx: 0, dy: 0 };
     dragRef.current = state;
     setDrag(state);
     const h = handlers.current;
@@ -234,7 +281,10 @@ export function OwnerDashboard() {
             {t("dashboard.coverage", { ru: cov.ru, en: cov.en })}
           </p>
         </div>
-        <PillButton onClick={() => setView({ kind: "create" })}>
+        <PillButton
+          onClick={() => setView({ kind: "create" })}
+          className="w-full sm:w-auto"
+        >
           {t("dashboard.create")}
         </PillButton>
       </div>
@@ -261,7 +311,7 @@ export function OwnerDashboard() {
           {/* Responsive grid kept intact during drag; cards FLIP into new slots. */}
           <div className="relative grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {friends.map((f) => {
-              const isDragged = drag?.slug === f.slug;
+              const isDragged = !!drag && drag.slug === f.slug;
               return (
                 <div
                   key={f.slug}
@@ -270,7 +320,18 @@ export function OwnerDashboard() {
                     else cardRefs.current.delete(f.slug);
                   }}
                   className="relative"
-                  style={{ zIndex: isDragged ? 10 : undefined }}
+                  style={
+                    isDragged && drag
+                      ? {
+                          zIndex: 10,
+                          /* Glue the card to the pointer; no transition so it
+                             tracks 1:1 instead of lagging behind the finger. */
+                          transform: `translate(${drag.dx}px, ${drag.dy}px)`,
+                          transition: "none",
+                          touchAction: "none",
+                        }
+                      : undefined
+                  }
                 >
                   <StickerCard
                     className={
