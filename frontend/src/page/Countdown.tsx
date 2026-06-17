@@ -65,7 +65,7 @@ export function Countdown({ birthday }: CountdownProps) {
   }
 
   return (
-    <span className="inline-flex items-center gap-2 rounded-[var(--radius-full)] border-[2px] border-white bg-[var(--color-surface)] px-4 py-2 text-[var(--color-text)] shadow-[var(--shadow-sm)]">
+    <span className="inline-flex items-center gap-2 rounded-[var(--radius-full)] border-[2px] border-[var(--color-surface)] bg-[var(--color-surface)] px-4 py-2 text-[var(--color-text)] shadow-[var(--shadow-sm)]">
       <span aria-hidden="true">📅</span>
       <span>
         {t("countdown.until")}{" "}

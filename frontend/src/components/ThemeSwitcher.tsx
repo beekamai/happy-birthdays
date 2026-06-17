@@ -53,7 +53,7 @@ export function ThemeSwitcher({ theme, setTheme, themes }: ThemeSwitcherProps) {
         aria-haspopup="menu"
         aria-expanded={open}
         title={t("theme.change")}
-        className="flex size-11 items-center justify-center rounded-[var(--radius-full)] border-[2px] border-white bg-[var(--color-surface)]/90 text-xl shadow-[var(--shadow-sm)] backdrop-blur-sm transition-transform duration-200 hover:scale-110 active:scale-95"
+        className="flex size-11 items-center justify-center rounded-[var(--radius-full)] border-[2px] border-[var(--color-surface)] bg-[var(--color-surface)]/90 text-xl shadow-[var(--shadow-sm)] backdrop-blur-sm transition-transform duration-200 hover:scale-110 active:scale-95"
       >
         <span aria-hidden="true">{ICON[theme]}</span>
       </button>
@@ -61,7 +61,7 @@ export function ThemeSwitcher({ theme, setTheme, themes }: ThemeSwitcherProps) {
       {open && (
         <div
           role="menu"
-          className="absolute top-13 right-0 flex flex-col gap-1 rounded-[var(--radius-md)] border-[2px] border-white bg-[var(--color-surface)]/95 p-2 shadow-[var(--shadow-md)] backdrop-blur-sm"
+          className="absolute top-13 right-0 flex flex-col gap-1 rounded-[var(--radius-md)] border-[2px] border-[var(--color-surface)] bg-[var(--color-surface)]/95 p-2 shadow-[var(--shadow-md)] backdrop-blur-sm"
         >
           {themes.map((name) => {
             const active = name === theme;

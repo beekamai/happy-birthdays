@@ -5,6 +5,7 @@ import { useLottie } from "lottie-react";
 import { StickerCard } from "../components/decor/StickerCard.tsx";
 import { ConfirmDialog } from "../components/ConfirmDialog.tsx";
 import { useT } from "../lib/i18n.ts";
+import { isLottie } from "../lib/lottie.ts";
 import {
   ApiError,
   createFriend,
@@ -174,16 +175,6 @@ function emptyConfig(): FriendConfig {
   };
 }
 
-/* A parsed Lottie document has a layers array; anything else (e.g. a 404 JSON
-   error body) is rejected so it never reaches the animator. */
-function isLottie(json: unknown): boolean {
-  return (
-    typeof json === "object" &&
-    json !== null &&
-    Array.isArray((json as { layers?: unknown }).layers)
-  );
-}
-
 /* Small gift-animation preview for the editor. Isolated so the `useLottie`
    HOOK runs only when we have data — and never the default `<Lottie>` export,
    which crashes the tree under Vite's CJS interop (React #130). */
@@ -191,7 +182,7 @@ function GiftAnimPreview({ data }: { data: object }) {
   const { View } = useLottie({ animationData: data, loop: true, autoplay: true });
   return (
     <div
-      className="size-32 shrink-0 overflow-hidden rounded-[var(--radius-md)] border-[3px] border-white bg-[var(--color-cream)] shadow-[var(--shadow-sm)]"
+      className="size-32 shrink-0 overflow-hidden rounded-[var(--radius-md)] border-[3px] border-[var(--color-surface)] bg-[var(--color-cream)] shadow-[var(--shadow-sm)]"
       style={{ outline: "3px solid var(--color-accent)", outlineOffset: "2px" }}
     >
       {View}
@@ -716,7 +707,7 @@ export function FriendEditor({
     <Field label={label} error={error}>
       <div className="flex items-center gap-4">
         <div
-          className="size-20 shrink-0 overflow-hidden rounded-full border-[3px] border-white bg-[var(--color-cream)] shadow-[var(--shadow-sm)]"
+          className="size-20 shrink-0 overflow-hidden rounded-full border-[3px] border-[var(--color-surface)] bg-[var(--color-cream)] shadow-[var(--shadow-sm)]"
           style={{
             outline: `3px solid ${error ? "var(--color-lantern)" : "var(--color-accent)"}`,
             outlineOffset: "2px",
@@ -1041,7 +1032,7 @@ export function FriendEditor({
                     {giftAnim ? (
                       <GiftAnimPreview data={giftAnim} />
                     ) : (
-                      <div className="flex size-32 shrink-0 items-center justify-center rounded-[var(--radius-md)] border-[3px] border-white bg-[var(--color-cream)] text-4xl shadow-[var(--shadow-sm)] select-none">
+                      <div className="flex size-32 shrink-0 items-center justify-center rounded-[var(--radius-md)] border-[3px] border-[var(--color-surface)] bg-[var(--color-cream)] text-4xl shadow-[var(--shadow-sm)] select-none">
                         🎬
                       </div>
                     )}

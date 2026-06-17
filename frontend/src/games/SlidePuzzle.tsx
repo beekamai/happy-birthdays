@@ -153,7 +153,7 @@ export default function SlidePuzzle({ friend, onFinish }: GameProps) {
       </div>
 
       <div
-        className="relative grid aspect-square w-full max-w-[min(70vh,420px)] gap-1 rounded-[var(--radius-lg)] border-[4px] border-white bg-[var(--color-muted)] p-1 shadow-[var(--shadow-md)]"
+        className="relative grid aspect-square w-full max-w-[min(70vh,420px)] gap-1 rounded-[var(--radius-lg)] border-[4px] border-[var(--color-surface)] bg-[var(--color-muted)] p-1 shadow-[var(--shadow-md)]"
         style={{
           gridTemplateColumns: `repeat(${N}, 1fr)`,
           touchAction: "manipulation",

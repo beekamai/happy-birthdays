@@ -15,7 +15,7 @@ export function SoundToggle() {
       onClick={() => setMuted(toggleMute())}
       aria-label={label}
       title={label}
-      className="flex size-11 items-center justify-center rounded-[var(--radius-full)] border-[2px] border-white bg-[var(--color-surface)]/90 text-xl shadow-[var(--shadow-sm)] backdrop-blur-sm transition-transform duration-200 hover:scale-110 active:scale-95"
+      className="flex size-11 items-center justify-center rounded-[var(--radius-full)] border-[2px] border-[var(--color-surface)] bg-[var(--color-surface)]/90 text-xl shadow-[var(--shadow-sm)] backdrop-blur-sm transition-transform duration-200 hover:scale-110 active:scale-95"
     >
       <span aria-hidden="true">{muted ? "🔇" : "🔊"}</span>
     </button>

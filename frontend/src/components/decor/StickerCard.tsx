@@ -21,7 +21,7 @@ export function StickerCard({
 
   return (
     <div
-      className={`rounded-[var(--radius-lg)] border-[3px] border-white bg-[var(--color-surface)] p-6 text-[var(--color-text)] shadow-[var(--shadow-md)] ${hoverClasses} ${className}`}
+      className={`rounded-[var(--radius-lg)] border-[3px] border-[var(--color-surface)] bg-[var(--color-surface)] p-6 text-[var(--color-text)] shadow-[var(--shadow-md)] ${hoverClasses} ${className}`}
     >
       {children}
     </div>

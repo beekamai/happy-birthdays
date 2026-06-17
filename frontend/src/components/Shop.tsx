@@ -168,7 +168,7 @@ export function Shop({ slug, open, onClose, onChange }: ShopProps) {
         className="absolute inset-0 cursor-default bg-[var(--color-cream)]/70 backdrop-blur-[2px]"
       />
 
-      <div className="relative z-10 flex max-h-[90dvh] w-full max-w-lg flex-col overflow-hidden rounded-[var(--radius-lg)] border-[3px] border-white bg-[var(--color-surface)] text-[var(--color-text)] shadow-[var(--shadow-lg)]">
+      <div className="relative z-10 flex max-h-[90dvh] w-full max-w-lg flex-col overflow-hidden rounded-[var(--radius-lg)] border-[3px] border-[var(--color-surface)] bg-[var(--color-surface)] text-[var(--color-text)] shadow-[var(--shadow-lg)]">
         <header className="flex items-center justify-between gap-3 border-b-[2px] border-[var(--color-muted)] px-5 py-4">
           <h2 className="text-2xl">{t("shop.title")}</h2>
           <button

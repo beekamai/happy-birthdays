@@ -4,6 +4,7 @@ import { useLottie } from "lottie-react";
 import type { PublicFriend } from "../lib/types.ts";
 import { StickerCard } from "../components/decor/StickerCard.tsx";
 import { useT } from "../lib/i18n.ts";
+import { isLottie } from "../lib/lottie.ts";
 
 /* The gift reveal card: a Lottie animation when available, otherwise a big
    cozy emoji. Caption announces the gift with a sparkle.
@@ -14,16 +15,6 @@ import { useT } from "../lib/i18n.ts";
 
 interface GiftCardProps {
   gift: NonNullable<PublicFriend["gift"]>;
-}
-
-/* A parsed Lottie document has a layers array. Anything else (e.g. a 404 JSON
-   error body) is rejected so it never reaches the animator. */
-function isLottie(json: unknown): boolean {
-  return (
-    typeof json === "object" &&
-    json !== null &&
-    Array.isArray((json as { layers?: unknown }).layers)
-  );
 }
 
 /* Isolated so the `useLottie` hook only runs once we actually have animation

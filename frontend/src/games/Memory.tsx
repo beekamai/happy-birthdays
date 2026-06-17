@@ -143,14 +143,14 @@ export default function Memory({ config, onFinish }: GameProps) {
               >
                 {/* back face (hidden side) */}
                 <div
-                  className="absolute inset-0 flex items-center justify-center rounded-[var(--radius-md)] border-[3px] border-white bg-[var(--color-primary)] text-2xl shadow-[var(--shadow-sm)]"
+                  className="absolute inset-0 flex items-center justify-center rounded-[var(--radius-md)] border-[3px] border-[var(--color-surface)] bg-[var(--color-primary)] text-2xl shadow-[var(--shadow-sm)]"
                   style={{ backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden" }}
                 >
                   <span className="opacity-80">🎁</span>
                 </div>
                 {/* front face (emoji) */}
                 <div
-                  className="absolute inset-0 flex items-center justify-center rounded-[var(--radius-md)] border-[3px] border-white bg-[var(--color-surface)] text-4xl shadow-[var(--shadow-sm)]"
+                  className="absolute inset-0 flex items-center justify-center rounded-[var(--radius-md)] border-[3px] border-[var(--color-surface)] bg-[var(--color-surface)] text-4xl shadow-[var(--shadow-sm)]"
                   style={{
                     backfaceVisibility: "hidden",
                     WebkitBackfaceVisibility: "hidden",

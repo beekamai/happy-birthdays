@@ -194,7 +194,7 @@ function FriendArea() {
               <img
                 src={p.avatarUrl}
                 alt=""
-                className="size-12 rounded-full border-[2px] border-white object-cover"
+                className="size-12 rounded-full border-[2px] border-[var(--color-surface)] object-cover"
               />
               <div className="flex flex-col">
                 <span className="font-bold text-[var(--color-text)]">{p.displayName}</span>

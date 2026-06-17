@@ -183,7 +183,7 @@ export function FriendPage({ friend, site }: FriendPageProps) {
               <img
                 src={site.owner.avatarUrl}
                 alt={site.owner.displayName}
-                className="size-7 rounded-full border-[2px] border-white object-cover shadow-[var(--shadow-sm)]"
+                className="size-7 rounded-full border-[2px] border-[var(--color-surface)] object-cover shadow-[var(--shadow-sm)]"
               />
             )}
           </div>

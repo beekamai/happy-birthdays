@@ -49,7 +49,7 @@ export function ConfirmDialog({
         className="absolute inset-0 cursor-default bg-[var(--color-cream)]/70 backdrop-blur-[2px]"
       />
 
-      <div className="relative z-10 w-full max-w-sm rounded-[var(--radius-lg)] border-[3px] border-white bg-[var(--color-surface)] p-6 text-[var(--color-text)] shadow-[var(--shadow-lg)]">
+      <div className="relative z-10 w-full max-w-sm rounded-[var(--radius-lg)] border-[3px] border-[var(--color-surface)] bg-[var(--color-surface)] p-6 text-[var(--color-text)] shadow-[var(--shadow-lg)]">
         <h2 className="mb-2 text-lg font-bold">{title}</h2>
         <p className="mb-6 text-sm leading-relaxed text-[var(--color-text-soft)]">{message}</p>
 

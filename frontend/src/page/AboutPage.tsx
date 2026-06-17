@@ -73,7 +73,7 @@ export function AboutPage() {
               alt="Hosted on senko.digital"
               width={88}
               height={31}
-              className="rounded-[var(--radius-sm)] border-[2px] border-white shadow-[var(--shadow-sm)] [image-rendering:pixelated]"
+              className="rounded-[var(--radius-sm)] border-[2px] border-[var(--color-surface)] shadow-[var(--shadow-sm)] [image-rendering:pixelated]"
             />
           </a>
         </StickerCard>

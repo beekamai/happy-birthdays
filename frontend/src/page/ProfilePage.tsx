@@ -105,7 +105,7 @@ export function ProfilePage({ friend }: { friend: PublicFriend }) {
                 href="/account"
                 title={t("profile.edit")}
                 aria-label={t("profile.edit")}
-                className="flex size-9 items-center justify-center rounded-[var(--radius-full)] border-[2px] border-white bg-[var(--color-surface)]/90 text-base shadow-[var(--shadow-sm)] backdrop-blur-sm transition-transform duration-200 hover:scale-110 active:scale-95"
+                className="flex size-9 items-center justify-center rounded-[var(--radius-full)] border-[2px] border-[var(--color-surface)] bg-[var(--color-surface)]/90 text-base shadow-[var(--shadow-sm)] backdrop-blur-sm transition-transform duration-200 hover:scale-110 active:scale-95"
               >
                 <span aria-hidden="true">✏️</span>
               </a>
@@ -114,7 +114,7 @@ export function ProfilePage({ friend }: { friend: PublicFriend }) {
                 onClick={() => setShopOpen(true)}
                 title={t("shop.open")}
                 aria-label={t("shop.open")}
-                className="flex size-9 items-center justify-center rounded-[var(--radius-full)] border-[2px] border-white bg-[var(--color-surface)]/90 text-base shadow-[var(--shadow-sm)] backdrop-blur-sm transition-transform duration-200 hover:scale-110 active:scale-95"
+                className="flex size-9 items-center justify-center rounded-[var(--radius-full)] border-[2px] border-[var(--color-surface)] bg-[var(--color-surface)]/90 text-base shadow-[var(--shadow-sm)] backdrop-blur-sm transition-transform duration-200 hover:scale-110 active:scale-95"
               >
                 <span aria-hidden="true">🛍️</span>
               </button>

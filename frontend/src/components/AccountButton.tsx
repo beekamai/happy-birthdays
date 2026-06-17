@@ -23,7 +23,7 @@ interface MyPageLite {
 }
 
 const PILL =
-  "flex h-11 items-center justify-center gap-2 rounded-[var(--radius-full)] border-[2px] border-white bg-[var(--color-surface)]/90 px-3 font-bold text-[var(--color-text)] shadow-[var(--shadow-sm)] backdrop-blur-sm transition-transform duration-200 hover:scale-105 active:scale-95";
+  "flex h-11 items-center justify-center gap-2 rounded-[var(--radius-full)] border-[2px] border-[var(--color-surface)] bg-[var(--color-surface)]/90 px-3 font-bold text-[var(--color-text)] shadow-[var(--shadow-sm)] backdrop-blur-sm transition-transform duration-200 hover:scale-105 active:scale-95";
 const ITEM =
   "rounded-[var(--radius-sm)] px-3 py-2 text-left text-sm font-bold text-[var(--color-text)] transition-colors hover:bg-[var(--color-muted)]/40";
 
@@ -121,7 +121,7 @@ export function AccountButton({ onLogout }: { onLogout?: () => void } = {}) {
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={open}
-        className="flex size-11 items-center justify-center overflow-hidden rounded-[var(--radius-full)] border-[2px] border-white bg-[var(--color-surface)]/90 shadow-[var(--shadow-sm)] backdrop-blur-sm transition-transform duration-200 hover:scale-105 active:scale-95"
+        className="flex size-11 items-center justify-center overflow-hidden rounded-[var(--radius-full)] border-[2px] border-[var(--color-surface)] bg-[var(--color-surface)]/90 shadow-[var(--shadow-sm)] backdrop-blur-sm transition-transform duration-200 hover:scale-105 active:scale-95"
         title={user.username ? `@${user.username}` : t("account.account")}
       >
         {user.photoUrl ? (
@@ -136,7 +136,7 @@ export function AccountButton({ onLogout }: { onLogout?: () => void } = {}) {
       {open && (
         <div
           role="menu"
-          className="absolute top-13 right-0 flex min-w-48 flex-col gap-1 rounded-[var(--radius-md)] border-[2px] border-white bg-[var(--color-surface)]/95 p-2 shadow-[var(--shadow-md)] backdrop-blur-sm"
+          className="absolute top-13 right-0 flex min-w-48 flex-col gap-1 rounded-[var(--radius-md)] border-[2px] border-[var(--color-surface)] bg-[var(--color-surface)]/95 p-2 shadow-[var(--shadow-md)] backdrop-blur-sm"
         >
           {user.username && (
             <span className="truncate px-3 py-1 text-xs text-[var(--color-text-soft)]">

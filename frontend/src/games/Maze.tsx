@@ -192,7 +192,7 @@ export default function Maze({ friend, site, onFinish, config }: GameProps) {
       )}
 
       <div
-        className="grid aspect-square w-full max-w-[min(80vh,460px)] overflow-hidden rounded-[var(--radius-lg)] border-[4px] border-white bg-[var(--color-surface)] shadow-[var(--shadow-md)]"
+        className="grid aspect-square w-full max-w-[min(80vh,460px)] overflow-hidden rounded-[var(--radius-lg)] border-[4px] border-[var(--color-surface)] bg-[var(--color-surface)] shadow-[var(--shadow-md)]"
         style={{
           gridTemplateColumns: `repeat(${size}, 1fr)`,
           outline: "3px solid var(--color-accent)",
@@ -296,7 +296,7 @@ function Avatar({
     <img
       src={src}
       alt={alt}
-      className={`${cls} rounded-full border-2 border-white object-cover`}
+      className={`${cls} rounded-full border-2 border-[var(--color-surface)] object-cover`}
       style={{ outline: "2px solid var(--color-accent)", outlineOffset: "1px" }}
     />
   );

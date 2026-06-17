@@ -52,7 +52,7 @@ export function Landing() {
           under the control cluster; only the pill itself is clickable. */}
       <a
         href="/about"
-        className="fixed bottom-4 right-4 z-10 inline-flex items-center gap-1.5 rounded-[var(--radius-full)] border-[2px] border-white bg-[var(--color-surface)]/80 px-3 py-1.5 text-sm text-[var(--color-text-soft)] opacity-60 shadow-[var(--shadow-sm)] backdrop-blur-sm transition-opacity duration-200 hover:opacity-100"
+        className="fixed bottom-4 right-4 z-10 inline-flex items-center gap-1.5 rounded-[var(--radius-full)] border-[2px] border-[var(--color-surface)] bg-[var(--color-surface)]/80 px-3 py-1.5 text-sm text-[var(--color-text-soft)] opacity-60 shadow-[var(--shadow-sm)] backdrop-blur-sm transition-opacity duration-200 hover:opacity-100"
       >
         <span aria-hidden="true">🍜</span>
         {t("watermark.about")}

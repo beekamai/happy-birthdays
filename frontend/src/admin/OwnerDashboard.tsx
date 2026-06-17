@@ -359,7 +359,7 @@ export function OwnerDashboard() {
                         <img
                           src={f.avatarUrl}
                           alt={f.displayName}
-                          className="size-16 shrink-0 rounded-full border-[3px] border-white object-cover shadow-[var(--shadow-sm)]"
+                          className="size-16 shrink-0 rounded-full border-[3px] border-[var(--color-surface)] object-cover shadow-[var(--shadow-sm)]"
                         />
                         <div className="min-w-0">
                           <h3 className="truncate text-lg font-bold">

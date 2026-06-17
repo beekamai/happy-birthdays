@@ -73,7 +73,7 @@ export function DecoratedAvatar({
       <img
         src={src}
         alt={alt}
-        className="size-32 rounded-full border-[4px] border-white object-cover shadow-[var(--shadow-md)]"
+        className="size-32 rounded-full border-[4px] border-[var(--color-surface)] object-cover shadow-[var(--shadow-md)]"
         style={imgStyle}
       />
       {frameId === "frame-flower" && <FlowerPetals />}
