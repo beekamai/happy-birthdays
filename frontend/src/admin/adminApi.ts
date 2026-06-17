@@ -99,6 +99,13 @@ export interface AvatarUploadResult {
   url: string;
 }
 
+export interface GiftAnimationUploadResult {
+  ok: boolean;
+  filename: string;
+  url: string;
+  animation: object; /* decoded Lottie JSON, for instant preview */
+}
+
 /* ---- Slug helper --------------------------------------------------------- */
 
 /** Derive a URL slug from a username: strip @, lowercase, keep [a-z0-9-]. The
@@ -299,6 +306,25 @@ export async function uploadAvatar(
   );
   if (!res.ok) throw new ApiError(res.status, await readError(res));
   return (await res.json()) as AvatarUploadResult;
+}
+
+/**
+ * Upload a gift animation (.tgs/.json/.lottie). The server stores it and returns
+ * the served URL to put in `gift.lottie`, plus the decoded Lottie for preview.
+ * @throws {ApiError} on failure.
+ */
+export async function uploadGiftAnimation(
+  slug: string,
+  file: File,
+): Promise<GiftAnimationUploadResult> {
+  const form = new FormData();
+  form.append("animation", file);
+  const res = await fetch(
+    `/api/admin/friend/${encodeURIComponent(slug)}/gift-animation`,
+    { method: "POST", body: form },
+  );
+  if (!res.ok) throw new ApiError(res.status, await readError(res));
+  return (await res.json()) as GiftAnimationUploadResult;
 }
 
 /**

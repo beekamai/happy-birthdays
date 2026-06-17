@@ -8,6 +8,7 @@ import {
     createFriend,
     deleteFriend,
     uploadAvatar,
+    uploadGiftAnimation,
     translate,
     getPageOrder,
     savePageOrder,
@@ -24,6 +25,7 @@ const adminRoutes = new Elysia()
     .put("/friend/:slug", updateFriend)
     .delete("/friend/:slug", deleteFriend)
     .post("/friend/:slug/avatar", uploadAvatar)
+    .post("/friend/:slug/gift-animation", uploadGiftAnimation)
     .post("/translate", translate);
 
 export default adminRoutes;

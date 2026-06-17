@@ -86,6 +86,12 @@ export default class FriendRepository {
             const allowed = new Set<string>([cfg.avatar]);
             if (cfg.puzzleAvatar) allowed.add(cfg.puzzleAvatar);
             if (cfg.gift?.imagePath) allowed.add(cfg.gift.imagePath);
+            /* Gift animations (current + every history entry) live in the friend
+               dir too; whitelist their basenames so saved Lottie/TGS uploads are
+               servable while older gifts' files stay reachable forever. */
+            for (const g of [cfg.gift, ...(cfg.giftHistory ?? [])]) {
+                if (g?.lottie) allowed.add(g.lottie.split("/").pop()!);
+            }
             if (!allowed.has(file)) return null;
 
             const dir = this.friendDir(slug);

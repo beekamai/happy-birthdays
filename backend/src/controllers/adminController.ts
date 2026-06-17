@@ -11,6 +11,7 @@ import type { AuthUser } from "../models/Auth";
 import type { FriendConfig } from "../models/Friend";
 import { translateContent, type Lang, type TranslatableContent } from "../services/translateService";
 import { assertInside } from "../utils/paths";
+import { decodeGiftAnimation } from "../utils/lottie";
 import Logger from "../utils/Logger";
 
 /* Fields a non-owner friend may change on their OWN page. The owner may write
@@ -212,6 +213,13 @@ export const uploadAvatar = async ({ params, body, jwt, cookie, set }: any) => {
             set.status = 400;
             return { error: "No avatar file" };
         }
+        /* Bound the upload: an authenticated friend must not be able to write an
+           arbitrarily large or non-image file into their page dir. */
+        if (file.size > 5 * 1024 * 1024) { set.status = 413; return { error: "File too large" }; }
+        if (!file.type.startsWith("image/")) {
+            set.status = 415;
+            return { error: "Not an image" };
+        }
         const which = body?.which === "puzzle" ? "puzzle" : "main";
         const ext = (file.type === "image/png" ? "png" : "jpg");
         const filename = `${which}-${Math.max(1, file.size)}.${ext}`;
@@ -229,6 +237,57 @@ export const uploadAvatar = async ({ params, body, jwt, cookie, set }: any) => {
         return { ok: true, filename, url: `/friends/${params.slug}/${filename}` };
     } catch (error) {
         Logger.error("AdminController", `uploadAvatar error: ${error}`, { slug: params?.slug });
+        set.status = 500;
+        return { error: "Internal server error" };
+    }
+};
+
+/** POST /api/admin/friend/:slug/gift-animation — upload a .tgs/.json/.lottie gift
+    animation. The file is decoded to canonical Lottie JSON and stored under the
+    friend's dir with a CONTENT-HASHED name, so identical re-uploads dedupe and a
+    new gift never overwrites a previous gift's file (history keeps every
+    animation on disk). This stores the asset only and returns its served URL plus
+    the decoded Lottie for an instant editor preview; the owner points gift.lottie
+    at the URL through the normal config save. */
+export const uploadGiftAnimation = async ({ params, body, jwt, cookie, set }: any) => {
+    try {
+        const user = await readUser(jwt, cookie);
+        if (!user) { set.status = 401; return { error: "Unauthorized" }; }
+        const cfg = FriendRepository.getRawConfig(params.slug);
+        if (!cfg) { set.status = 404; return { error: "Not found" }; }
+        if (!canEdit(user, cfg.username)) { set.status = 403; return { error: "Forbidden" }; }
+
+        const file = body?.animation as File | undefined;
+        if (!file || typeof file.arrayBuffer !== "function") {
+            set.status = 400;
+            return { error: "No animation file" };
+        }
+        if (file.size > 2 * 1024 * 1024) { set.status = 413; return { error: "File too large" }; }
+
+        let decoded: { data: Buffer; animation: object };
+        try {
+            decoded = decodeGiftAnimation(new Uint8Array(await file.arrayBuffer()));
+        } catch {
+            set.status = 422;
+            return { error: "Invalid animation" };
+        }
+
+        const hash = Bun.hash(decoded.data).toString(16).slice(0, 12);
+        const filename = `gift-${hash}.json`;
+
+        const dir = FriendRepository.friendDirPath(params.slug);
+        if (!dir) { set.status = 400; return { error: "Bad slug" }; }
+        await Bun.write(assertInside(dir, filename), decoded.data);
+
+        set.status = 200;
+        return {
+            ok: true,
+            filename,
+            url: `/friends/${params.slug}/${filename}`,
+            animation: decoded.animation,
+        };
+    } catch (error) {
+        Logger.error("AdminController", `uploadGiftAnimation error: ${error}`, { slug: params?.slug });
         set.status = 500;
         return { error: "Internal server error" };
     }
