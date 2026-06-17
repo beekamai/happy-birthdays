@@ -28,6 +28,10 @@ const adminRoutes = new Elysia()
             .get("/friends", listFriends)
             .post("/friends", createFriend)
             .delete("/friend/:slug", deleteFriend)
+            /* The gift is owner-given content (excluded from FRIEND_EDITABLE and
+               hidden from the friend's editor), so its animation upload is
+               owner-only — a friend may change their own avatar, not the gift. */
+            .post("/friend/:slug/gift-animation", uploadGiftAnimation)
             .get("/order", getPageOrder)
             .put("/order", savePageOrder),
     )
@@ -37,7 +41,6 @@ const adminRoutes = new Elysia()
             .get("/friend/:slug", getFriendConfig)
             .put("/friend/:slug", updateFriend)
             .post("/friend/:slug/avatar", uploadAvatar)
-            .post("/friend/:slug/gift-animation", uploadGiftAnimation)
             .post("/translate", translate),
     );
 

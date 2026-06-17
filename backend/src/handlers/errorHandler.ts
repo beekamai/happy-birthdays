@@ -8,7 +8,20 @@ import Logger from "../utils/Logger";
 export function ErrorHandler({ code, error, set, ...ctx }: any) {
     if (code === "VALIDATION") {
         set.status = 422;
-        return { error: "Validation error" };
+        /* Surface the first field-level reason (which input + why) instead of a
+           generic message. Elysia's ValidationError carries `.all` (per-field
+           issues with a clean `summary`) and `.type` (body|query|params). Fall
+           back defensively so the handler itself never throws. */
+        const first = Array.isArray(error?.all)
+            ? error.all.find((e: any) => e?.summary || e?.message)
+            : undefined;
+        const where = typeof error?.type === "string" ? error.type : undefined;
+        const raw =
+            first?.summary ||
+            first?.message ||
+            (typeof error?.message === "string" ? error.message.split("\n")[0] : "");
+        const detail = (raw || "Validation error").slice(0, 200);
+        return { error: where ? `${where}: ${detail}` : detail };
     }
 
     if (code === "PARSE") {
