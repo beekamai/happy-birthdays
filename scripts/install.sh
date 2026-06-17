@@ -500,11 +500,13 @@ validate() {
 next_steps() {
   step "Next steps"
   cat <<EOF
-  1. Create your first friend/page:
-       cd "$ROOT_DIR" && bun run add-friend
-  2. In @BotFather run /setdomain for your bot and point it at your public domain
+  1. In @BotFather run /setdomain for your bot and point it at your public domain
      (must match BASE_URL), otherwise Telegram login will fail.
-  3. Open your site and sign in at /account with the owner Telegram account.
+  2. Open your site, go to /account and sign in with the Telegram account whose
+     @username you set as OWNER_TG_USERNAME — that account owns every page.
+  3. Create your first page right in the browser: the owner dashboard has a
+     "create" button with the full form (name, date, avatar, message, gifts).
+     Prefer the terminal? "cd $ROOT_DIR && bun run add-friend" works too.
 
   Service management:
 EOF
