@@ -14,10 +14,14 @@ bun.lockb
 page-order.json
 data/page-order.json
 
+# Production process config holds real secrets (token, session secret) — never commit.
+ecosystem.config.cjs
+ecosystem.config.*.cjs
+.pm2/
+
 # Friend page data is runtime content (created via the admin UI), not source.
 # Keep the folder but never commit real people's configs/avatars.
 data/friends/*
 !data/friends/.gitkeep
-!data/friends/demo/
 data/site.json
 data/owner/

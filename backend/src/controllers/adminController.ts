@@ -200,12 +200,15 @@ export const uploadAvatar = async ({ params, body, user, set }: any) => {
         }
         const which = body?.which === "puzzle" ? "puzzle" : "main";
         const ext = (file.type === "image/png" ? "png" : "jpg");
-        const filename = `${which}-${Math.max(1, file.size)}.${ext}`;
+        /* Content-hash the name so two different images of the same byte size
+           can't collide and silently overwrite each other. */
+        const bytes = Buffer.from(await file.arrayBuffer());
+        const hash = Bun.hash(bytes).toString(16).slice(0, 12);
+        const filename = `${which}-${hash}.${ext}`;
 
         const dir = FriendRepository.friendDirPath(params.slug);
         if (!dir) { set.status = 400; return { error: "Bad slug" }; }
-        const dest = assertInside(dir, filename);
-        await Bun.write(dest, await file.arrayBuffer());
+        await Bun.write(assertInside(dir, filename), bytes);
 
         const nextCfg = { ...cfg, [which === "puzzle" ? "puzzleAvatar" : "avatar"]: filename };
         FriendRepository.writeConfig(params.slug, nextCfg);

@@ -47,7 +47,20 @@ export const TWEMOJI_DIR = path.join(ROOT_DIR, "assets", "twemoji");
 export const TG_BOT_TOKEN = process.env.TG_BOT_TOKEN ?? "";
 export const TG_BOT_USERNAME = process.env.TG_BOT_USERNAME ?? "";
 export const OWNER_TG_USERNAME = (process.env.OWNER_TG_USERNAME ?? "").replace(/^@/, "").toLowerCase();
-export const SESSION_SECRET = process.env.SESSION_SECRET ?? "dev-insecure-secret-change-me";
+/* JWT signing secret. In production a real secret is REQUIRED: refuse to boot on
+   the insecure dev default (or a too-short value), because anyone who knows it
+   could forge owner sessions. Local dev falls back to the dev default. */
+const DEV_SESSION_SECRET = "dev-insecure-secret-change-me";
+export const SESSION_SECRET = (() => {
+    const secret = process.env.SESSION_SECRET ?? DEV_SESSION_SECRET;
+    if (!IS_DEV && (secret === DEV_SESSION_SECRET || secret.length < 16)) {
+        throw new Error(
+            "SESSION_SECRET must be a long random string in production (the dev " +
+                "default is insecure). Generate one with: openssl rand -base64 32",
+        );
+    }
+    return secret;
+})();
 export const AUTH_TTL_DAYS = 30;
 
 /* Gemini (Google AI Studio) — auto-translates user content between ru/en.

@@ -1,6 +1,7 @@
 import { Elysia } from "elysia";
 
 import { authDerive, authMiddleware, ownerMiddleware } from "../middlewares/authMiddleware";
+import { rateLimit } from "../middlewares/rateLimit";
 import {
     listFriends,
     myPages,
@@ -40,8 +41,23 @@ const adminRoutes = new Elysia()
             .get("/mine", myPages)
             .get("/friend/:slug", getFriendConfig)
             .put("/friend/:slug", updateFriend)
-            .post("/friend/:slug/avatar", uploadAvatar)
-            .post("/translate", translate),
+            .post("/friend/:slug/avatar", uploadAvatar),
+    )
+    /* Translation calls the paid Gemini API, so rate-limit it per user (not just
+       per session) to bound the cost of a logged-in account hammering it. */
+    .guard(
+        {
+            beforeHandle: [
+                authMiddleware,
+                rateLimit({
+                    tag: "translate",
+                    limit: 12,
+                    windowMs: 60_000,
+                    by: (c) => c.user?.username || "anon",
+                }),
+            ],
+        },
+        (app) => app.post("/translate", translate),
     );
 
 export default adminRoutes;

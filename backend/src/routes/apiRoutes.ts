@@ -1,6 +1,7 @@
 import { Elysia } from "elysia";
 
 import { withResponseFilter } from "../handlers/responseFilter";
+import { rateLimit } from "../middlewares/rateLimit";
 import { getFriend } from "../controllers/friendController";
 import { getSite } from "../controllers/siteController";
 import { postScore, getTotals, getScores } from "../controllers/scoreController";
@@ -33,8 +34,15 @@ const apiRoutes = new Elysia()
     .get("/stats", getStats)
     .get("/birthdays", getBirthdays, withResponseFilter(getBirthdays_Request_Schema))
     .get("/history/:slug", getHistory, withResponseFilter(getHistory_Request_Schema))
-    .post("/games/start", startGame, withResponseFilter(startGame_Request_Schema))
-    .post("/scores", postScore, withResponseFilter(postScore_Request_Schema))
+    /* Point-earning writes — rate-limited per IP so the scoring loop can't be
+       brute-forced (a real player needs one start + one score every ~20-60s). */
+    .guard(
+        { beforeHandle: [rateLimit({ tag: "play", limit: 60, windowMs: 60_000 })] },
+        (app) =>
+            app
+                .post("/games/start", startGame, withResponseFilter(startGame_Request_Schema))
+                .post("/scores", postScore, withResponseFilter(postScore_Request_Schema)),
+    )
     .get("/scores/:slug", getTotals, withResponseFilter(getTotals_Request_Schema))
     .get(
         "/scores/:slug/:gameId",

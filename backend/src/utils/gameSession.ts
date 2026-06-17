@@ -67,10 +67,18 @@ export function verifyGameToken(token: unknown): GameTokenPayload | null {
 /* One-time use: nonces consumed on a successful score submit, lazily purged. */
 const usedNonces = new Map<string, number>();
 
+const NONCE_HARD_CAP = 50_000;
 function purge(now: number): void {
     if (usedNonces.size < 500) return;
     for (const [nonce, exp] of usedNonces) {
         if (exp < now) usedNonces.delete(nonce);
+    }
+    /* Backstop against a flood arriving faster than nonces expire: if live ones
+       still exceed the cap, evict the oldest so memory stays bounded. */
+    if (usedNonces.size > NONCE_HARD_CAP) {
+        const oldest = [...usedNonces.entries()].sort((a, b) => a[1] - b[1]);
+        const excess = usedNonces.size - NONCE_HARD_CAP;
+        for (let i = 0; i < excess; i++) usedNonces.delete(oldest[i]![0]);
     }
 }
 
