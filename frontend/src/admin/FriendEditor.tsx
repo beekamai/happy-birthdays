@@ -1,11 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ChangeEvent, CSSProperties, ReactNode } from "react";
-import { useLottie } from "lottie-react";
 
 import { StickerCard } from "../components/decor/StickerCard.tsx";
 import { ConfirmDialog } from "../components/ConfirmDialog.tsx";
 import { useT } from "../lib/i18n.ts";
-import { isLottie } from "../lib/lottie.ts";
 import {
   ApiError,
   createFriend,
@@ -15,10 +13,11 @@ import {
   translateFields,
   updateFriend,
   uploadAvatar,
-  uploadGiftAnimation,
   type FriendConfig,
+  type GiftConfig,
   type FriendLimitedUpdate,
 } from "./adminApi.ts";
+import { GiftManager } from "./GiftManager.tsx";
 import {
   Field,
   Input,
@@ -125,6 +124,13 @@ function normalizeConfigForSave(
     socials: cleanSocials(config.socials),
   };
 
+  /* Gift history is the source-of-truth collection; drop any entries that ended
+     up with a blank name (defence in depth — the manager already trims them) and
+     omit the field entirely when none survive. */
+  const history = (config.giftHistory ?? []).filter((g) => g.name.trim());
+  if (history.length) next.giftHistory = history;
+  else delete next.giftHistory;
+
   if (gift) {
     const name = cleanOptional(gift.name);
     const emoji = cleanOptional(gift.emoji);
@@ -175,21 +181,6 @@ function emptyConfig(): FriendConfig {
   };
 }
 
-/* Small gift-animation preview for the editor. Isolated so the `useLottie`
-   HOOK runs only when we have data — and never the default `<Lottie>` export,
-   which crashes the tree under Vite's CJS interop (React #130). */
-function GiftAnimPreview({ data }: { data: object }) {
-  const { View } = useLottie({ animationData: data, loop: true, autoplay: true });
-  return (
-    <div
-      className="size-32 shrink-0 overflow-hidden rounded-[var(--radius-md)] border-[3px] border-[var(--color-surface)] bg-[var(--color-cream)] shadow-[var(--shadow-sm)]"
-      style={{ outline: "3px solid var(--color-accent)", outlineOffset: "2px" }}
-    >
-      {View}
-    </div>
-  );
-}
-
 export function FriendEditor({
   slug: slugProp,
   create = false,
@@ -225,15 +216,6 @@ export function FriendEditor({
   const [puzzlePreview, setPuzzlePreviewState] = useState<string | null>(null);
   const mainPreviewRef = useRef<string | null>(null);
   const puzzlePreviewRef = useRef<string | null>(null);
-
-  /* Decoded gift Lottie for the inline preview: set from the upload response,
-     or fetched from the current `gift.lottie` URL when an existing page loads. */
-  const [giftAnim, setGiftAnim] = useState<object | null>(null);
-  const [giftAnimUploading, setGiftAnimUploading] = useState(false);
-  /* URL of the just-uploaded animation: its bytes aren't whitelisted for serving
-     until the config is saved, so the preview effect must not re-fetch (and 404)
-     it — we already hold the decoded animation from the upload response. */
-  const freshGiftAnimUrl = useRef<string | null>(null);
 
   /* Set a slot's preview URL, revoking only that slot's previous blob. Passing
      null clears the slot (used after a successful upload so the tile falls back
@@ -319,33 +301,6 @@ export function FriendEditor({
     [slugOverride, config?.username],
   );
 
-  /* Preview the current `gift.lottie` when it's a served path (existing page, or
-     a manual URL the owner typed). Skips blank values and bare filenames that
-     aren't fetchable on their own. Lives here, with the other hooks, ABOVE the
-     loading/notFound early returns — never move it below them (React #310). */
-  const giftLottie = config?.gift?.lottie ?? "";
-  useEffect(() => {
-    /* Just uploaded this one — its preview is already in state and the URL won't
-       serve until save, so don't fetch it. */
-    if (giftLottie === freshGiftAnimUrl.current) return;
-    if (!/^(https?:\/\/|\/)/.test(giftLottie)) {
-      setGiftAnim(null);
-      return;
-    }
-    let alive = true;
-    fetch(giftLottie)
-      .then((r) => (r.ok ? r.json() : null))
-      .then((json: unknown) => {
-        if (alive) setGiftAnim(isLottie(json) ? (json as object) : null);
-      })
-      .catch(() => {
-        if (alive) setGiftAnim(null);
-      });
-    return () => {
-      alive = false;
-    };
-  }, [giftLottie]);
-
   if (loading) return <Spinner label={t("editor.loading")} />;
 
   if (notFound || !config) {
@@ -383,12 +338,21 @@ export function FriendEditor({
     setConfig((c) => (c ? { ...c, [key]: value } : c));
   };
 
-  const setGift = (patch: Partial<NonNullable<FriendConfig["gift"]>>) =>
-    setConfig((c) =>
-      c
-        ? { ...c, gift: { name: "", ...c.gift, ...patch } }
-        : c,
-    );
+  /* Lift the gift manager's edits back into the config: `giftHistory` is the
+     full collection, and `gift` is a copy of the featured entry (matched by
+     name, mirroring the public page's lookup) — falling back to the first gift,
+     or cleared entirely when the collection is empty. */
+  const onGiftsChange = (gifts: GiftConfig[], currentName: string | undefined) =>
+    setConfig((c) => {
+      if (!c) return c;
+      const featured =
+        gifts.find((g) => g.name === currentName) ?? gifts[0];
+      return {
+        ...c,
+        giftHistory: gifts,
+        gift: featured ? { ...featured } : undefined,
+      };
+    });
 
   const toggleGame = (gameId: string) =>
     setConfig((c) => {
@@ -462,35 +426,6 @@ export function FriendEditor({
         );
       }
     };
-
-  /* ---- Gift animation handling ----------------------------------------- */
-  /* Upload a .tgs/.json/.lottie. The server stores it and hands back the served
-     URL (for `gift.lottie`) plus the decoded Lottie for an instant preview —
-     so we skip a round-trip fetch. Needs a slug, hence disabled pre-save. */
-  const onPickGiftAnimation = async (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    e.target.value = ""; /* allow re-picking the same file */
-    if (!file || !slug) return;
-
-    setGiftAnimUploading(true);
-    try {
-      const res = await uploadGiftAnimation(slug, file);
-      freshGiftAnimUrl.current = res.url;
-      setGift({ lottie: res.url });
-      setGiftAnim(res.animation);
-      show(t("editor.toast.giftAnimUploaded"), "success");
-    } catch (err) {
-      const key =
-        err instanceof ApiError && err.status === 413
-          ? "editor.toast.giftAnimTooBig"
-          : err instanceof ApiError && err.status === 422
-            ? "editor.toast.giftAnimInvalid"
-            : "editor.toast.giftAnimFailed";
-      show(t(key), "error");
-    } finally {
-      setGiftAnimUploading(false);
-    }
-  };
 
   /* The page language is the author language; the panel edits the other one. */
   const pageLang: "ru" | "en" = config?.lang ?? "ru";
@@ -1002,87 +937,20 @@ export function FriendEditor({
           {showFull && (
             <StickerCard hover={false}>
               <h2 className="mb-4 text-xl">{t("editor.section.gift")}</h2>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <Field label={t("editor.field.giftName")}>
-                  <Input
-                    value={config.gift?.name ?? ""}
-                    onChange={(e) => setGift({ name: e.target.value })}
-                    placeholder={t("editor.placeholder.giftName")}
-                  />
-                </Field>
-                <Field label={t("editor.field.giftEmoji")}>
-                  <Input
-                    value={config.gift?.emoji ?? ""}
-                    onChange={(e) => setGift({ emoji: e.target.value })}
-                    placeholder={t("editor.placeholder.giftEmoji")}
-                  />
-                </Field>
-                <Field label={t("editor.field.giftLink")}>
-                  <Input
-                    value={config.gift?.link ?? ""}
-                    onChange={(e) => setGift({ link: e.target.value })}
-                    placeholder={t("editor.placeholder.giftLink")}
-                  />
-                </Field>
-              </div>
-
-              <div className="mt-4">
-                <Field label={t("editor.field.giftAnim")}>
-                  <div className="flex items-center gap-4">
-                    {giftAnim ? (
-                      <GiftAnimPreview data={giftAnim} />
-                    ) : (
-                      <div className="flex size-32 shrink-0 items-center justify-center rounded-[var(--radius-md)] border-[3px] border-[var(--color-surface)] bg-[var(--color-cream)] text-4xl shadow-[var(--shadow-sm)] select-none">
-                        🎬
-                      </div>
-                    )}
-                    <div className="flex flex-col gap-2">
-                      <label
-                        className={`cursor-pointer ${
-                          !slug ? "pointer-events-none opacity-50" : ""
-                        }`}
-                      >
-                        <span className="inline-flex items-center gap-2 rounded-[var(--radius-full)] border-[2px] border-[var(--color-muted)] bg-[var(--color-surface)] px-4 py-2 text-sm font-bold text-[var(--color-text)] shadow-[var(--shadow-sm)] transition-transform hover:scale-[1.03]">
-                          {giftAnimUploading ? (
-                            <span className="animate-bob select-none" aria-hidden="true">
-                              🍜
-                            </span>
-                          ) : (
-                            <>🎬 {t("editor.giftAnim.pick")}</>
-                          )}
-                        </span>
-                        <input
-                          type="file"
-                          accept=".tgs,.json,.lottie,application/json"
-                          className="hidden"
-                          disabled={!slug || giftAnimUploading}
-                          onChange={onPickGiftAnimation}
-                        />
-                      </label>
-                      <p className="text-xs text-[var(--color-text-soft)]">
-                        {slug
-                          ? t("editor.giftAnim.hint")
-                          : t("editor.giftAnim.needSave")}
-                      </p>
-                    </div>
-                  </div>
-                </Field>
-
-                <details className="mt-3">
-                  <summary className="cursor-pointer text-sm text-[var(--color-text-soft)] select-none">
-                    {t("editor.giftAnim.manual")}
-                  </summary>
-                  <div className="mt-2">
-                    <Field label={t("editor.field.giftLottie")}>
-                      <Input
-                        value={config.gift?.lottie ?? ""}
-                        onChange={(e) => setGift({ lottie: e.target.value })}
-                        placeholder={t("editor.placeholder.giftLottie")}
-                      />
-                    </Field>
-                  </div>
-                </details>
-              </div>
+              <GiftManager
+                slug={slug}
+                gifts={
+                  config.giftHistory?.length
+                    ? config.giftHistory
+                    : config.gift
+                      ? [config.gift]
+                      : []
+                }
+                currentName={config.gift?.name}
+                onChange={onGiftsChange}
+                t={t}
+                show={show}
+              />
             </StickerCard>
           )}
 
