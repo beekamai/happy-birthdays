@@ -1,0 +1,39 @@
+/*
+ * pm2 process config for production. Copy this file to `ecosystem.config.cjs`
+ * and fill in the real secrets. The real file holds your bot token and session
+ * secret and is git-ignored — NEVER commit it.
+ *
+ *   cp ecosystem.config.cjs.example ecosystem.config.cjs
+ *
+ * Build the frontend before starting (start serves the built SPA):
+ *   bun run build
+ *   pm2 start ecosystem.config.cjs
+ *
+ * IMPORTANT: interpreter "none" + args "run start" is required. pm2 must invoke
+ * `bun run start` as an external command, NOT load the entry as a module — the
+ * backend is a top-level-await async module and pm2's module loader crashes on
+ * it otherwise.
+ */
+module.exports = {
+    apps: [
+        {
+            name: "happy-birthdays",
+            script: "bun",
+            args: "run start",
+            interpreter: "none",
+            cwd: "./backend",
+            env: {
+                NODE_ENV: "production",
+                PORT: "3000",
+                HOST: "127.0.0.1", // loopback only; sit behind a reverse proxy
+                BASE_URL: "https://your.domain",
+                SESSION_SECRET: "", // REQUIRED — openssl rand -base64 32
+                TG_BOT_TOKEN: "", // from @BotFather
+                TG_BOT_USERNAME: "", // bot username, without @
+                OWNER_TG_USERNAME: "", // your Telegram handle, without @
+            },
+            autorestart: true,
+            max_restarts: 10,
+        },
+    ],
+};
