@@ -145,7 +145,7 @@ export function GameHost({
                   </span>{" "}
                   · {t("game.pageTotal")}{" "}
                   <span className="font-bold text-[var(--color-text)]">
-                    {serverResult.global.total}
+                    {serverResult.earned}
                   </span>
                 </span>
               </div>

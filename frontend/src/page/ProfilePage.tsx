@@ -71,7 +71,7 @@ export function ProfilePage({ friend }: { friend: PublicFriend }) {
 
   const name = friendDisplayName(friend, lang);
   const bio = friendBio(friend, lang);
-  const points = totals?.global.total ?? 0;
+  const points = totals?.earned ?? 0;
 
   return (
     <main

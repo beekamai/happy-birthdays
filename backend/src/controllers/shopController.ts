@@ -16,7 +16,7 @@ function canEdit(user: AuthUser, cfgUsername?: string): boolean {
 /* The friend's spendable balance = points visitors earned on their page minus
    everything already spent in the shop. */
 function walletOf(slug: string) {
-    const earned = ScoreRepository.globalTotals(slug).total;
+    const earned = ScoreRepository.earnedTotals(slug);
     const spent = PurchaseRepository.totalSpent(slug);
     return { earned, spent, balance: Math.max(0, earned - spent) };
 }

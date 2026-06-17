@@ -162,6 +162,24 @@ const ru: Record<string, string> = {
   "shop.toast.notEnough": "Не хватает очков",
   "shop.toast.error": "Что-то пошло не так",
 
+  /* Earn explainer (how points accrue) */
+  "earn.title": "Как зарабатываются очки",
+  "earn.intro":
+    "Очки приносят гости, играя в мини-игры. Магазин (7400 очков) нельзя выкупить за один раз — нужен поток гостей и повторные игры.",
+  "earn.step.best": "🥇 Лучшая игра: до 1000 очков за игру, всего до 5000 с пяти игр.",
+  "earn.step.newVisitor":
+    "🙋 Новый гость: около 40% от его результата, и чем больше новых гостей — тем меньше доля у каждого следующего.",
+  "earn.step.replay":
+    "🔁 Повтор той же игры: около 15% за первый повтор, и каждый следующий повтор приносит всё меньше.",
+  "earn.deficit":
+    "Поэтому до полного магазина (7400) можно добраться только постепенно — много гостей и повторов, а не одним идеальным заходом.",
+  "earn.bars.best": "Первый раз — 100%",
+  "earn.bars.newVisitor": "Новый гость — 40%↓",
+  "earn.bars.replay": "Повтор — 15%↓",
+  "earn.open": "ⓘ Как заработать очки",
+  "earn.close": "Понятно",
+  "earn.card.tooltip": "Повторы и каждый следующий гость приносят всё меньше очков",
+
   /* Locked page */
   "locked.opensOn": "Праздничная страничка откроется в день рождения",
   "locked.today": " — сегодня! 🎉",
@@ -486,6 +504,24 @@ const en: Record<string, string> = {
   "shop.toast.refunded": "Refunded 💰",
   "shop.toast.notEnough": "Not enough points",
   "shop.toast.error": "Something went wrong",
+
+  /* Earn explainer (how points accrue) */
+  "earn.title": "How points are earned",
+  "earn.intro":
+    "Guests earn points by playing the mini-games. The shop (7400 points) can't be bought out at once — it takes a stream of guests and replays.",
+  "earn.step.best": "🥇 Best run: up to 1000 points per game, up to 5000 across all five.",
+  "earn.step.newVisitor":
+    "🙋 A new guest: about 40% of their score, and the more new guests arrive, the smaller each next share.",
+  "earn.step.replay":
+    "🔁 Replaying the same game: about 15% for the first replay, and every further replay gives less.",
+  "earn.deficit":
+    "So the full shop (7400) is only reachable gradually — many guests and replays, never in one perfect session.",
+  "earn.bars.best": "First time — 100%",
+  "earn.bars.newVisitor": "New guest — 40%↓",
+  "earn.bars.replay": "Replay — 15%↓",
+  "earn.open": "ⓘ How earning works",
+  "earn.close": "Got it",
+  "earn.card.tooltip": "Replays and each next guest earn progressively fewer points",
 
   /* Locked page */
   "locked.opensOn": "The festive page opens on the birthday",

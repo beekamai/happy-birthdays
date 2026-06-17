@@ -73,11 +73,17 @@ export interface ScoreResult {
   personal: Totals;
   /** Page-wide totals across all visitors. */
   global: Totals;
+  /** Spendable wallet pool for the page (accrual with diminishing returns —
+      always ≤ the raw global skill, matches the shop's `earned`). */
+  earned: number;
 }
 
 export interface DualTotals {
   personal: Totals;
   global: Totals;
+  /** Spendable wallet pool for the page — the shop draws from this, not from
+      the raw `global.total`. Accrued with diminishing returns. */
+  earned: number;
 }
 
 /**

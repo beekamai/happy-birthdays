@@ -89,6 +89,7 @@ export const postScore = async ({ body, headers, set }: any) => {
             ok: true,
             score,
             gameBest: ScoreRepository.bestScore(slug, gameId, vid),
+            earned: ScoreRepository.earnedTotals(slug),
             personal: ScoreRepository.personalTotals(slug, vid),
             global: ScoreRepository.globalTotals(slug),
         };
@@ -109,6 +110,7 @@ export const getTotals = async ({ params, query, set }: any) => {
         const vid = typeof query?.visitorId === "string" ? query.visitorId : "";
         set.status = 200;
         return {
+            earned: ScoreRepository.earnedTotals(slug),
             personal: vid
                 ? ScoreRepository.personalTotals(slug, vid)
                 : { total: 0, games: [] },

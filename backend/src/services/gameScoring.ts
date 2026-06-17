@@ -23,9 +23,9 @@ const GAME_LIMITS: Record<
 /* Catcher realism: nobody catches more than this many items per real second. */
 const MAX_CATCH_PER_SEC = 4;
 
-/* Points awarded per caught item, so the catcher games reward a comparable
-   amount to the puzzle games (a good ~50-item run ≈ 750) instead of a token few. */
-const CATCH_POINTS = 15;
+/* Points awarded per caught item, tuned so a strong catcher run (~50 items)
+   approaches the 1000 per-game cap, on par with the puzzle games. */
+const CATCH_POINTS = 20;
 
 /* A submission may claim a duration at most this much longer than the time that
    actually elapsed since the token was issued. Generous: it only needs to catch
@@ -47,11 +47,27 @@ function catchCap(gameId: string, durationMs: number): number {
     return Math.min(byTime, absolute);
 }
 
+/* Per-game best-play ceiling. Each game's score is clamped to this, so the five
+   games cap the "skill" pool at 5 × 1000 = 5000; the rest of the 7400 catalogue
+   is funded by the replay economy (see ScoreRepository.earnedTotals). */
+const RAW_BEST_CAP = 1000;
+
 /**
  * Compute the authoritative score for a play from its game, duration, and raw
- * metrics. Unknown games score 0. Mirrors the games' former local formulas.
+ * metrics. Unknown games score 0. Clamped to RAW_BEST_CAP so no single play
+ * exceeds the per-game ceiling.
  */
 export function computeScore(
+    gameId: string,
+    durationMs: number,
+    meta: Record<string, unknown> | undefined,
+): number {
+    return Math.min(RAW_BEST_CAP, rawScore(gameId, durationMs, meta));
+}
+
+/* The raw per-game formula before the cap; mirrors the games' former local
+   scoring. */
+function rawScore(
     gameId: string,
     durationMs: number,
     meta: Record<string, unknown> | undefined,

@@ -13,6 +13,7 @@ import {
 } from "../lib/shopApi.ts";
 import { DecorPreview } from "./decor/Decorations.tsx";
 import { ConfirmDialog } from "./ConfirmDialog.tsx";
+import { EarnExplainer } from "./EarnExplainer.tsx";
 
 /* The decoration store, shown over the profile when the viewer may edit it.
    Loads the catalogue + the friend's wallet/ownership on open, groups items by
@@ -77,6 +78,7 @@ export function Shop({ slug, open, onClose, onChange }: ShopProps) {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [toast, setToast] = useState<ToastState | null>(null);
   const [pendingRefund, setPendingRefund] = useState<ShopItem | null>(null);
+  const [earnOpen, setEarnOpen] = useState(false);
 
   const showToast = useCallback((message: string, kind: ToastState["kind"]) => {
     setToast({ message, kind });
@@ -180,17 +182,32 @@ export function Shop({ slug, open, onClose, onChange }: ShopProps) {
         </header>
 
         {state && (
-          <div className="flex items-center gap-4 border-b-[2px] border-[var(--color-muted)] px-5 py-3">
-            <SpentRing spent={state.spent} earned={state.earned} />
-            <div className="flex flex-col gap-0.5">
-              <span className="text-lg font-bold">
-                <span aria-hidden="true">🏅 </span>
-                {t("shop.remaining", { n: state.balance })}
-              </span>
-              <span className="text-sm text-[var(--color-text-soft)]">
-                {t("shop.spentOf", { spent: state.spent, earned: state.earned })}
-              </span>
+          <div className="flex flex-col gap-3 border-b-[2px] border-[var(--color-muted)] px-5 py-3">
+            <div className="flex items-center gap-4">
+              <SpentRing spent={state.spent} earned={state.earned} />
+              <div className="flex flex-1 flex-col gap-0.5">
+                <span className="text-lg font-bold">
+                  <span aria-hidden="true">🏅 </span>
+                  {t("shop.remaining", { n: state.balance })}
+                </span>
+                <span className="text-sm text-[var(--color-text-soft)]">
+                  {t("shop.spentOf", { spent: state.spent, earned: state.earned })}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEarnOpen((v) => !v)}
+                aria-expanded={earnOpen}
+                className="shrink-0 self-start rounded-[var(--radius-full)] border-[2px] border-[var(--color-muted)] bg-[var(--color-cream)] px-3 py-1 text-xs font-bold text-[var(--color-text)] transition-transform duration-200 hover:scale-105 focus:outline-none focus-visible:ring-[3px] focus-visible:ring-[var(--color-accent)]"
+              >
+                {t("earn.open")}
+              </button>
             </div>
+            {earnOpen && (
+              <div className="rounded-[var(--radius-md)] border-[2px] border-[var(--color-muted)] bg-[var(--color-cream)] p-4">
+                <EarnExplainer onClose={() => setEarnOpen(false)} />
+              </div>
+            )}
           </div>
         )}
 

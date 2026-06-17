@@ -71,7 +71,18 @@ export function GamesGrid({ friend, site, visitorId, onScored, bestByGame }: Gam
 
   return (
     <section className="flex flex-col gap-4">
-      <h2 className="text-center text-3xl">{t("games.title")}</h2>
+      <h2 className="flex items-center justify-center gap-2 text-center text-3xl">
+        {t("games.title")}
+        <span
+          tabIndex={0}
+          role="note"
+          aria-label={t("earn.card.tooltip")}
+          title={t("earn.card.tooltip")}
+          className="inline-flex size-6 cursor-help items-center justify-center rounded-[var(--radius-full)] border-[2px] border-[var(--color-muted)] bg-[var(--color-surface)] text-sm font-bold text-[var(--color-text-soft)] focus:outline-none focus-visible:ring-[3px] focus-visible:ring-[var(--color-accent)]"
+        >
+          ⓘ
+        </span>
+      </h2>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {games.map((game, index) => {

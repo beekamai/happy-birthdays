@@ -78,6 +78,9 @@ export default class ScoreRepository {
             db.exec(
                 "CREATE INDEX IF NOT EXISTS idx_scores_visitor ON scores (slug, visitorId, gameId, score DESC);",
             );
+            db.exec(
+                "CREATE INDEX IF NOT EXISTS idx_scores_earn ON scores (slug, gameId, createdAt);",
+            );
             this.db = db;
         } catch (error) {
             Logger.error("ScoreRepository", `init failed: ${error}`);
@@ -159,6 +162,123 @@ export default class ScoreRepository {
             { $slug: slug },
             { slug },
         );
+    }
+
+    /**
+     * Replay-aware spendable pool for a page (the shop wallet's "earned"). Unlike
+     * globalTotals (best-only), this credits the whole play history with
+     * diminishing returns, per game:
+     *  - the best debut (first play of a visitor) anchors at 100% — so the five
+     *    games cap the skill pool at ~5000;
+     *  - every other distinct visitor's debut credits NEW_BASE × NEW_DECAY^j;
+     *  - every replay by a known visitor credits SAME_BASE × SAME_DECAY^(r-1).
+     * Visitors are coalesced by visitorId OR ip, so clearing localStorage yields
+     * the lower replay rate rather than a fresh full-rate debut. Returns the
+     * rounded pool total, 0 on failure.
+     */
+    static earnedTotals(slug: string): number {
+        try {
+            const db = this.getDb();
+            if (!db) return 0;
+
+            const rows = db
+                .query(
+                    `SELECT gameId, visitorId, ip, score, createdAt FROM scores
+                     WHERE slug = $slug ORDER BY gameId, createdAt ASC;`,
+                )
+                .all({ $slug: slug }) as {
+                gameId: string;
+                visitorId: string;
+                ip: string;
+                score: number;
+                createdAt: number;
+            }[];
+
+            const SAME_BASE = 0.15;
+            const SAME_DECAY = 0.8;
+            const NEW_BASE = 0.4;
+            const NEW_DECAY = 0.92;
+            /* How many distinct visitor ids per ip may earn the full new-visitor
+               rate before extras coalesce to the replay rate. Generous enough that
+               a household / small group behind one NAT or CGNAT address all count
+               as new, while still bounding localStorage-wipe farming from one ip. */
+            const MAX_NEW_PER_IP = 8;
+
+            /* Bucket rows per game, preserving the createdAt ASC order. */
+            const byGame = new Map<string, typeof rows>();
+            for (const r of rows) {
+                const list = byGame.get(r.gameId);
+                if (list) list.push(r);
+                else byGame.set(r.gameId, [r]);
+            }
+
+            let total = 0;
+            for (const grows of byGame.values()) {
+                /* A player is identified by their visitorId, with their ip as a
+                   secondary key so wiping localStorage doesn't mint a fresh debut.
+                   To avoid punishing real distinct guests behind one shared/CGNAT
+                   ip, the first MAX_NEW_PER_IP ids on an ip still count as debuts;
+                   only beyond that do same-ip ids coalesce to the replay rate. */
+                const byVid = new Map<string, { replays: number }>();
+                const byIp = new Map<string, { replays: number }>();
+                const ipNew = new Map<string, number>();
+                const firstPlays: number[] = [];
+                let replayCredit = 0;
+
+                for (const r of grows) {
+                    const s = Math.max(0, Math.min(1000, r.score));
+                    const ip = r.ip || "";
+
+                    /* A known id is always a replay; an unseen id on a known ip is
+                       a replay only once that ip has spent its new-visitor budget. */
+                    let player = byVid.get(r.visitorId);
+                    if (!player && ip) {
+                        const primary = byIp.get(ip);
+                        if (primary && (ipNew.get(ip) ?? 0) >= MAX_NEW_PER_IP) player = primary;
+                    }
+
+                    if (!player) {
+                        /* A debut → feeds the page's new-visitor stream. */
+                        player = { replays: 0 };
+                        byVid.set(r.visitorId, player);
+                        if (ip) {
+                            if (!byIp.has(ip)) byIp.set(ip, player);
+                            ipNew.set(ip, (ipNew.get(ip) ?? 0) + 1);
+                        }
+                        firstPlays.push(s);
+                    } else {
+                        /* A return play by a known visitor → decaying replay. */
+                        player.replays += 1;
+                        replayCredit += s * SAME_BASE * SAME_DECAY ** (player.replays - 1);
+                        if (!byVid.has(r.visitorId)) byVid.set(r.visitorId, player);
+                    }
+                }
+
+                /* Best debut anchors at 100%; the remaining debuts are decaying
+                   new-visitor credits in chronological order. */
+                let anchor = 0;
+                let anchorIdx = -1;
+                for (let i = 0; i < firstPlays.length; i++) {
+                    if (firstPlays[i]! > anchor) {
+                        anchor = firstPlays[i]!;
+                        anchorIdx = i;
+                    }
+                }
+                let newCredit = 0;
+                let j = 0;
+                for (let i = 0; i < firstPlays.length; i++) {
+                    if (i === anchorIdx) continue;
+                    newCredit += firstPlays[i]! * NEW_BASE * NEW_DECAY ** j;
+                    j += 1;
+                }
+                total += anchor + newCredit + replayCredit;
+            }
+
+            return Math.round(total);
+        } catch (error) {
+            Logger.error("ScoreRepository", `earnedTotals failed: ${error}`, { slug });
+            return 0;
+        }
     }
 
     /* Shared aggregation: best-per-game rows → { total, games }. */

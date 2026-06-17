@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import confetti from "canvas-confetti";
 
@@ -19,6 +19,7 @@ import { Particles } from "../components/decor/Particles.tsx";
 import { ThemeDecor } from "../components/decor/ThemeDecor.tsx";
 import { DecorBackground, DecorEffect } from "../components/decor/Decorations.tsx";
 import { StickerCard } from "../components/decor/StickerCard.tsx";
+import { EarnExplainer } from "../components/EarnExplainer.tsx";
 
 import { Hero } from "./Hero.tsx";
 import { GiftCard } from "./GiftCard.tsx";
@@ -46,6 +47,7 @@ export function FriendPage({ friend, site }: FriendPageProps) {
   const { theme, setTheme, themes } = useTheme(friend.theme);
   const { t, lang } = useT();
   const visitorId = getVisitorId();
+  const [earnOpen, setEarnOpen] = useState(false);
   /* Gift card with the name localized to the active language. */
   const localizedGift = friend.gift
     ? { ...friend.gift, name: friendGiftName(friend, lang) }
@@ -136,16 +138,31 @@ export function FriendPage({ friend, site }: FriendPageProps) {
         {/* Games + scores — hidden entirely when the friend turned them off. */}
         {friend.gamesEnabled && (
           <>
-            {totals && (totals.personal.total > 0 || totals.global.total > 0) && (
-              <div className="flex flex-wrap items-center justify-center gap-3">
-                <span className="inline-flex items-center gap-2 rounded-[var(--radius-full)] border-[2px] border-[var(--color-ramen-gold)] bg-[var(--color-ramen-gold)]/15 px-5 py-2 font-bold text-[var(--color-text)] shadow-[var(--shadow-sm)]">
-                  <span aria-hidden="true">🏅</span>
-                  {t("friend.yourScore", { n: totals.personal.total })}
-                </span>
-                <span className="inline-flex items-center gap-2 rounded-[var(--radius-full)] border-[2px] border-[var(--color-secondary)] bg-[var(--color-secondary)]/15 px-5 py-2 font-bold text-[var(--color-text)] shadow-[var(--shadow-sm)]">
-                  <span aria-hidden="true">🌍</span>
-                  {t("friend.pageTotal", { n: totals.global.total })}
-                </span>
+            {totals && (totals.personal.total > 0 || totals.earned > 0) && (
+              <div className="flex flex-col items-center gap-3">
+                <div className="flex flex-wrap items-center justify-center gap-3">
+                  <span className="inline-flex items-center gap-2 rounded-[var(--radius-full)] border-[2px] border-[var(--color-ramen-gold)] bg-[var(--color-ramen-gold)]/15 px-5 py-2 font-bold text-[var(--color-text)] shadow-[var(--shadow-sm)]">
+                    <span aria-hidden="true">🏅</span>
+                    {t("friend.yourScore", { n: totals.personal.total })}
+                  </span>
+                  <span className="inline-flex items-center gap-2 rounded-[var(--radius-full)] border-[2px] border-[var(--color-secondary)] bg-[var(--color-secondary)]/15 px-5 py-2 font-bold text-[var(--color-text)] shadow-[var(--shadow-sm)]">
+                    <span aria-hidden="true">🌍</span>
+                    {t("friend.pageTotal", { n: totals.earned })}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setEarnOpen((v) => !v)}
+                    aria-expanded={earnOpen}
+                    className="inline-flex items-center rounded-[var(--radius-full)] border-[2px] border-[var(--color-muted)] bg-[var(--color-surface)] px-4 py-2 text-sm font-bold text-[var(--color-text)] shadow-[var(--shadow-sm)] transition-transform duration-200 hover:scale-105 focus:outline-none focus-visible:ring-[3px] focus-visible:ring-[var(--color-accent)]"
+                  >
+                    {t("earn.open")}
+                  </button>
+                </div>
+                {earnOpen && (
+                  <StickerCard hover={false} className="w-full max-w-[480px]">
+                    <EarnExplainer onClose={() => setEarnOpen(false)} />
+                  </StickerCard>
+                )}
               </div>
             )}
 
