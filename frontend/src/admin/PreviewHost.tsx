@@ -84,6 +84,32 @@ export function PreviewHost() {
     if (friend) document.documentElement.dataset.theme = friend.theme;
   }, [friend?.theme]);
 
+  /* Inside the preview, internal links (the avatar → /u/:slug, the footer → /)
+     would navigate THIS iframe — which, being window.name="hb-preview", just
+     reloads the host and snaps back once the editor re-feeds it. Intercept those
+     clicks: keep the preview put, and mirror an avatar/profile click by asking
+     the editor to switch to the profile view. External (_blank) links are left
+     alone so they still open in a new tab. */
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      const a = (e.target as Element | null)?.closest?.("a[href]") as
+        | HTMLAnchorElement
+        | null;
+      if (!a || a.target === "_blank") return;
+      const href = a.getAttribute("href") ?? "";
+      if (/^https?:\/\//.test(href) && !href.startsWith(window.location.origin)) return;
+      e.preventDefault();
+      if (/^\/u\//.test(href)) {
+        window.parent?.postMessage(
+          { type: "hb-preview-view", view: "profile" },
+          window.location.origin,
+        );
+      }
+    };
+    document.addEventListener("click", onClick);
+    return () => document.removeEventListener("click", onClick);
+  }, []);
+
   /* Rebuild the friend with the access window the chosen view implies, so
      switching view recomputes open / locked locally. Birthday lives in the
      friend payload, so this is a pure local recompute. */

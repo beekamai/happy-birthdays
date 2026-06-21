@@ -354,17 +354,24 @@ export function FriendEditor({
     return () => window.clearTimeout(id);
   }, [sendPreview]);
 
-  /* PreviewHost posts "hb-preview-ready" when it mounts; flip the flag and push
-     the current state at once so the first paint isn't a debounce late. */
+  /* Messages from PreviewHost: "hb-preview-ready" (it mounted — flip the flag and
+     push current state so the first paint isn't a debounce late) and
+     "hb-preview-view" (a click on the previewed avatar asks to show the profile —
+     drive the view toggle from here, since the editor owns it). */
   useEffect(() => {
-    const onReady = (event: MessageEvent) => {
+    const onMessage = (event: MessageEvent) => {
       if (event.origin !== window.location.origin) return;
-      if ((event.data as { type?: unknown })?.type !== "hb-preview-ready") return;
-      previewReady.current = true;
-      sendPreview();
+      const type = (event.data as { type?: unknown })?.type;
+      if (type === "hb-preview-ready") {
+        previewReady.current = true;
+        sendPreview();
+      } else if (type === "hb-preview-view") {
+        const v = (event.data as { view?: unknown }).view;
+        if (v === "open" || v === "locked" || v === "profile") setPreviewView(v);
+      }
     };
-    window.addEventListener("message", onReady);
-    return () => window.removeEventListener("message", onReady);
+    window.addEventListener("message", onMessage);
+    return () => window.removeEventListener("message", onMessage);
   }, [sendPreview]);
 
   if (loading) return <Spinner label={t("editor.loading")} />;
