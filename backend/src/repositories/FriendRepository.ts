@@ -12,7 +12,7 @@ import {
 import type { FriendConfig, PublicFriend, SiteConfig } from "../models/Friend";
 import { validateFriendConfig, parseBirthday } from "../schemas/friend.schema";
 import { computeAccess } from "../utils/access";
-import { resolveCurrentGift } from "../utils/gift";
+import { resolveCurrentGift, pastGifts } from "../utils/gift";
 import { assertInside } from "../utils/paths";
 import Logger from "../utils/Logger";
 
@@ -320,14 +320,18 @@ export default class FriendRepository {
                   ...(current.link ? { link: current.link } : {}),
               }
             : undefined;
+        /* Past gifts (history minus the current one) — shown on the locked page,
+           so the current gift stays a surprise until the birthday. */
+        const past = pastGifts(giftHistory, current);
         const gamesEnabled = cfg.gamesEnabled ?? true;
         const giftDisplay = cfg.giftDisplay ?? "current";
         const giftLayout = cfg.giftLayout ?? "blocks";
         const lang = cfg.lang ?? "ru";
         const theme = cfg.theme ?? "light";
 
-        /* Locked pages expose identity + countdown + the gift history list — but
-           no greeting or games (the celebration itself stays hidden). */
+        /* Locked pages expose identity + countdown + the PAST gifts list (the
+           current gift is withheld to stay a surprise) — but no greeting or
+           games (the celebration itself stays hidden). */
         if (access.state === "locked") {
             const translations = this.buildTranslations(cfg, true);
             return {
@@ -339,8 +343,7 @@ export default class FriendRepository {
                 accent: cfg.accent ?? DEFAULT_ACCENT,
                 games: [],
                 avatarUrl: `/friends/${slug}/${cfg.avatar}`,
-                ...(giftHistory.length ? { giftHistory } : {}),
-                ...(gift ? { gift } : {}),
+                ...(past.length ? { giftHistory: past } : {}),
                 gamesEnabled,
                 giftDisplay,
                 giftLayout,
@@ -365,7 +368,6 @@ export default class FriendRepository {
             accent: cfg.accent ?? DEFAULT_ACCENT,
             games: gamesEnabled ? cfg.games : [],
             avatarUrl: `/friends/${slug}/${cfg.avatar}`,
-            ...(giftHistory.length ? { giftHistory } : {}),
             gamesEnabled,
             giftDisplay,
             giftLayout,

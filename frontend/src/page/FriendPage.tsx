@@ -23,7 +23,6 @@ import { EarnExplainer } from "../components/EarnExplainer.tsx";
 
 import { Hero } from "./Hero.tsx";
 import { GiftCard } from "./GiftCard.tsx";
-import { GiftList } from "./GiftList.tsx";
 import { GamesGrid } from "./GamesGrid.tsx";
 import { PetCompanion } from "../pet/PetCompanion.tsx";
 
@@ -126,14 +125,9 @@ export function FriendPage({ friend, site }: FriendPageProps) {
           </p>
         </StickerCard>
 
-        {/* Gift: a single current card, or the full dated list (owner setting). */}
-        {friend.giftDisplay === "all" && friend.giftHistory && friend.giftHistory.length > 0 ? (
-          <div className="flex justify-center">
-            <GiftList gifts={friend.giftHistory} layout={friend.giftLayout} />
-          </div>
-        ) : (
-          localizedGift && <GiftCard gift={localizedGift} />
-        )}
+        {/* The open page features the single current gift; the past-gifts list
+           is shown on the locked page instead (see LockedPage). */}
+        {localizedGift && <GiftCard gift={localizedGift} />}
 
         {/* Games + scores — hidden entirely when the friend turned them off. */}
         {friend.gamesEnabled && (

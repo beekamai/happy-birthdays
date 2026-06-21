@@ -25,3 +25,17 @@ export function resolveCurrentGift(cfg: FriendConfig): GiftLike | undefined {
     if (history.length === 0) return undefined;
     return [...history].sort((a, b) => (a.date ?? "").localeCompare(b.date ?? "")).at(-1);
 }
+
+/*
+ * The "past" gifts shown on the locked page: the full history minus the current
+ * gift, so the current one stays a surprise until the birthday. Matched by name
+ * (a gift's name is its user-facing identity). With no current gift, the whole
+ * history counts as past.
+ */
+export function pastGifts<T extends { name: string }>(
+    history: T[],
+    current: { name: string } | undefined,
+): T[] {
+    if (!current) return history;
+    return history.filter((g) => g.name !== current.name);
+}

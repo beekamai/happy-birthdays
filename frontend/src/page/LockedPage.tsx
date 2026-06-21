@@ -3,7 +3,7 @@ import { useEffect, type CSSProperties } from "react";
 import type { PublicFriend } from "../lib/types.ts";
 import { useTheme } from "../lib/useTheme.ts";
 import { useT, initLang } from "../lib/i18n.ts";
-import { friendDisplayName, friendGiftName } from "../lib/friendContent.ts";
+import { friendDisplayName } from "../lib/friendContent.ts";
 import { ControlBar } from "../components/ControlBar.tsx";
 import { ThemeSwitcher } from "../components/ThemeSwitcher.tsx";
 import { LanguageSwitcher } from "../components/LanguageSwitcher.tsx";
@@ -19,21 +19,17 @@ import {
 } from "../components/decor/Decorations.tsx";
 import { StickerCard } from "../components/decor/StickerCard.tsx";
 import { Countdown } from "./Countdown.tsx";
-import { GiftCard } from "./GiftCard.tsx";
 import { GiftList } from "./GiftList.tsx";
 
 /* Shown outside the birthday window: the friend's identity, a countdown to their
-   next birthday, and their gift as a teaser (honouring `giftDisplay`, like the
-   open page) — but no greeting message, games or scoring. */
+   next birthday, and a list of PAST gifts as a teaser (the current gift is
+   withheld by the backend to stay a surprise) — but no greeting, games or
+   scoring. */
 export function LockedPage({ friend }: { friend: PublicFriend }) {
   const accentStyle = { "--color-accent": friend.accent } as CSSProperties;
   const { theme, setTheme, themes } = useTheme(friend.theme);
   const { t, lang } = useT();
   const name = friendDisplayName(friend, lang);
-  /* Gift card with the name localized to the active language (mirrors FriendPage). */
-  const localizedGift = friend.gift
-    ? { ...friend.gift, name: friendGiftName(friend, lang) }
-    : undefined;
 
   useEffect(() => {
     initLang(friend.lang);
@@ -101,14 +97,10 @@ export function LockedPage({ friend }: { friend: PublicFriend }) {
           </p>
         </StickerCard>
 
-        {/* Gift teaser — same rule as the open page: the full dated list when the
-           owner chose "all", otherwise the single current gift card. */}
-        {friend.giftDisplay === "all" &&
-        friend.giftHistory &&
-        friend.giftHistory.length > 0 ? (
+        {/* Past gifts teaser — the backend sends history minus the current gift,
+           so the current one stays a surprise until the birthday. */}
+        {friend.giftHistory && friend.giftHistory.length > 0 && (
           <GiftList gifts={friend.giftHistory} layout={friend.giftLayout} />
-        ) : (
-          localizedGift && <GiftCard gift={localizedGift} />
         )}
       </div>
     </main>

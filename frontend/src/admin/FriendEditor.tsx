@@ -998,21 +998,13 @@ export function FriendEditor({
                 label={t("editor.field.gamesEnabled")}
               />
 
-              <Field label={t("editor.field.giftDisplay")}>
-                <div className="flex gap-2">
-                  {(["current", "all"] as const).map((opt) => (
-                    <SegBtn
-                      key={opt}
-                      active={(config.giftDisplay ?? "current") === opt}
-                      onClick={() => set("giftDisplay", opt)}
-                    >
-                      {t(`editor.giftDisplay.${opt}`)}
-                    </SegBtn>
-                  ))}
-                </div>
-              </Field>
-
-              <Field label={t("editor.field.giftLayout")}>
+              {/* The current gift shows as a card on the open birthday page; the
+                 past gifts show as this list on the locked page. This only sets
+                 how that past-gifts list looks. */}
+              <Field
+                label={t("editor.field.giftLayout")}
+                hint={t("editor.hint.giftLayout")}
+              >
                 <div className="flex gap-2">
                   {(["list", "blocks"] as const).map((opt) => (
                     <SegBtn
