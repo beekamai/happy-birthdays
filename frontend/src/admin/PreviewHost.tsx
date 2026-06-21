@@ -17,9 +17,9 @@ let previewModeEnabled = false;
 
 /* Renders inside the editor's preview <iframe> (App.tsx routes here when
    window.name === "hb-preview"). The parent posts the live form state as a
-   { friend, site } message; this host decides WHICH page to show via a small
-   open/locked/profile toggle and rebuilds the access window to match — so the
-   owner can preview every state from one unsaved form. Theme/lang come from the
+   { friend, site, view } message; the editor's view toggle picks WHICH page to
+   show, and this host rebuilds the access window to match — so the owner can
+   preview every state from one unsaved form. Theme/lang come from the
    form: preview mode (setThemePreviewMode/setLangPreviewMode) makes the page's
    useTheme/initLang ignore the owner's stored override WITHOUT writing it, so
    nothing leaks back into the editor chrome. */
@@ -30,6 +30,8 @@ interface PreviewMessage {
   type: "hb-preview";
   friend: PublicFriend;
   site: SiteConfig | null;
+  /* Which page to preview — driven by the editor's view toggle. */
+  view: PreviewView;
 }
 
 function isPreviewMessage(data: unknown): data is PreviewMessage {
@@ -60,6 +62,7 @@ export function PreviewHost() {
       if (!isPreviewMessage(event.data)) return;
       setFriend(event.data.friend);
       setSite(event.data.site);
+      if (event.data.view) setView(event.data.view);
     };
     window.addEventListener("message", onMessage);
     /* Announce readiness so a late-mounting host still gets the current data. */
@@ -69,21 +72,21 @@ export function PreviewHost() {
 
   /* Apply the form's language to this frame's i18n singleton (preview mode keeps
      it from persisting). The previewed pages also call initLang, but doing it
-     here keeps the toggle bar and waiting card in the form's language too. */
+     here keeps the waiting card in the form's language too. */
   useEffect(() => {
     if (friend) initLang(friend.lang);
   }, [friend?.lang]);
 
-  /* Apply the form's theme to this iframe's document so the host chrome (toggle
-     bar, waiting card) is themed even before a page mounts; the previewed page's
-     useTheme then keeps it in sync (preview mode → no stored override, no write). */
+  /* Apply the form's theme to this iframe's document so the waiting card is
+     themed even before a page mounts; the previewed page's useTheme then keeps
+     it in sync (preview mode → no stored override, no write). */
   useEffect(() => {
     if (friend) document.documentElement.dataset.theme = friend.theme;
   }, [friend?.theme]);
 
-  /* Rebuild the friend with the access window the chosen view implies, so the
-     toggle switches between open / locked without a new message. Birthday lives
-     in the friend payload, so this is a pure local recompute. */
+  /* Rebuild the friend with the access window the chosen view implies, so
+     switching view recomputes open / locked locally. Birthday lives in the
+     friend payload, so this is a pure local recompute. */
   const shaped = useMemo<PublicFriend | null>(() => {
     if (!friend) return null;
     if (view === "locked") {
@@ -94,29 +97,23 @@ export function PreviewHost() {
     return { ...friend, access };
   }, [friend, view]);
 
-  return (
-    <div className="min-h-[100dvh] bg-[var(--color-cream)]">
-      <PreviewToggle view={view} onChange={setView} t={t} />
-      {!shaped ? (
-        <div className="flex min-h-[60vh] items-center justify-center px-6">
-          <StickerCard hover={false} className="max-w-xs text-center">
-            <span className="block text-4xl select-none" aria-hidden="true">
-              ✨
-            </span>
-            <p className="mt-3 text-sm text-[var(--color-text-soft)]">
-              {t("editor.preview.waiting")}
-            </p>
-          </StickerCard>
-        </div>
-      ) : view === "locked" ? (
-        <LockedPage friend={shaped} />
-      ) : view === "profile" ? (
-        <ProfilePage friend={shaped} />
-      ) : (
-        <FriendPage friend={shaped} site={site} />
-      )}
-    </div>
-  );
+  if (!shaped) {
+    return (
+      <div className="flex min-h-[100dvh] items-center justify-center bg-[var(--color-cream)] px-6">
+        <StickerCard hover={false} className="max-w-xs text-center">
+          <span className="block text-4xl select-none" aria-hidden="true">
+            ✨
+          </span>
+          <p className="mt-3 text-sm text-[var(--color-text-soft)]">
+            {t("editor.preview.waiting")}
+          </p>
+        </StickerCard>
+      </div>
+    );
+  }
+  if (view === "locked") return <LockedPage friend={shaped} />;
+  if (view === "profile") return <ProfilePage friend={shaped} />;
+  return <FriendPage friend={shaped} site={site} />;
 }
 
 /* Re-derive an "MM-DD" string from the parsed birthday so the access helpers can
@@ -126,45 +123,4 @@ function birthdayString(b: PublicFriend["birthday"]): string {
   const mm = String(b.month).padStart(2, "0");
   const dd = String(b.day).padStart(2, "0");
   return b.year ? `${b.year}-${mm}-${dd}` : `${mm}-${dd}`;
-}
-
-/* Compact segmented control pinned above the previewed page so the owner can
-   flip which state to inspect. Sits in a sticky bar; the page scrolls beneath. */
-function PreviewToggle({
-  view,
-  onChange,
-  t,
-}: {
-  view: PreviewView;
-  onChange: (v: PreviewView) => void;
-  t: (key: string) => string;
-}) {
-  const options: { id: PreviewView; label: string }[] = [
-    { id: "open", label: t("editor.preview.view.open") },
-    { id: "locked", label: t("editor.preview.view.locked") },
-    { id: "profile", label: t("editor.preview.view.profile") },
-  ];
-  return (
-    <div className="sticky top-0 z-50 flex justify-center gap-1.5 border-b-[2px] border-[var(--color-muted)] bg-[var(--color-surface)]/95 px-3 py-2 backdrop-blur">
-      {options.map((opt) => (
-        <button
-          key={opt.id}
-          type="button"
-          onClick={() => onChange(opt.id)}
-          aria-pressed={view === opt.id}
-          className="rounded-[var(--radius-full)] border-[2px] px-3 py-1.5 text-xs font-bold transition-colors"
-          style={{
-            borderColor: view === opt.id ? "var(--color-accent)" : "var(--color-muted)",
-            backgroundColor:
-              view === opt.id
-                ? "color-mix(in srgb, var(--color-accent) 16%, transparent)"
-                : "transparent",
-            color: "var(--color-text)",
-          }}
-        >
-          {opt.label}
-        </button>
-      ))}
-    </div>
-  );
 }

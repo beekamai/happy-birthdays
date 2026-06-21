@@ -10,10 +10,14 @@ import { ProfilePage } from "./page/ProfilePage.tsx";
 import { Landing } from "./page/Landing.tsx";
 import { AboutPage } from "./page/AboutPage.tsx";
 import { NotFound } from "./page/NotFound.tsx";
-import { PreviewHost } from "./admin/PreviewHost.tsx";
-
 /* The admin bundle is code-split: the public birthday pages never download it. */
 const AdminApp = lazy(() => import("./admin/AdminApp.tsx"));
+
+/* The live-preview host is editor-only too — lazy so the public bundle stays
+   lean; it loads only inside the preview iframe (window.name === "hb-preview"). */
+const PreviewHost = lazy(() =>
+  import("./admin/PreviewHost.tsx").then((m) => ({ default: m.PreviewHost })),
+);
 
 /* Read the route slug from the path: "/alumi" -> "alumi", "/" -> "". No router;
    the backend serves the same SPA shell on every path. */
@@ -27,7 +31,13 @@ export function App() {
      first — before any routing or friend lookup — so the iframe renders the
      preview host instead of a real route. The iframe inherits `name` from its
      attribute, so inside it window.name === "hb-preview". */
-  if (window.name === "hb-preview") return <PreviewHost />;
+  if (window.name === "hb-preview") {
+    return (
+      <Suspense fallback={<LoadingState />}>
+        <PreviewHost />
+      </Suspense>
+    );
+  }
 
   const slug = readSlug();
   const pathname = window.location.pathname;

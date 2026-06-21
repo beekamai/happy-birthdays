@@ -320,6 +320,10 @@ export default class FriendRepository {
                   ...(current.link ? { link: current.link } : {}),
               }
             : undefined;
+        /* The locked page shows the gift list; fall back to the single current
+           gift when there's no history yet, so a friend with only a `gift` (no
+           giftHistory) still shows it as a one-item list. */
+        const lockedGifts = giftHistory.length ? giftHistory : gift ? [gift] : [];
         const gamesEnabled = cfg.gamesEnabled ?? true;
         const giftDisplay = cfg.giftDisplay ?? "current";
         const giftLayout = cfg.giftLayout ?? "blocks";
@@ -341,7 +345,7 @@ export default class FriendRepository {
                 accent: cfg.accent ?? DEFAULT_ACCENT,
                 games: [],
                 avatarUrl: `/friends/${slug}/${cfg.avatar}`,
-                ...(giftHistory.length ? { giftHistory } : {}),
+                ...(lockedGifts.length ? { giftHistory: lockedGifts } : {}),
                 gamesEnabled,
                 giftDisplay,
                 giftLayout,

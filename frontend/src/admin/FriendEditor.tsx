@@ -222,6 +222,9 @@ export function FriendEditor({
      onLoad as a belt-and-braces fallback. */
   const previewRef = useRef<HTMLIFrameElement | null>(null);
   const previewReady = useRef(false);
+  /* Which page the preview shows; the toggle lives in the preview column (above
+     the iframe) so it never overlaps the previewed page's own control bar. */
+  const [previewView, setPreviewView] = useState<"open" | "locked" | "profile">("open");
   /* Pending avatar files (create mode defers upload until the slug exists). */
   const pendingMain = useRef<File | null>(null);
   const pendingPuzzle = useRef<File | null>(null);
@@ -340,10 +343,10 @@ export function FriendEditor({
       access: openAccess(config.birthday),
     });
     previewRef.current?.contentWindow?.postMessage(
-      { type: "hb-preview", friend, site: null },
+      { type: "hb-preview", friend, site: null, view: previewView },
       window.location.origin,
     );
-  }, [config, slug, previewAvatarUrl]);
+  }, [config, slug, previewAvatarUrl, previewView]);
 
   /* Debounce ~300ms so a burst of keystrokes coalesces into one post. */
   useEffect(() => {
@@ -1176,6 +1179,20 @@ export function FriendEditor({
             <p className="mb-2 px-1 text-sm font-bold text-[var(--color-text-soft)]">
               {t("editor.preview.label")}
             </p>
+            {/* View toggle — which page to preview. Lives here (editor chrome),
+               not inside the frame, so it never overlaps the previewed page's
+               own top-right controls. */}
+            <div className="mb-2 flex gap-1.5">
+              {(["open", "locked", "profile"] as const).map((v) => (
+                <SegBtn
+                  key={v}
+                  active={previewView === v}
+                  onClick={() => setPreviewView(v)}
+                >
+                  {t(`editor.preview.view.${v}`)}
+                </SegBtn>
+              ))}
+            </div>
             {/* Live preview: same SPA in an isolated frame, fed the unsaved form
                state over postMessage (see the effects above). Kept mounted in
                every mode (incl. create) so edits reflect without a save. The

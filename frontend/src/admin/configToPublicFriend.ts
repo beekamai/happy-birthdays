@@ -129,6 +129,11 @@ export function configToPublicFriend(
       }
     : undefined;
 
+  /* The locked page shows the gift list; fall back to the single current gift
+     when there's no history, so a lone `gift` still appears as a one-item list
+     (mirrors FriendRepository). */
+  const lockedGifts = giftHistory.length ? giftHistory : gift ? [gift] : [];
+
   const locked = opts.access.state === "locked";
 
   /* Locked pages hide the greeting (and its translations), the games and the
@@ -142,7 +147,7 @@ export function configToPublicFriend(
     accent: cfg.accent || DEFAULT_ACCENT,
     games: gamesEnabled && !locked ? cfg.games : [],
     avatarUrl: opts.avatarUrl,
-    ...(giftHistory.length ? { giftHistory } : {}),
+    ...(lockedGifts.length ? { giftHistory: lockedGifts } : {}),
     gamesEnabled,
     giftDisplay: cfg.giftDisplay ?? "current",
     giftLayout: cfg.giftLayout ?? "list",
