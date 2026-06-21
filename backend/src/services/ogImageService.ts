@@ -16,6 +16,7 @@ import {
 import FriendRepository from "../repositories/FriendRepository";
 import type { FriendConfig } from "../models/Friend";
 import { parseBirthday } from "../schemas/friend.schema";
+import { resolveCurrentGift } from "../utils/gift";
 import { shortHash } from "../utils/hash";
 import { readAvatarDataUri, fileMtimeMs } from "../utils/avatarAsset";
 import { emojiToDataUri } from "../utils/twemoji";
@@ -135,7 +136,8 @@ export default class OgImageService {
                 return null;
             }
 
-            const giftEmojiDataUri = cfg.gift?.emoji ? emojiToDataUri(cfg.gift.emoji) : null;
+            const currentGift = resolveCurrentGift(cfg);
+            const giftEmojiDataUri = currentGift?.emoji ? emojiToDataUri(currentGift.emoji) : null;
             const dateText = formatRuDate(parseBirthday(cfg.birthday));
             const accent = cfg.accent ?? DEFAULT_ACCENT;
 

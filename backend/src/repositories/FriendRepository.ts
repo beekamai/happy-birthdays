@@ -12,6 +12,7 @@ import {
 import type { FriendConfig, PublicFriend, SiteConfig } from "../models/Friend";
 import { validateFriendConfig, parseBirthday } from "../schemas/friend.schema";
 import { computeAccess } from "../utils/access";
+import { resolveCurrentGift } from "../utils/gift";
 import { assertInside } from "../utils/paths";
 import Logger from "../utils/Logger";
 
@@ -304,6 +305,21 @@ export default class FriendRepository {
         const birthday = parseBirthday(cfg.birthday);
         const access = computeAccess(birthday.month, birthday.day);
         const giftHistory = this.buildGiftHistory(slug, cfg);
+        /* The featured "current" gift — explicit cfg.gift, or the most recent
+           history entry as a fallback (see resolveCurrentGift). Shared by the
+           open page, the locked teaser and the OG card. */
+        const current = resolveCurrentGift(cfg);
+        const gift: PublicFriend["gift"] = current
+            ? {
+                  name: current.name,
+                  emoji: current.emoji ?? "🎁",
+                  ...(current.lottie ? { lottie: current.lottie } : {}),
+                  ...(current.imagePath
+                      ? { imageUrl: `/friends/${slug}/${current.imagePath}` }
+                      : {}),
+                  ...(current.link ? { link: current.link } : {}),
+              }
+            : undefined;
         const gamesEnabled = cfg.gamesEnabled ?? true;
         const giftDisplay = cfg.giftDisplay ?? "current";
         const giftLayout = cfg.giftLayout ?? "blocks";
@@ -324,6 +340,7 @@ export default class FriendRepository {
                 games: [],
                 avatarUrl: `/friends/${slug}/${cfg.avatar}`,
                 ...(giftHistory.length ? { giftHistory } : {}),
+                ...(gift ? { gift } : {}),
                 gamesEnabled,
                 giftDisplay,
                 giftLayout,
@@ -366,17 +383,7 @@ export default class FriendRepository {
             friend.puzzleAvatarUrl = `/friends/${slug}/${cfg.puzzleAvatar}`;
         }
 
-        if (cfg.gift) {
-            friend.gift = {
-                name: cfg.gift.name,
-                emoji: cfg.gift.emoji,
-                ...(cfg.gift.lottie ? { lottie: cfg.gift.lottie } : {}),
-                ...(cfg.gift.imagePath
-                    ? { imageUrl: `/friends/${slug}/${cfg.gift.imagePath}` }
-                    : {}),
-                ...(cfg.gift.link ? { link: cfg.gift.link } : {}),
-            };
-        }
+        if (gift) friend.gift = gift;
 
         return friend;
     }
