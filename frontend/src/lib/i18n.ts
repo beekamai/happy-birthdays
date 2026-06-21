@@ -326,9 +326,9 @@ const ru: Record<string, string> = {
   "editor.socialStyle.icon": "С иконками",
   "editor.socialStyle.iconOnly": "Только иконки",
   "editor.socialStyle.text": "Без иконок",
-  "editor.field.giftLayout": "Список прошлых подарков",
+  "editor.field.giftLayout": "Список подарков",
   "editor.hint.giftLayout":
-    "Текущий подарок показывается карточкой в день рождения; прошлые — этим списком на закрытой странице. Здесь настраивается только его вид.",
+    "В день рождения текущий подарок показывается карточкой; до него все подарки видны этим списком на закрытой странице. Здесь настраивается его вид.",
   "editor.giftLayout.list": "Список",
   "editor.giftLayout.blocks": "Блоки",
   "editor.field.lang": "Язык страницы",
@@ -684,9 +684,9 @@ const en: Record<string, string> = {
   "editor.socialStyle.icon": "With icons",
   "editor.socialStyle.iconOnly": "Icons only",
   "editor.socialStyle.text": "Text only",
-  "editor.field.giftLayout": "Past-gifts list",
+  "editor.field.giftLayout": "Gift list",
   "editor.hint.giftLayout":
-    "The current gift shows as a card on the birthday; past gifts show as this list on the locked page. This only sets how that list looks.",
+    "On the birthday the current gift shows as a card; before it, all gifts show as this list on the locked page. This only sets how the list looks.",
   "editor.giftLayout.list": "List",
   "editor.giftLayout.blocks": "Blocks",
   "editor.field.lang": "Page language",

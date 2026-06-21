@@ -12,7 +12,7 @@ import {
 import type { FriendConfig, PublicFriend, SiteConfig } from "../models/Friend";
 import { validateFriendConfig, parseBirthday } from "../schemas/friend.schema";
 import { computeAccess } from "../utils/access";
-import { resolveCurrentGift, pastGifts } from "../utils/gift";
+import { resolveCurrentGift } from "../utils/gift";
 import { assertInside } from "../utils/paths";
 import Logger from "../utils/Logger";
 
@@ -320,20 +320,16 @@ export default class FriendRepository {
                   ...(current.link ? { link: current.link } : {}),
               }
             : undefined;
-        /* Past gifts shown on the locked page — the history minus only the
-           EXPLICITLY-marked current gift (cfg.gift), so a deliberately-set
-           current gift is a surprise, while a lone un-marked gift still shows. */
-        const past = pastGifts(giftHistory, cfg.gift);
         const gamesEnabled = cfg.gamesEnabled ?? true;
         const giftDisplay = cfg.giftDisplay ?? "current";
         const giftLayout = cfg.giftLayout ?? "blocks";
         const lang = cfg.lang ?? "ru";
         const theme = cfg.theme ?? "light";
 
-        /* Locked pages expose identity + countdown + the past-gifts list (an
-           explicitly-marked current gift is withheld to stay a surprise; an
-           un-marked lone gift still shows) — but no greeting or games (the
-           celebration itself stays hidden). */
+        /* Locked pages expose identity + countdown + the full gift list as a
+           teaser — but no greeting or games (the celebration itself stays
+           hidden). The current gift is also featured as a card on the open
+           page; here it simply appears within the list. */
         if (access.state === "locked") {
             const translations = this.buildTranslations(cfg, true);
             return {
@@ -345,7 +341,7 @@ export default class FriendRepository {
                 accent: cfg.accent ?? DEFAULT_ACCENT,
                 games: [],
                 avatarUrl: `/friends/${slug}/${cfg.avatar}`,
-                ...(past.length ? { giftHistory: past } : {}),
+                ...(giftHistory.length ? { giftHistory } : {}),
                 gamesEnabled,
                 giftDisplay,
                 giftLayout,

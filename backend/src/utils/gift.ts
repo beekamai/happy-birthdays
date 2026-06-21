@@ -25,19 +25,3 @@ export function resolveCurrentGift(cfg: FriendConfig): GiftLike | undefined {
     if (history.length === 0) return undefined;
     return [...history].sort((a, b) => (a.date ?? "").localeCompare(b.date ?? "")).at(-1);
 }
-
-/*
- * The "past" gifts shown on the locked page: the history minus the explicitly
- * featured gift, so a deliberately-set current gift stays a surprise until the
- * birthday. When no current gift is marked, the WHOLE history shows (a lone,
- * un-marked gift is an ordinary gift, not a hidden surprise). Pass the explicit
- * `cfg.gift` here — not a fallback — so only an intentional choice hides a gift.
- * Matched by name (a gift's name is its user-facing identity).
- */
-export function pastGifts<T extends { name: string }>(
-    history: T[],
-    featured: { name: string } | undefined,
-): T[] {
-    if (!featured) return history;
-    return history.filter((g) => g.name !== featured.name);
-}

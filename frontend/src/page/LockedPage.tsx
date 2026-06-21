@@ -22,9 +22,8 @@ import { Countdown } from "./Countdown.tsx";
 import { GiftList } from "./GiftList.tsx";
 
 /* Shown outside the birthday window: the friend's identity, a countdown to their
-   next birthday, and a list of PAST gifts as a teaser (the current gift is
-   withheld by the backend to stay a surprise) — but no greeting, games or
-   scoring. */
+   next birthday, and the gift list as a teaser — but no greeting, games or
+   scoring. The current gift is featured as a card on the open page instead. */
 export function LockedPage({ friend }: { friend: PublicFriend }) {
   const accentStyle = { "--color-accent": friend.accent } as CSSProperties;
   const { theme, setTheme, themes } = useTheme(friend.theme);
@@ -97,8 +96,7 @@ export function LockedPage({ friend }: { friend: PublicFriend }) {
           </p>
         </StickerCard>
 
-        {/* Past gifts teaser — the backend sends history minus the current gift,
-           so the current one stays a surprise until the birthday. */}
+        {/* Gift list teaser (the open page features the current gift as a card). */}
         {friend.giftHistory && friend.giftHistory.length > 0 && (
           <GiftList gifts={friend.giftHistory} layout={friend.giftLayout} />
         )}
