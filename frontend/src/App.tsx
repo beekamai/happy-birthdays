@@ -10,6 +10,7 @@ import { ProfilePage } from "./page/ProfilePage.tsx";
 import { Landing } from "./page/Landing.tsx";
 import { AboutPage } from "./page/AboutPage.tsx";
 import { NotFound } from "./page/NotFound.tsx";
+import { PreviewHost } from "./admin/PreviewHost.tsx";
 
 /* The admin bundle is code-split: the public birthday pages never download it. */
 const AdminApp = lazy(() => import("./admin/AdminApp.tsx"));
@@ -21,6 +22,13 @@ function readSlug(): string {
 }
 
 export function App() {
+  /* The editor's live preview loads this same SPA inside an <iframe name=
+     "hb-preview"> and feeds it the unsaved form state via postMessage. Branch
+     first — before any routing or friend lookup — so the iframe renders the
+     preview host instead of a real route. The iframe inherits `name` from its
+     attribute, so inside it window.name === "hb-preview". */
+  if (window.name === "hb-preview") return <PreviewHost />;
+
   const slug = readSlug();
   const pathname = window.location.pathname;
 

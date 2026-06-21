@@ -11,6 +11,16 @@ export const THEMES: ThemeName[] = ["light", "dark", "halloween", "newyear"];
 
 const STORAGE_KEY = "hb-theme";
 
+/* The editor's live preview must reflect the FORM's theme, not the owner's own
+   visitor override (which is shared via same-origin localStorage). Preview mode
+   makes the stored override invisible, so `useTheme` resolves to the passed
+   default (the form's theme) and never writes/leaks. Enabled only inside the
+   preview iframe (see PreviewHost). */
+let ignoreStoredOverride = false;
+export function setThemePreviewMode(on: boolean): void {
+  ignoreStoredOverride = on;
+}
+
 function isTheme(value: unknown): value is ThemeName {
   return (
     value === "light" ||
@@ -22,6 +32,7 @@ function isTheme(value: unknown): value is ThemeName {
 
 /* The visitor's saved override, or null when they haven't picked one. */
 function readStored(): ThemeName | null {
+  if (ignoreStoredOverride) return null;
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     return isTheme(raw) ? raw : null;

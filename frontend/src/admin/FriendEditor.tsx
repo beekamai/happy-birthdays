@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ChangeEvent, CSSProperties, ReactNode } from "react";
 
 import { StickerCard } from "../components/decor/StickerCard.tsx";
@@ -18,6 +18,7 @@ import {
   type FriendLimitedUpdate,
 } from "./adminApi.ts";
 import { GiftManager } from "./GiftManager.tsx";
+import { configToPublicFriend, openAccess } from "./configToPublicFriend.ts";
 import {
   Field,
   Input,
@@ -36,8 +37,19 @@ import {
                 avatar, bio, socials, gamesEnabled, giftDisplay, giftLayout,
                 lang, theme, translations — not username/slug/message/gift)
 
-   A live <iframe> preview of the SAVED page sits beside the form on desktop and
-   below it on mobile; it reloads (via a bumped key) after each successful save. */
+   A live <iframe name="hb-preview"> sits beside the form on desktop and below it
+   on mobile. It loads the same SPA, which renders PreviewHost (App.tsx branches
+   on window.name); the editor posts the unsaved form state via postMessage so
+   the preview reflects every edit instantly — even before the first save. */
+
+/* Neutral placeholder avatar (no emoji) shown in the preview before an image is
+   picked or saved — a soft cream circle on the accent ring, inline so it needs
+   no network round-trip inside the iframe. */
+const PLACEHOLDER_AVATAR =
+  "data:image/svg+xml;utf8," +
+  encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160"><rect width="160" height="160" rx="80" fill="#f3e9dd"/><circle cx="80" cy="64" r="30" fill="#d8c7b0"/><rect x="34" y="104" width="92" height="60" rx="30" fill="#d8c7b0"/></svg>',
+  );
 
 const GAME_IDS = [
   "feed-fox",
@@ -204,8 +216,12 @@ export function FriendEditor({
   /* Flips true after a successful create so further saves go to PUT, not a
      second POST (avoids a double-create on a second click). */
   const [editMode, setEditMode] = useState(false);
-  /* Bumping this reloads the preview iframe. */
-  const [previewKey, setPreviewKey] = useState(0);
+  /* The live-preview iframe and its readiness flag. PreviewHost (inside the
+     frame) posts "hb-preview-ready" once mounted; until then a posted message
+     would be dropped, so we gate the first send on it and re-send on iframe
+     onLoad as a belt-and-braces fallback. */
+  const previewRef = useRef<HTMLIFrameElement | null>(null);
+  const previewReady = useRef(false);
   /* Pending avatar files (create mode defers upload until the slug exists). */
   const pendingMain = useRef<File | null>(null);
   const pendingPuzzle = useRef<File | null>(null);
@@ -300,6 +316,53 @@ export function FriendEditor({
         : deriveSlug(config?.username ?? ""),
     [slugOverride, config?.username],
   );
+
+  /* ---- Live preview wiring (must stay above every early return) -------- */
+  /* The avatar URL the preview should show: a freshly-picked (not-yet-uploaded)
+     blob wins, then the saved file once a slug exists, else a neutral
+     placeholder so create-mode previews render before any upload. */
+  const previewAvatarUrl = mainPreview
+    ? mainPreview
+    : config?.avatar && slug
+      ? `/friends/${slug}/${config.avatar}`
+      : PLACEHOLDER_AVATAR;
+
+  /* Push the current form state into the preview iframe. The host owns the
+     open/locked/profile toggle, so we send friend + site only (site=null — the
+     public page tolerates it) and let it recompute the access window per view.
+     A no-op until PreviewHost has announced readiness (its message would
+     otherwise be dropped before its listener mounts). */
+  const sendPreview = useCallback(() => {
+    if (!config || !previewReady.current) return;
+    const friend = configToPublicFriend(config, {
+      slug: slug || undefined,
+      avatarUrl: previewAvatarUrl,
+      access: openAccess(config.birthday),
+    });
+    previewRef.current?.contentWindow?.postMessage(
+      { type: "hb-preview", friend, site: null },
+      window.location.origin,
+    );
+  }, [config, slug, previewAvatarUrl]);
+
+  /* Debounce ~300ms so a burst of keystrokes coalesces into one post. */
+  useEffect(() => {
+    const id = window.setTimeout(sendPreview, 300);
+    return () => window.clearTimeout(id);
+  }, [sendPreview]);
+
+  /* PreviewHost posts "hb-preview-ready" when it mounts; flip the flag and push
+     the current state at once so the first paint isn't a debounce late. */
+  useEffect(() => {
+    const onReady = (event: MessageEvent) => {
+      if (event.origin !== window.location.origin) return;
+      if ((event.data as { type?: unknown })?.type !== "hb-preview-ready") return;
+      previewReady.current = true;
+      sendPreview();
+    };
+    window.addEventListener("message", onReady);
+    return () => window.removeEventListener("message", onReady);
+  }, [sendPreview]);
 
   if (loading) return <Spinner label={t("editor.loading")} />;
 
@@ -567,7 +630,6 @@ export function FriendEditor({
         setConfig(savedConfig);
         setSlug(newSlug);
         setEditMode(true); /* further saves now PUT, not POST */
-        setPreviewKey((k) => k + 1);
         show(t("editor.toast.created"), "success");
       } else if (isLimited) {
         const merged = withTranslations(config);
@@ -586,14 +648,12 @@ export function FriendEditor({
           translations: merged.translations,
         };
         await updateFriend(slug, subset);
-        setPreviewKey((k) => k + 1);
         show(t("editor.toast.saved"), "success");
       } else {
         await updateFriend(
           slug,
           normalizeConfigForSave(withTranslations(config), t("editor.giftName.default")),
         );
-        setPreviewKey((k) => k + 1);
         show(t("editor.toast.saved"), "success");
       }
     } catch (err) {
@@ -628,9 +688,6 @@ export function FriendEditor({
       setConfirmDelete(false);
     }
   };
-
-  /* We can preview as soon as a slug exists (set on load, or after create). */
-  const previewSlug = slug;
 
   /* ---- Avatar tile (shared by main + puzzle) --------------------------- */
   const avatarTile = (
@@ -1119,21 +1176,22 @@ export function FriendEditor({
             <p className="mb-2 px-1 text-sm font-bold text-[var(--color-text-soft)]">
               {t("editor.preview.label")}
             </p>
-            {previewSlug ? (
-              <iframe
-                key={previewKey}
-                src={`/${previewSlug}`}
-                title={t("editor.preview.title")}
-                className="h-[360px] w-full rounded-[var(--radius-md)] border-[2px] border-[var(--color-muted)] bg-[var(--color-cream)] lg:h-[560px]"
-              />
-            ) : (
-              <div className="flex h-[360px] flex-col items-center justify-center gap-2 rounded-[var(--radius-md)] border-[2px] border-dashed border-[var(--color-muted)] bg-[var(--color-cream)] text-center text-[var(--color-text-soft)] lg:h-[560px]">
-                <span className="text-4xl select-none" aria-hidden="true">
-                  ✨
-                </span>
-                <p className="px-6 text-sm">{t("editor.preview.empty")}</p>
-              </div>
-            )}
+            {/* Live preview: same SPA in an isolated frame, fed the unsaved form
+               state over postMessage (see the effects above). Kept mounted in
+               every mode (incl. create) so edits reflect without a save. The
+               readiness handshake re-sends on onLoad in case the ready ping
+               raced the listener. */}
+            <iframe
+              ref={previewRef}
+              name="hb-preview"
+              src="/"
+              title={t("editor.preview.title")}
+              onLoad={() => {
+                previewReady.current = true;
+                sendPreview();
+              }}
+              className="h-[360px] w-full rounded-[var(--radius-md)] border-[2px] border-[var(--color-muted)] bg-[var(--color-cream)] lg:h-[560px]"
+            />
           </StickerCard>
           {/* Desktop (two columns): actions live under the preview panel. */}
           {actionButtons("mt-4 hidden lg:flex")}

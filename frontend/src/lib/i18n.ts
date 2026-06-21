@@ -346,9 +346,13 @@ const ru: Record<string, string> = {
   "editor.delete.title": "Удалить страничку?",
   "editor.delete.text": "«{name}» и личный профиль будут удалены навсегда. Это необратимо.",
   "editor.delete.confirm": "Удалить навсегда",
-  "editor.preview.label": "👀 Превью (сохранённое состояние)",
+  "editor.preview.label": "👀 Живое превью",
   "editor.preview.title": "Превью странички",
   "editor.preview.empty": "Создай страничку — и тут появится живое превью.",
+  "editor.preview.waiting": "Превью обновится по мере редактирования",
+  "editor.preview.view.open": "Открытая",
+  "editor.preview.view.locked": "Закрытая",
+  "editor.preview.view.profile": "Профиль",
 
   /* Translation panel */
   "editor.section.translation": "🌐 Перевод на {lang}",
@@ -704,9 +708,13 @@ const en: Record<string, string> = {
   "editor.delete.title": "Delete page?",
   "editor.delete.text": "“{name}” and the personal profile will be permanently deleted. This can't be undone.",
   "editor.delete.confirm": "Delete forever",
-  "editor.preview.label": "👀 Preview (saved state)",
+  "editor.preview.label": "👀 Live preview",
   "editor.preview.title": "Page preview",
   "editor.preview.empty": "Create the page — a live preview will appear here.",
+  "editor.preview.waiting": "Preview updates as you edit",
+  "editor.preview.view.open": "Open",
+  "editor.preview.view.locked": "Locked",
+  "editor.preview.view.profile": "Profile",
 
   /* Translation panel */
   "editor.section.translation": "🌐 Translation into {lang}",
@@ -783,6 +791,15 @@ export function subscribe(fn: () => void): () => void {
   };
 }
 
+/* See useTheme.setThemePreviewMode — same rationale for language. The editor
+   preview must show the FORM's language, not the owner's stored `hb-lang`
+   override (shared via same-origin localStorage). Preview mode makes initLang
+   ignore the stored override and resolve to the passed default, without writing. */
+let ignorePreviewLang = false;
+export function setLangPreviewMode(on: boolean): void {
+  ignorePreviewLang = on;
+}
+
 /**
  * Set the initial language: a stored per-visitor override wins, otherwise the
  * passed default (the friend's configured page language). Call once from a page.
@@ -795,7 +812,7 @@ export function initLang(defaultLang: Lang): void {
   } catch {
     /* ignore */
   }
-  const next = isLang(stored) ? stored : defaultLang;
+  const next = isLang(stored) && !ignorePreviewLang ? stored : defaultLang;
   if (next !== lang) {
     lang = next;
     emit();
