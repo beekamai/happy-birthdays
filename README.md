@@ -7,7 +7,8 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-22c55e)](LICENSE)
 
 A cozy, self-hostable birthday-greeting site. Build a personal page for every
-friend, drop in a Lottie gift and a few mini-games, and let them play.
+friend, drop in a Lottie gift and a few mini-games, and let them play — for
+points guests can risk at the page's casino and gift to the birthday friend.
 
 🇬🇧 [English](#english) · 🇷🇺 [Русский](#русский)
 
