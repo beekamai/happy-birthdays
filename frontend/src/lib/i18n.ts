@@ -161,6 +161,84 @@ const ru: Record<string, string> = {
   "shop.toast.refunded": "Возвращено 💰",
   "shop.toast.notEnough": "Не хватает очков",
   "shop.toast.error": "Что-то пошло не так",
+  "shop.donatedShare": "Из них {n} подарили гости из казино 💝",
+
+  /* Casino — the visitor's personal purse, its tables and the gift box */
+  "casino.open": "Казино",
+  "casino.title": "🎰 Казино",
+  "casino.close": "Закрыть",
+  "casino.tables": "Столы",
+  "casino.balance": "Твои фишки: {n}",
+  "casino.earnedHint": "Заработано в мини-играх: {n}",
+  "casino.unavailable": "Казино сейчас закрыто",
+  "casino.rolling": "Крутим…",
+  "casino.broke":
+    "Фишки кончились. Сыграй в мини-игры или забери ежедневный бонус — минимальная ставка {n}.",
+  "casino.house":
+    "Казино всегда чуть в плюсе — так очки нельзя напечатать из воздуха.",
+  "casino.stats": "Игр: {plays} · Поставлено: {wagered} · Выиграно: {won}",
+
+  /* Casino — daily bonus */
+  "casino.bonus.claim": "🎁 Бонус +{n}",
+  "casino.bonus.wait": "Бонус через {n} ч",
+
+  /* Casino — tables */
+  "casino.game.coin.title": "Монетка",
+  "casino.game.coin.hint": "Выбери сторону: угадал — почти удвоил ставку.",
+  "casino.game.coin.action": "Подбросить",
+  "casino.game.dice.title": "Кости",
+  "casino.game.dice.hint": "Угадай грань из шести — риск больше, выигрыш тоже.",
+  "casino.game.dice.action": "Бросить",
+  "casino.game.slots.title": "Слоты",
+  "casino.game.slots.hint": "Три барабана: пара вернёт часть ставки, три рамёна — джекпот.",
+  "casino.game.slots.action": "Крутить",
+
+  /* Casino — outcomes */
+  "casino.outcome.jackpot": "🍜 Джекпот",
+  "casino.outcome.triple": "Три одинаковых",
+  "casino.outcome.pair": "Пара",
+  "casino.outcome.win": "Угадал",
+  "casino.outcome.lose": "Мимо",
+  "casino.result.win": "+{n}",
+  "casino.result.lose": "−{n}",
+
+  /* Casino — bet controls */
+  "casino.bet.amount": "Ставка {n}",
+  "casino.bet.less": "Уменьшить ставку",
+  "casino.bet.more": "Увеличить ставку",
+  "casino.bet.max": "Всё",
+
+  /* Casino — symbol names (aria-labels on the pick buttons) */
+  "casino.symbol.fox": "Лисичка",
+  "casino.symbol.star": "Звезда",
+  "casino.symbol.1": "Один",
+  "casino.symbol.2": "Два",
+  "casino.symbol.3": "Три",
+  "casino.symbol.4": "Четыре",
+  "casino.symbol.5": "Пять",
+  "casino.symbol.6": "Шесть",
+
+  /* Casino — donating your points to the friend */
+  "casino.donate.title": "Подарить фишки: {name}",
+  "casino.donate.hint":
+    "Фишки уйдут в копилку, из которой {name} покупает украшения. Обратно их не вернуть.",
+  "casino.donate.amount": "Сколько подарить",
+  "casino.donate.all": "Все фишки",
+  "casino.donate.send": "💝 Подарить {n}",
+  "casino.donate.tooPoor": "Чтобы подарить, нужно хотя бы {n} фишек",
+  "casino.donate.already": "Уже подарено {name}: {n} 💝",
+  "casino.confirmGiftTitle": "Подарить фишки?",
+  "casino.confirmGift": "Отдать {n} очков в копилку {name}? Отменить будет нельзя.",
+  "casino.confirmGiftYes": "Подарить",
+
+  /* Casino — toasts */
+  "casino.toast.bonus": "Бонус получен: +{n} 🎁",
+  "casino.toast.bonusTaken": "Бонус сегодня уже забрали",
+  "casino.toast.donated": "Подарено {name}: {n} 💝",
+  "casino.toast.notEnough": "Не хватает фишек",
+  "casino.toast.slowDown": "Слишком быстро — передохни секунду",
+  "casino.toast.closed": "Казино сейчас закрыто",
+  "casino.toast.error": "Что-то пошло не так",
 
   /* Earn explainer (how points accrue) */
   "earn.title": "Как зарабатываются очки",
@@ -523,6 +601,84 @@ const en: Record<string, string> = {
   "shop.toast.refunded": "Refunded 💰",
   "shop.toast.notEnough": "Not enough points",
   "shop.toast.error": "Something went wrong",
+  "shop.donatedShare": "{n} of those were gifted by guests from the casino 💝",
+
+  /* Casino — the visitor's personal purse, its tables and the gift box */
+  "casino.open": "Casino",
+  "casino.title": "🎰 Casino",
+  "casino.close": "Close",
+  "casino.tables": "Tables",
+  "casino.balance": "Your chips: {n}",
+  "casino.earnedHint": "Earned in the mini-games: {n}",
+  "casino.unavailable": "The casino is closed right now",
+  "casino.rolling": "Rolling…",
+  "casino.broke":
+    "Out of chips. Play a mini-game or grab the daily bonus — the minimum bet is {n}.",
+  "casino.house":
+    "The house always keeps a sliver — that's what stops points being printed out of thin air.",
+  "casino.stats": "Spins: {plays} · Staked: {wagered} · Won back: {won}",
+
+  /* Casino — daily bonus */
+  "casino.bonus.claim": "🎁 Bonus +{n}",
+  "casino.bonus.wait": "Bonus in {n} h",
+
+  /* Casino — tables */
+  "casino.game.coin.title": "Coin flip",
+  "casino.game.coin.hint": "Call a side — guess right and you nearly double the stake.",
+  "casino.game.coin.action": "Flip it",
+  "casino.game.dice.title": "Dice",
+  "casino.game.dice.hint": "Call one face out of six — riskier, and it pays like it.",
+  "casino.game.dice.action": "Roll it",
+  "casino.game.slots.title": "Slots",
+  "casino.game.slots.hint": "Three reels: a pair gives most of the stake back, three bowls of ramen is the jackpot.",
+  "casino.game.slots.action": "Spin it",
+
+  /* Casino — outcomes */
+  "casino.outcome.jackpot": "🍜 Jackpot",
+  "casino.outcome.triple": "Three of a kind",
+  "casino.outcome.pair": "A pair",
+  "casino.outcome.win": "Called it",
+  "casino.outcome.lose": "Missed",
+  "casino.result.win": "+{n}",
+  "casino.result.lose": "−{n}",
+
+  /* Casino — bet controls */
+  "casino.bet.amount": "Bet {n}",
+  "casino.bet.less": "Lower the bet",
+  "casino.bet.more": "Raise the bet",
+  "casino.bet.max": "All in",
+
+  /* Casino — symbol names (aria-labels on the pick buttons) */
+  "casino.symbol.fox": "Fox",
+  "casino.symbol.star": "Star",
+  "casino.symbol.1": "One",
+  "casino.symbol.2": "Two",
+  "casino.symbol.3": "Three",
+  "casino.symbol.4": "Four",
+  "casino.symbol.5": "Five",
+  "casino.symbol.6": "Six",
+
+  /* Casino — donating your points to the friend */
+  "casino.donate.title": "Gift your chips to {name}",
+  "casino.donate.hint":
+    "They join the pool {name} buys decorations from. There's no taking them back.",
+  "casino.donate.amount": "How much to gift",
+  "casino.donate.all": "Everything",
+  "casino.donate.send": "💝 Gift {n}",
+  "casino.donate.tooPoor": "You need at least {n} chips to gift any",
+  "casino.donate.already": "Already gifted to {name}: {n} 💝",
+  "casino.confirmGiftTitle": "Gift your chips?",
+  "casino.confirmGift": "Hand {n} points to {name}'s pool? This can't be undone.",
+  "casino.confirmGiftYes": "Gift them",
+
+  /* Casino — toasts */
+  "casino.toast.bonus": "Bonus claimed: +{n} 🎁",
+  "casino.toast.bonusTaken": "Today's bonus is already taken",
+  "casino.toast.donated": "Gifted to {name}: {n} 💝",
+  "casino.toast.notEnough": "Not enough chips",
+  "casino.toast.slowDown": "Too fast — take a breath",
+  "casino.toast.closed": "The casino is closed right now",
+  "casino.toast.error": "Something went wrong",
 
   /* Earn explainer (how points accrue) */
   "earn.title": "How points are earned",

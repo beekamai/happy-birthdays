@@ -14,7 +14,8 @@ where things live, and the non-obvious gotchas that will bite you.
 
 Personalised birthday pages: each friend gets a server-rendered page at `/:slug`
 with a countdown, gifts, themes, a fox pet companion, and small arcade games
-whose scores feed a wallet economy (a shop the owner spends points in).
+whose scores feed a wallet economy (a shop the owner spends points in) plus a
+casino where a guest gambles their own points and gifts them to the friend.
 
 - **Monorepo** managed by **Bun workspaces**: repo root + `backend/` + `frontend/`.
 - **Backend** — [ElysiaJS](https://elysiajs.com) 1.4, `bun:sqlite`, server-side
@@ -38,9 +39,10 @@ happy_birthdays/
 ├── backend/
 │   └── src/
 │       ├── app.ts          # Elysia app — ROUTE ORDER IS CRITICAL (Gotcha 1)
-│       ├── routes/         # apiRoutes, authRoutes, adminRoutes, shopRoutes, ogRoutes, assetRoutes, pageRoutes
+│       ├── routes/         # apiRoutes, authRoutes, adminRoutes, shopRoutes, casinoRoutes, ogRoutes, assetRoutes, pageRoutes
 │       ├── controllers/    # per-route handlers (authController, ...)
-│       ├── services/       # business logic — gameScoring.ts (server-authoritative scores), ...
+│       ├── repositories/   # sqlite DALs — ScoreRepository, PurchaseRepository, CasinoRepository (points ledger), ...
+│       ├── services/       # business logic — gameScoring.ts (server-authoritative scores), casino.ts (server-rolled odds), ...
 │       ├── middlewares/    # authMiddleware.ts (authDerive/authMiddleware/ownerMiddleware), rateLimit.ts
 │       ├── handlers/       # errorHandler.ts, responseFilter.ts (withResponseFilter — Gotcha 5)
 │       ├── utils/          # clientIp.ts, gameSession.ts (anti-cheat token), ...
@@ -52,6 +54,10 @@ happy_birthdays/
         │   ├── registry.ts        # GAMES map (5 games) + getGame() — add a game here
         │   ├── game-types.ts      # GameDescriptor
         │   └── Catcher.tsx / SlidePuzzle.tsx / Memory.tsx / Maze.tsx
+        ├── casino/
+        │   ├── Casino.tsx         # the casino modal (tables, bonus, gifting)
+        │   ├── CasinoStage.tsx    # animated roll display
+        │   └── DonatePanel.tsx    # gift-your-points-to-the-friend panel
         ├── styles/theme.css       # design tokens + [data-theme] overrides (4 themes)
         ├── lib/
         │   ├── i18n.ts            # t(), useT(), ru/en dictionaries — all strings go here
@@ -174,6 +180,33 @@ before start** (`bun run build` → `bun run start`).
 - Game scores are **server-authoritative** (`backend/src/services/gameScoring.ts`)
   and gated by an anti-cheat session token (`backend/src/utils/gameSession.ts`).
   Don't trust client-submitted scores.
+- Casino rolls are **server-authoritative** too
+  (`backend/src/services/casino.ts`, `crypto.randomInt` — never `Math.random`).
+  The client posts a stake and a side; the server draws the result, prices it and
+  appends it to the ledger. Never let an outcome arrive from the client, and keep
+  every table's RTP **below 1.0** (see Gotcha 10).
+
+---
+
+### 10. Two purses, one ledger — don't cross the wires
+There are **two** balances and they are not the same money:
+
+| Purse | Whose | Derived from | Spent on |
+|---|---|---|---|
+| Page wallet | the birthday friend | `ScoreRepository.earnedTotals(slug)` + `CasinoRepository.donatedTo(slug)` − purchases | shop decorations |
+| Personal purse | one visitor, per page | `ScoreRepository.personalTotals(slug, visitorId).total` + `CasinoRepository.net(slug, visitorId)` | casino stakes, gifts to the friend |
+
+Neither balance is **stored** — both are recomputed from the score rows and the
+`casino.db` ledger on every read, exactly like the shop wallet always was. So:
+
+- Never write a "balance" column anywhere. Append a ledger row and let the sum
+  move (`CasinoRepository.record`, kinds `bet` / `bonus` / `donation`).
+- Losing at the casino must never shrink the *page* wallet — the friend's pool is
+  computed from raw scores, which the casino never touches.
+- Gifting is the only bridge between the two purses, and it only flows one way.
+- Every new source of points needs an anti-farm story. Today: table RTP < 1.0,
+  `MIN_BET`/`MAX_BET`, the daily bonus gated per `visitorId` **and** per ip, and
+  per-ip rate limits on `/api/casino/*`.
 
 ---
 
@@ -197,6 +230,20 @@ before start** (`bun run build` → `bun run start`).
    `en` in `frontend/src/lib/i18n.ts`.
 4. If the game submits a score, wire it through the server-authoritative scoring
    in `backend/src/services/gameScoring.ts` — never trust a client score.
+
+### Add a casino table
+1. Add the table to `CASINO_GAMES` in `backend/src/services/casino.ts` with its
+   `picks` / `symbols` / `payouts`, and roll it in `spin()`. Draw with
+   `crypto.randomInt`, and **check the RTP stays below 1.0** before committing:
+   `sum(probability × multiplier) < 1` (Gotcha 10).
+2. Map any new symbol id → emoji in `frontend/src/casino/casinoSymbols.ts`, and
+   add its tab icon to `GAME_ICON`.
+3. Add `casino.game.<id>.title` / `.hint` / `.action` and a
+   `casino.symbol.<symbol>` label per new symbol to **both** `ru` and `en` in
+   `frontend/src/lib/i18n.ts`.
+
+The casino UI reads the tables from `GET /api/casino/games`, so nothing else
+needs touching — payouts are never duplicated client-side.
 
 ### Add a theme
 1. Add a new `:root[data-theme="x"] { ... }` block in

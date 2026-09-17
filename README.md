@@ -26,9 +26,11 @@ birthday pages. As the owner you create a page per friend at `/:slug` with an
 avatar, their birth date, a private message, and a gift (a Lottie animation).
 Each page also ships a handful of mini-games.
 
-Guests play the games and earn points; you spend those points in an in-app shop
-on decorations for the page. When a page is shared on Telegram, it renders a
-dynamic, per-friend Open Graph image so the preview feels personal.
+Guests play the games and earn points. Those points are theirs to keep: they can
+risk them at a small in-page casino and then gift whatever they end up with to
+the birthday friend, whose wallet pays for decorations in an in-app shop. When a
+page is shared on Telegram, it renders a dynamic, per-friend Open Graph image so
+the preview feels personal.
 
 ### Features
 
@@ -36,6 +38,7 @@ dynamic, per-friend Open Graph image so the preview feels personal.
 - 🎁 **Lottie gifts** — animated presents rendered with `lottie-react`.
 - 🎮 **5 mini-games** — `feed-fox`, `catch-stars`, `slide-puzzle`, `memory`, `maze`, with server-side scoring and an anti-cheat token.
 - 🛍️ **Points economy** — guests earn points, the owner spends them in a shop on page decorations.
+- 🎰 **Casino & gifting** — guests gamble their own points at three server-rolled tables (coin, dice, slots), take a daily bonus, and gift the winnings into the friend's shop wallet.
 - 🖼️ **Dynamic OG images** — per-friend social previews generated on the fly via `satori` + `resvg`.
 - 🎨 **Cozy Ramen design** — 4 themes (`light` / `dark` / `halloween` / `newyear`) via `[data-theme]` tokens.
 - 🌍 **Bilingual ru/en** — UI in two languages, with optional AI auto-translation of content.
@@ -58,7 +61,7 @@ on the fly — here's an example with demo data:
 | ----------- | ---------------------------------------------------------------------------------- |
 | Runtime     | [Bun](https://bun.sh) monorepo (root + `backend/` + `frontend/`)                   |
 | Backend     | [ElysiaJS](https://elysiajs.com) 1.4, `bun:sqlite`, `satori` + `resvg` for OG       |
-| Databases   | 4 SQLite files: `scores`, `birthdays`, `history`, `shop`                           |
+| Databases   | 5 SQLite files: `scores`, `birthdays`, `history`, `shop`, `casino`                 |
 | Frontend    | [React 19](https://react.dev) + [Vite](https://vite.dev) + [Tailwind v4](https://tailwindcss.com) |
 | Animation   | `lottie-react`                                                                     |
 | i18n        | ru / en (`frontend/src/lib/i18n.ts`)                                               |
@@ -216,9 +219,11 @@ Happy Birthdays — небольшое self-hosted веб-приложение �
 адресу `/:slug`: аватар, дата рождения, личное сообщение и подарок
 (Lottie-анимация). На каждой странице есть несколько мини-игр.
 
-Гости играют в игры и зарабатывают очки; вы тратите эти очки во встроенном
-магазине на украшения страницы. При шере страницы в Telegram генерируется
-динамическая персональная Open Graph картинка, чтобы превью выглядело личным.
+Гости играют в игры и зарабатывают очки. Очки остаются у гостя: их можно
+рискнуть в маленьком казино на странице, а потом подарить всё, что осталось,
+имениннику — из его копилки оплачиваются украшения во встроенном магазине. При
+шере страницы в Telegram генерируется динамическая персональная Open Graph
+картинка, чтобы превью выглядело личным.
 
 ### Возможности
 
@@ -226,6 +231,7 @@ Happy Birthdays — небольшое self-hosted веб-приложение �
 - 🎁 **Lottie-подарки** — анимированные подарки через `lottie-react`.
 - 🎮 **5 мини-игр** — `feed-fox`, `catch-stars`, `slide-puzzle`, `memory`, `maze`, с серверным счётом и anti-cheat токеном.
 - 🛍️ **Экономика очков** — гости зарабатывают, владелец тратит их в магазине на украшения страницы.
+- 🎰 **Казино и донат** — гость играет своими очками за тремя столами (монетка, кости, слоты), забирает ежедневный бонус и дарит выигрыш в копилку именинника.
 - 🖼️ **Динамические OG-картинки** — персональные превью для соцсетей на лету через `satori` + `resvg`.
 - 🎨 **Дизайн «Cozy Ramen»** — 4 темы (`light` / `dark` / `halloween` / `newyear`) через токены `[data-theme]`.
 - 🌍 **Двуязычность ru/en** — интерфейс на двух языках, опционально AI-автоперевод контента.
@@ -248,7 +254,7 @@ Happy Birthdays — небольшое self-hosted веб-приложение �
 | ----------- | ----------------------------------------------------------------------------------- |
 | Рантайм     | [Bun](https://bun.sh) монорепо (корень + `backend/` + `frontend/`)                  |
 | Бэкенд      | [ElysiaJS](https://elysiajs.com) 1.4, `bun:sqlite`, `satori` + `resvg` для OG        |
-| Базы данных | 4 файла SQLite: `scores`, `birthdays`, `history`, `shop`                            |
+| Базы данных | 5 файлов SQLite: `scores`, `birthdays`, `history`, `shop`, `casino`                 |
 | Фронтенд    | [React 19](https://react.dev) + [Vite](https://vite.dev) + [Tailwind v4](https://tailwindcss.com) |
 | Анимация    | `lottie-react`                                                                      |
 | i18n        | ru / en (`frontend/src/lib/i18n.ts`)                                                |

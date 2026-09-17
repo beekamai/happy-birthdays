@@ -8,7 +8,11 @@ import { getVisitorId } from "../lib/visitor.ts";
 import { unlockAudio } from "../lib/sound.ts";
 import { useTheme } from "../lib/useTheme.ts";
 import { useT, initLang } from "../lib/i18n.ts";
-import { friendMessage, friendGiftName } from "../lib/friendContent.ts";
+import {
+  friendMessage,
+  friendGiftName,
+  friendDisplayName,
+} from "../lib/friendContent.ts";
 import { ControlBar } from "../components/ControlBar.tsx";
 import { SoundToggle } from "../components/SoundToggle.tsx";
 import { ThemeSwitcher } from "../components/ThemeSwitcher.tsx";
@@ -20,6 +24,7 @@ import { ThemeDecor } from "../components/decor/ThemeDecor.tsx";
 import { DecorBackground, DecorEffect } from "../components/decor/Decorations.tsx";
 import { StickerCard } from "../components/decor/StickerCard.tsx";
 import { EarnExplainer } from "../components/EarnExplainer.tsx";
+import { Casino } from "../casino/Casino.tsx";
 
 import { Hero } from "./Hero.tsx";
 import { GiftCard } from "./GiftCard.tsx";
@@ -47,6 +52,7 @@ export function FriendPage({ friend, site }: FriendPageProps) {
   const { t, lang } = useT();
   const visitorId = getVisitorId();
   const [earnOpen, setEarnOpen] = useState(false);
+  const [casinoOpen, setCasinoOpen] = useState(false);
   /* Gift card with the name localized to the active language. */
   const localizedGift = friend.gift
     ? { ...friend.gift, name: friendGiftName(friend, lang) }
@@ -145,6 +151,14 @@ export function FriendPage({ friend, site }: FriendPageProps) {
                   </span>
                   <button
                     type="button"
+                    onClick={() => setCasinoOpen(true)}
+                    className="inline-flex items-center gap-2 rounded-[var(--radius-full)] border-[2px] border-[var(--color-primary-deep)] bg-[var(--color-primary)] px-5 py-2 font-bold text-[var(--color-on-primary)] shadow-[var(--shadow-sm)] transition-transform duration-200 hover:scale-105 focus:outline-none focus-visible:ring-[3px] focus-visible:ring-[var(--color-accent)]"
+                  >
+                    <span aria-hidden="true">🎰</span>
+                    {t("casino.open")}
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => setEarnOpen((v) => !v)}
                     aria-expanded={earnOpen}
                     className="inline-flex items-center rounded-[var(--radius-full)] border-[2px] border-[var(--color-muted)] bg-[var(--color-surface)] px-4 py-2 text-sm font-bold text-[var(--color-text)] shadow-[var(--shadow-sm)] transition-transform duration-200 hover:scale-105 focus:outline-none focus-visible:ring-[3px] focus-visible:ring-[var(--color-accent)]"
@@ -189,6 +203,19 @@ export function FriendPage({ friend, site }: FriendPageProps) {
           </a>
         </footer>
       </div>
+
+      {/* The casino runs on the points this visitor earned here, so it rides
+         along with the games section. */}
+      {friend.gamesEnabled && (
+        <Casino
+          slug={friend.slug}
+          friendName={friendDisplayName(friend, lang)}
+          visitorId={visitorId}
+          open={casinoOpen}
+          onClose={() => setCasinoOpen(false)}
+          onChange={refresh}
+        />
+      )}
 
       {/* Floating overlay — only when the fox companion has been bought. */}
       {friend.decor?.companion === "pet-fox" && <PetCompanion slug={friend.slug} />}

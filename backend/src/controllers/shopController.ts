@@ -1,6 +1,7 @@
 import FriendRepository from "../repositories/FriendRepository";
 import ScoreRepository from "../repositories/ScoreRepository";
 import PurchaseRepository from "../repositories/PurchaseRepository";
+import CasinoRepository from "../repositories/CasinoRepository";
 import type { AuthUser } from "../models/Auth";
 import type { Decor } from "../models/Friend";
 import { SHOP_CATALOG, DECOR_SLOTS, shopItem, type DecorType } from "../services/shopCatalog";
@@ -12,12 +13,16 @@ function canEdit(user: AuthUser, cfgUsername?: string): boolean {
     return user.username === cfgUsername.replace(/^@/, "").toLowerCase();
 }
 
-/* The friend's spendable balance = points visitors earned on their page minus
-   everything already spent in the shop. */
+/* The friend's spendable balance = points visitors earned on their page, plus
+   whatever those visitors gifted from their own casino purse, minus everything
+   already spent in the shop. `donated` is reported separately so the wallet can
+   show how much of the pool came from friends rather than from raw play. */
 function walletOf(slug: string) {
-    const earned = ScoreRepository.earnedTotals(slug);
+    const played = ScoreRepository.earnedTotals(slug);
+    const donated = CasinoRepository.donatedTo(slug);
+    const earned = played + donated;
     const spent = PurchaseRepository.totalSpent(slug);
-    return { earned, spent, balance: Math.max(0, earned - spent) };
+    return { earned, donated, spent, balance: Math.max(0, earned - spent) };
 }
 
 function stateOf(slug: string, decor: Decor | undefined) {

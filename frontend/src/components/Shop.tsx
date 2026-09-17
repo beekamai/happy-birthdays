@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { useT } from "../lib/i18n.ts";
 import {
@@ -14,6 +14,7 @@ import {
 import { DecorPreview } from "./decor/Decorations.tsx";
 import { ConfirmDialog } from "./ConfirmDialog.tsx";
 import { EarnExplainer } from "./EarnExplainer.tsx";
+import { Toast, useToast } from "./Toast.tsx";
 
 /* The decoration store, shown over the profile when the viewer may edit it.
    Loads the catalogue + the friend's wallet/ownership on open, groups items by
@@ -28,11 +29,6 @@ const SECTION_ORDER: DecorType[] = [
   "effect",
   "companion",
 ];
-
-interface ToastState {
-  message: string;
-  kind: "success" | "error";
-}
 
 /* A ring that fills with the share of the page's total points already spent, so
    it's obvious the shop draws from a shared quota. The remaining balance sits in
@@ -76,14 +72,9 @@ export function Shop({ slug, open, onClose, onChange }: ShopProps) {
   const [state, setState] = useState<ShopState | null>(null);
   const [loading, setLoading] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
-  const [toast, setToast] = useState<ToastState | null>(null);
   const [pendingRefund, setPendingRefund] = useState<ShopItem | null>(null);
   const [earnOpen, setEarnOpen] = useState(false);
-
-  const showToast = useCallback((message: string, kind: ToastState["kind"]) => {
-    setToast({ message, kind });
-    window.setTimeout(() => setToast(null), 3000);
-  }, []);
+  const { toast, showToast } = useToast();
 
   useEffect(() => {
     if (!open) return;
@@ -193,6 +184,11 @@ export function Shop({ slug, open, onClose, onChange }: ShopProps) {
                 <span className="text-sm text-[var(--color-text-soft)]">
                   {t("shop.spentOf", { spent: state.spent, earned: state.earned })}
                 </span>
+                {state.donated > 0 && (
+                  <span className="text-xs font-bold text-[var(--color-secondary-deep)]">
+                    {t("shop.donatedShare", { n: state.donated })}
+                  </span>
+                )}
               </div>
               <button
                 type="button"
@@ -301,27 +297,7 @@ export function Shop({ slug, open, onClose, onChange }: ShopProps) {
         </div>
       </div>
 
-      {toast && (
-        <div className="pointer-events-none fixed inset-x-0 bottom-6 z-[60] flex justify-center px-4">
-          <div
-            className="rounded-[var(--radius-full)] border-[2px] px-6 py-3 font-bold shadow-[var(--shadow-lg)]"
-            style={{
-              borderColor:
-                toast.kind === "success"
-                  ? "var(--color-success)"
-                  : "var(--color-lantern)",
-              backgroundColor:
-                toast.kind === "success"
-                  ? "color-mix(in srgb, var(--color-nest-green) 25%, var(--color-surface))"
-                  : "color-mix(in srgb, var(--color-lantern-glow) 30%, var(--color-surface))",
-              color: "var(--color-text)",
-            }}
-          >
-            {toast.kind === "success" ? "✅ " : "⚠️ "}
-            {toast.message}
-          </div>
-        </div>
-      )}
+      <Toast toast={toast} />
 
       <ConfirmDialog
         open={pendingRefund !== null}
