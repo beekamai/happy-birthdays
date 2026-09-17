@@ -81,3 +81,4 @@ export const SCORES_DB_PATH = path.join(ROOT_DIR, "scores.db");
 export const BIRTHDAYS_DB_PATH = path.join(ROOT_DIR, "birthdays.db");
 export const HISTORY_DB_PATH = path.join(ROOT_DIR, "history.db");
 export const SHOP_DB_PATH = path.join(ROOT_DIR, "shop.db");
+export const CASINO_DB_PATH = path.join(ROOT_DIR, "casino.db");

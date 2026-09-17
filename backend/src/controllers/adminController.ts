@@ -5,6 +5,7 @@ import BirthdayRepository from "../repositories/BirthdayRepository";
 import HistoryRepository from "../repositories/HistoryRepository";
 import ScoreRepository from "../repositories/ScoreRepository";
 import PurchaseRepository from "../repositories/PurchaseRepository";
+import CasinoRepository from "../repositories/CasinoRepository";
 import PageOrderRepository from "../repositories/PageOrderRepository";
 import type { AuthUser } from "../models/Auth";
 import type { FriendConfig } from "../models/Friend";
@@ -144,6 +145,7 @@ export const deleteFriend = async ({ params, user, set }: any) => {
         HistoryRepository.deleteSlug(slug);
         ScoreRepository.deleteSlug(slug);
         PurchaseRepository.deleteSlug(slug);
+        CasinoRepository.deleteSlug(slug);
         PageOrderRepository.removeSlug(slug);
 
         Logger.info("AdminController", `deleted friend page`, { slug, by: user.username });

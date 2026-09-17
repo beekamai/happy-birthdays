@@ -63,6 +63,57 @@
     color: var(--color-text);
   }
 
+  /* Range sliders (the casino's gift amount): the stock track renders near-black
+     under a custom accent-color, so theme both halves explicitly — same approach
+     as the scrollbars above. `appearance: none` drops the native rendering, so
+     the thumb has to be redrawn per engine. */
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 20px;
+    background: transparent;
+    cursor: pointer;
+  }
+  input[type="range"]:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+  /* Each engine's pseudo-element gets its OWN rule: a selector list containing
+     one the browser doesn't know invalidates the whole list. */
+  input[type="range"]::-webkit-slider-runnable-track {
+    height: 8px;
+    border-radius: 9999px;
+    background: var(--color-muted);
+  }
+  input[type="range"]::-moz-range-track {
+    height: 8px;
+    border-radius: 9999px;
+    background: var(--color-muted);
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    margin-top: -6px; /* centre the thumb on the 8px track */
+    border-radius: 9999px;
+    background: var(--color-secondary-deep);
+    border: 2px solid var(--color-surface);
+    box-shadow: var(--shadow-sm);
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 9999px;
+    background: var(--color-secondary-deep);
+    border: 2px solid var(--color-surface);
+    box-shadow: var(--shadow-sm);
+  }
+  input[type="range"]:focus-visible {
+    outline: 3px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
   /* Honor reduced-motion globally: kill all decorative animation. */
   @media (prefers-reduced-motion: reduce) {
     *,

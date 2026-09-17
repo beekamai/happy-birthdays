@@ -17,6 +17,8 @@ export interface ShopItem {
 
 export interface ShopState {
   earned: number;
+  /** The part of `earned` that visitors gifted from the casino, not raw play. */
+  donated: number;
   spent: number;
   balance: number;
   owned: string[];

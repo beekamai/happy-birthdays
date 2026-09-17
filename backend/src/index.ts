@@ -5,6 +5,7 @@ import ScoreRepository from "./repositories/ScoreRepository";
 import BirthdayRepository from "./repositories/BirthdayRepository";
 import HistoryRepository from "./repositories/HistoryRepository";
 import PurchaseRepository from "./repositories/PurchaseRepository";
+import CasinoRepository from "./repositories/CasinoRepository";
 import FriendRepository from "./repositories/FriendRepository";
 import PageRenderService from "./services/pageRenderService";
 import Logger from "./utils/Logger";
@@ -15,6 +16,7 @@ ScoreRepository.init();
 BirthdayRepository.init();
 HistoryRepository.init();
 PurchaseRepository.init();
+CasinoRepository.init();
 
 /* Rebuild the birthdays index + history from the friend configs on boot, so the
    DBs never drift: birthdays mirror configs, gift history is folded in, and any
