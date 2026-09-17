@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "motion/react";
 
-import type { CasinoGame, OutcomeKind } from "../lib/casinoApi.ts";
+import type { CasinoGame } from "../lib/casinoApi.ts";
 
 import { symbolEmoji } from "./casinoSymbols.ts";
 
@@ -16,8 +16,11 @@ interface CasinoStageProps {
   rolling: boolean;
   /** The server's settled roll, or null before the first spin. */
   roll: string[] | null;
-  /** How the settled roll ended — drives the win glow. */
-  kind: OutcomeKind | null;
+  /** The settled spin's net change, null before the first spin. Drives the win
+      glow, so it tracks the same signal as the outcome line — a slots pair pays
+      x0.75, which reads as a hit but still leaves the purse smaller, and lighting
+      it up gold would claim a win the balance doesn't show. */
+  delta: number | null;
 }
 
 /* How fast the faces cycle while a spin is in flight (ms). */
@@ -28,7 +31,7 @@ const prefersReducedMotion = () =>
   window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
 /** Animated roll display for one casino table. */
-export function CasinoStage({ game, rolling, roll, kind }: CasinoStageProps) {
+export function CasinoStage({ game, rolling, roll, delta }: CasinoStageProps) {
   const reels = game.id === "slots" ? 3 : 1;
   const [cycling, setCycling] = useState<string[]>([]);
 
@@ -57,7 +60,7 @@ export function CasinoStage({ game, rolling, roll, kind }: CasinoStageProps) {
       ? cycling
       : (roll ?? game.symbols.slice(0, reels));
 
-  const won = !rolling && kind !== null && kind !== "lose";
+  const won = !rolling && delta !== null && delta > 0;
 
   return (
     <div

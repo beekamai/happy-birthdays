@@ -185,6 +185,20 @@ before start** (`bun run build` → `bun run start`).
   The client posts a stake and a side; the server draws the result, prices it and
   appends it to the ledger. Never let an outcome arrive from the client, and keep
   every table's RTP **below 1.0** (see Gotcha 10).
+- **`visitorId` is an identifier, not a credential.** There are no accounts here:
+  `/api/scores` and `/api/casino/*` both key off the uuid the client keeps in
+  localStorage, and the server takes it at face value. Before the casino that was
+  harmless — a forged id could only ADD to someone's scores (bests never go
+  down). The casino makes it possible to *destroy* value: whoever presents your
+  uuid can lose your chips or gift them away. The uuid is a v4 (122 bits), never
+  appears in a URL or a shared link, and the blast radius is a burnt birthday
+  purse, so this is an accepted trade — but it is the boundary:
+  **never put anything with real stakes behind `visitorId` alone.** Closing it
+  properly means the server minting the purse identity and binding it to an
+  httpOnly cookie, which is a change to the visitor model, not a patch on one
+  endpoint. Half-measures (an HMAC over a client-supplied id, or a cookie that
+  only blocks when present) look like protection and stop nothing that `curl`
+  can't walk around.
 
 ---
 

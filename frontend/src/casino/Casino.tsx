@@ -327,7 +327,7 @@ export function Casino({
                 game={game}
                 rolling={rolling}
                 roll={outcome?.roll ?? null}
-                kind={outcome?.kind ?? null}
+                delta={outcome?.delta ?? null}
               />
 
               {/* Outcome line — reserves its row so the layout doesn't jump. */}

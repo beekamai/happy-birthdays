@@ -50,6 +50,11 @@ The four built-in themes (`light` / `dark` / `halloween` / `newyear`), switched 
 
 ![Theme switching](docs/media/themes.gif)
 
+The casino a guest plays with their own points — a coin flip that landed, and the
+slots next to the gift they just sent to the birthday friend's shop wallet:
+
+![The casino: playing a table, and gifting the winnings](docs/media/casino.png)
+
 When a page is shared on Telegram the backend renders a personal Open Graph card
 on the fly — here's an example with demo data:
 
@@ -193,6 +198,7 @@ happy-birthdays/
         ├── page/                 # public friend page
         ├── admin/                # owner/admin panel
         ├── games/                # 5 mini-games + registry.ts
+        ├── casino/                # casino modal, tables, gifting
         ├── components/
         ├── pet/
         ├── lib/                  # api, i18n, hooks
@@ -242,6 +248,11 @@ Happy Birthdays — небольшое self-hosted веб-приложение �
 Четыре встроенные темы (`light` / `dark` / `halloween` / `newyear`) переключаются на лету:
 
 ![Переключение тем](docs/media/themes.gif)
+
+Казино, в котором гость играет своими очками — удачный бросок монетки и слоты
+рядом с подарком, только что улетевшим в копилку именинника:
+
+![Казино: игра за столом и донат выигрыша](docs/media/casino.png)
 
 При шере страницы в Telegram бэкенд на лету рендерит персональную Open Graph
 картинку — вот пример с демо-данными:
@@ -386,6 +397,7 @@ happy-birthdays/
         ├── page/                 # публичная страница друга
         ├── admin/                # панель владельца/админа
         ├── games/                # 5 мини-игр + registry.ts
+        ├── casino/                # модалка казино, столы, донат
         ├── components/
         ├── pet/
         ├── lib/                  # api, i18n, хуки
