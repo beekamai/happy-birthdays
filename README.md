@@ -50,10 +50,11 @@ The four built-in themes (`light` / `dark` / `halloween` / `newyear`), switched 
 
 ![Theme switching](docs/media/themes.gif)
 
-The casino a guest plays with their own points — a coin flip that landed, and the
-slots next to the gift they just sent to the birthday friend's shop wallet:
+The three tables a guest plays with their own points — the coin flip and the dice
+on the left, the slots beside the gift just sent to the birthday friend's shop
+wallet:
 
-![The casino: playing a table, and gifting the winnings](docs/media/casino.png)
+![The casino: its three tables, and gifting the winnings](docs/media/casino.png)
 
 When a page is shared on Telegram the backend renders a personal Open Graph card
 on the fly — here's an example with demo data:
@@ -249,10 +250,10 @@ Happy Birthdays — небольшое self-hosted веб-приложение �
 
 ![Переключение тем](docs/media/themes.gif)
 
-Казино, в котором гость играет своими очками — удачный бросок монетки и слоты
+Три стола, за которыми гость играет своими очками — монетка и кости слева, слоты
 рядом с подарком, только что улетевшим в копилку именинника:
 
-![Казино: игра за столом и донат выигрыша](docs/media/casino.png)
+![Казино: три стола и донат выигрыша](docs/media/casino.png)
 
 При шере страницы в Telegram бэкенд на лету рендерит персональную Open Graph
 картинку — вот пример с демо-данными:
