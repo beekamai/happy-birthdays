@@ -16,17 +16,14 @@ import {
 import { clientIp } from "../utils/clientIp";
 import Logger from "../utils/Logger";
 
-/* The casino runs on a visitor's PERSONAL points — the ones they earned playing
-   the mini-games on this page — which is a different purse from the friend's
-   shop wallet. A player can gamble that purse here and, when they are happy with
-   it, donate what is left into the friend's wallet (shopController folds
-   CasinoRepository.donatedTo into `earned`).
+/* The casino spends a visitor's PERSONAL purse (derived in CasinoRepository),
+   never the friend's shop wallet; donating what is left is the only, one-way
+   bridge into that wallet.
 
    Like /api/scores, these routes are anonymous and keyed by the client's
-   localStorage `visitorId`: there are no accounts anywhere in this app. A caller
-   can therefore only spend points that the visitorId they present has itself
-   earned, and the worst a guessed uuid buys is burning a stranger's chips — the
-   same trust model the score endpoints already run on. */
+   localStorage `visitorId`, so a caller can only spend points that the visitorId
+   they present has itself earned; the worst a guessed uuid buys is burning a
+   stranger's chips. AGENTS.md (Gotcha 9) explains why that boundary is accepted. */
 
 /** Balance, limits and lifetime stats for one visitor on one page. */
 function walletOf(slug: string, visitorId: string, ip: string) {

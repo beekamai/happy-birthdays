@@ -20,8 +20,8 @@ import { Field, Input } from "./adminUi.tsx";
 
    Lottie previews are expensive, so we mount the `useLottie` HOOK for at most
    one row at a time — the featured one — and show a light static ✓ marker for
-   other rows that carry an animation. (The default `<Lottie>` export crashes
-   under Vite's CJS interop, React #130; the hook returns a plain element.) */
+   other rows that carry an animation. (Hook, never `<Lottie>` — see GiftCard.tsx
+   / AGENTS.md Gotcha 3.) */
 
 type TFn = (key: string, vars?: Record<string, string | number>) => string;
 type Show = (message: string, kind: "success" | "error") => void;

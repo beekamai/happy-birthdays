@@ -215,8 +215,6 @@ export default class OgImageService {
             const node = buildProfileOgNode({
                 displayName: stripEmoji(cfg.displayName),
                 username: cfg.username,
-                /* satori can't draw inline emoji (only <img> data-URIs), so strip
-                   them from the bio to avoid tofu boxes. */
                 bio: stripEmoji(cfg.bio ?? "").slice(0, 140),
                 avatarDataUri,
                 accent: cfg.accent ?? DEFAULT_ACCENT,

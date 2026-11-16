@@ -14,8 +14,8 @@ import { isLottie } from "../lib/lottie.ts";
 type Gift = NonNullable<PublicFriend["giftHistory"]>[number];
 
 /* Per-gift animation thumbnail: fetches + renders the gift's Lottie when present
-   (via the useLottie HOOK — never the default <Lottie>, which crashes under
-   Vite's CJS interop, React #130), otherwise the cozy emoji. */
+   (via the useLottie HOOK, never <Lottie> — see GiftCard.tsx), otherwise the
+   cozy emoji. */
 function GiftThumb({ gift, size }: { gift: Gift; size: number }) {
   const [data, setData] = useState<object | null>(null);
 
