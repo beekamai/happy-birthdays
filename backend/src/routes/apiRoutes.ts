@@ -20,14 +20,7 @@ import {
     getHistory_Request_Schema,
 } from "../schemas/friend.schema";
 
-/*
- * JSON API. Mounted under "/api" in app.ts, so paths here are relative:
- *   GET  /friend/:slug
- *   GET  /site
- *   POST /scores                (body: { slug, gameId, score, durationMs })
- *   GET  /scores/:slug          (authoritative totals)
- *   GET  /scores/:slug/:gameId  (leaderboard)
- */
+/* Public JSON API. Mounted under "/api" in app.ts, so paths here are relative. */
 const apiRoutes = new Elysia()
     .get("/friend/:slug", getFriend, withResponseFilter(getFriend_Request_Schema))
     .get("/site", getSite, withResponseFilter(getSite_Request_Schema))

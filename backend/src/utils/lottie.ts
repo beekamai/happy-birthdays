@@ -4,8 +4,8 @@ import { gunzipSync } from "node:zlib";
    needs no rendering engine — gunzip when the gzip magic bytes are present,
    otherwise treat the upload as raw Lottie/JSON. The result is validated as a
    Lottie document (an object carrying a `layers` array, mirroring the frontend's
-   isLottie check in GiftCard.tsx) and re-serialised to canonical JSON so what we
-   store is always a plain .json the page can fetch directly. */
+   isLottie() in frontend/src/lib/lottie.ts) and re-serialised to canonical JSON
+   so what we store is always a plain .json the page can fetch directly. */
 
 const MAX_DECOMPRESSED = 4 * 1024 * 1024; /* 4 MB ceiling on the decoded JSON */
 

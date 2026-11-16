@@ -1,10 +1,10 @@
 import { GEMINI_API_KEY, GEMINI_MODEL } from "../config/constants";
 import Logger from "../utils/Logger";
 
-/* Auto-translation of user-authored friend content (display name, greeting,
-   gift name) between Russian and English via the Gemini API. Designed to fail
-   soft: any error — missing key, network, bad JSON — resolves to null so callers
-   simply keep the existing translations rather than blocking a save. */
+/* On-demand translation of user-authored friend content (display name,
+   greeting, gift name, bio) between Russian and English via the Gemini API,
+   behind POST /api/admin/translate. Designed to fail soft: any error — missing
+   key, network, bad JSON — resolves to null and the endpoint answers 502. */
 
 export type Lang = "ru" | "en";
 

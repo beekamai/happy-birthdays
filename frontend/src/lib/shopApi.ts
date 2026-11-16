@@ -1,9 +1,9 @@
 /* Native-fetch helpers for the decoration shop. Public reads (catalog + state)
-   hit the unauthenticated GET endpoints; writes (buy/equip) go through the admin
-   routes and require the httpOnly session cookie, so they pass
-   `credentials: "include"`. Reads return safe fallbacks on error; `buyItem`
-   surfaces the HTTP status so the UI can toast 402 (not enough points) / 409
-   (already owned) distinctly. */
+   hit the unauthenticated GET endpoints; writes (buy/equip/refund) hit the
+   auth-guarded /api/shop/:slug/* routes and require the httpOnly session cookie,
+   so they pass `credentials: "include"`. Reads return safe fallbacks on error;
+   `buyItem` surfaces the HTTP status so the UI can toast 402 (not enough points)
+   / 409 (already owned) distinctly. */
 
 export type DecorType = "avatarFrame" | "background" | "badge" | "effect" | "companion";
 

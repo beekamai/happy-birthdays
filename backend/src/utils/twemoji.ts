@@ -9,7 +9,7 @@ const VARIATION_SELECTOR_16 = 0xfe0f;
 /* Resolved data-URI cache, keyed by the source emoji string. null = misses. */
 const cache = new Map<string, string | null>();
 
-/* Codepoints of an emoji string as lowercase hex, no separators stripped. */
+/* Unicode code points of an emoji string, in order (hexJoin formats them). */
 function codePoints(emoji: string): number[] {
     const points: number[] = [];
     for (const ch of emoji) {

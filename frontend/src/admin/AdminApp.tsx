@@ -19,10 +19,11 @@ import { TelegramLoginButton } from "./TelegramLoginButton.tsx";
 import { OwnerDashboard } from "./OwnerDashboard.tsx";
 import { FriendEditor } from "./FriendEditor.tsx";
 
-/* Admin entry point (rendered for /admin). Resolves the session, then dispatches:
-   loading → spinner; no user → LoginScreen; owner → OwnerDashboard; otherwise →
-   the friend's own page editor (limited subset) if they have one. A slim top bar
-   shows the user and a logout action on every signed-in screen. */
+/* Cabinet entry point (rendered for /account and the legacy /admin alias).
+   Resolves the session, then dispatches: loading → spinner; no user →
+   LoginScreen; owner → OwnerDashboard; otherwise → the friend's own page editor
+   (limited subset) if they have one. The ControlBar (switchers + account/logout)
+   is on every screen; signed-in screens add a slim brand top bar. */
 
 export default function AdminApp() {
   const { user, config, loading, refresh, logout } = useAuth();

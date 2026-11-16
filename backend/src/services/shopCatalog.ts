@@ -21,10 +21,11 @@ export interface ShopItem {
     cost: number;
 }
 
-/* Prices are tuned to the points a page can earn: a well-played page nets ~4000
-   across the five games (best-per-game), so badges are pocket-money, frames /
-   backgrounds are a session's worth, and effects / the fox are a save-up goal.
-   The whole catalogue (~7k) is affordable only for a popular, much-played page. */
+/* Prices are tuned to the page wallet (shopController's walletOf): the five
+   games cap the best-play pool at 5 × 1000 = 5000 and a well-played page nets
+   ~4000 of it, so badges are pocket-money, frames / backgrounds are a session's
+   worth, and effects / the fox are a save-up goal. The whole catalogue (7400)
+   also needs the replay economy and casino gifts — a popular, much-played page. */
 export const SHOP_CATALOG: ShopItem[] = [
     /* Avatar frames — a decorative ring around the avatar. */
     { id: "frame-gold", type: "avatarFrame", nameRu: "Золотая рамка", nameEn: "Gold frame", cost: 500 },

@@ -18,7 +18,7 @@ import pageRoutes from "./routes/pageRoutes";
  * Route registration order is CRITICAL — Elysia resolves the first match:
  *   1. /api/*        — JSON API (concrete prefix)
  *   2. /og/:file     — generated OG images
- *   3. /friends, /owner, /favicon, /robots — disk assets (concrete / 2-seg)
+ *   3. /friends, /owner, /gifts, /favicon, /robots — disk assets (concrete / 2-seg)
  *   4. /assets/*     — built frontend bundle (static plugin, NO index.html)
  *   5. /:slug and /  — server-rendered pages LAST (catch-all single segment)
  */

@@ -41,7 +41,7 @@ export default class FriendRepository {
         }
     }
 
-    /** Raw on-disk config (unmapped) — used for OG cache hashing. */
+    /** Raw on-disk config (validated, not mapped to the public shape). */
     static getRawConfig(slug: string): FriendConfig | null {
         try {
             return this.readConfig(slug);
@@ -268,10 +268,6 @@ export default class FriendRepository {
         return cfg;
     }
 
-    /*
-     * THE single source of truth mapping FriendConfig -> PublicFriend.
-     * Both the API and server-side page injection must go through here.
-     */
     /* Map config gift history → public shape, sorted by date ascending. */
     private static buildGiftHistory(slug: string, cfg: FriendConfig) {
         return (cfg.giftHistory ?? [])
@@ -301,6 +297,10 @@ export default class FriendRepository {
         return Object.keys(out).length > 0 ? out : undefined;
     }
 
+    /*
+     * THE single source of truth mapping FriendConfig -> PublicFriend.
+     * Both the API and server-side page injection must go through here.
+     */
     private static toPublicFriend(slug: string, cfg: FriendConfig): PublicFriend {
         const birthday = parseBirthday(cfg.birthday);
         const access = computeAccess(birthday.month, birthday.day);

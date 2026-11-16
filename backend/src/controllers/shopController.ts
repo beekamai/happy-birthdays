@@ -47,7 +47,7 @@ export const getShopState = async ({ params, set }: any) => {
     return stateOf(params.slug, cfg.decor);
 };
 
-/** POST /api/admin/shop/:slug/buy — spend points to own an item, then equip it. */
+/** POST /api/shop/:slug/buy — spend points to own an item, then equip it. */
 export const buyItem = async ({ params, body, user, set }: any) => {
     try {
         const cfg = FriendRepository.getRawConfig(params.slug);
@@ -83,7 +83,7 @@ export const buyItem = async ({ params, body, user, set }: any) => {
     }
 };
 
-/** POST /api/admin/shop/:slug/refund — remove an owned item and refund its
+/** POST /api/shop/:slug/refund — remove an owned item and refund its
     points (the spent total drops, so the balance rises). Unequips if active. */
 export const refundItem = async ({ params, body, user, set }: any) => {
     try {
@@ -115,7 +115,7 @@ export const refundItem = async ({ params, body, user, set }: any) => {
     }
 };
 
-/** POST /api/admin/shop/:slug/equip — equip an owned item, or clear a slot. */
+/** POST /api/shop/:slug/equip — equip an owned item, or clear a slot. */
 export const equipItem = async ({ params, body, user, set }: any) => {
     try {
         const cfg = FriendRepository.getRawConfig(params.slug);

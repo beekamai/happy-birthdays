@@ -69,8 +69,8 @@ export const SESSION_SECRET = (() => {
 })();
 export const AUTH_TTL_DAYS = 30;
 
-/* Gemini (Google AI Studio) — auto-translates user content between ru/en.
-   Absent key disables auto-translation gracefully (content stays single-lang).
+/* Gemini (Google AI Studio) — pre-fills the editor's ru/en translation panel.
+   An absent key disables it gracefully (translations are then typed by hand).
    `gemini-flash-latest` is an alias that tracks the current stable Flash model,
    so it won't 404 when a dated version is retired. */
 export const GEMINI_API_KEY = process.env.GEMINI_API_KEY ?? "";

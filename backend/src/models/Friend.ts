@@ -46,8 +46,9 @@ export interface FriendConfig {
        this only records which owned item is currently applied to the pages. */
     decor?: Decor;
     /* Localized variants of the user-authored fields, keyed by target language.
-       The authored fields above are in `lang`; the other language is auto-filled
-       by Gemini on save and may be hand-edited. */
+       The authored fields above are in `lang`; the other language is entered in
+       the editor's translation panel (optionally pre-filled via Gemini) and saved
+       as-is. */
     translations?: Partial<Record<"ru" | "en", FriendTranslations>>;
 }
 

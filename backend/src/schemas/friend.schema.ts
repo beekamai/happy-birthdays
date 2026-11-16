@@ -213,8 +213,9 @@ export function validateFriendConfig(obj: unknown): FriendConfig {
         if (socials.length > 0) result.socials = socials;
     }
 
-    /* Optional localized content (auto-translated, hand-editable). Lenient: only
-       string fields are kept; anything malformed is silently dropped. */
+    /* Optional localized content (from the editor's translation panel).
+       Lenient: only string fields are kept; anything malformed is silently
+       dropped. */
     if (isObject(obj.translations)) {
         const out: NonNullable<FriendConfig["translations"]> = {};
         for (const lang of ["ru", "en"] as const) {

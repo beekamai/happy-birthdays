@@ -1,4 +1,5 @@
-/* Branded cozy loading screen — shown while the dev fetch resolves. */
+/* Branded cozy loading screen — shown while the friend payload or a lazy
+   chunk loads. */
 
 export function LoadingState() {
   return (

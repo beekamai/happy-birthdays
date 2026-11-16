@@ -34,7 +34,7 @@ function pick(value: any, keys: string[]): any {
 
 /**
  * Wrap an Elysia route schema so the response is filtered to the fields the
- * 200 schema declares. Forwards the full response map to Elysia for Swagger.
+ * 200 schema declares. The full response map is still forwarded to Elysia.
  */
 export function withResponseFilter<T extends SchemaWithResponse>(schema: T): any {
     const { response, ...rest } = schema;

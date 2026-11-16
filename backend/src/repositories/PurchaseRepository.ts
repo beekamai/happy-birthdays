@@ -6,7 +6,8 @@ import Logger from "../utils/Logger";
 /* Ledger of shop purchases — the record of which decorations a friend OWNS.
    Ownership is permanent (one row per slug+item, enforced by a unique index);
    equipping an owned item is a separate concern stored in the friend config.
-   A friend's spendable balance = page-wide score total − SUM(cost) here. */
+   The spendable balance is derived in shopController's walletOf: earned score
+   points + casino gifts − SUM(cost) here. */
 export default class PurchaseRepository {
     private static db: Database | null = null;
 
