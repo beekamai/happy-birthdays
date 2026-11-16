@@ -11,8 +11,8 @@ export interface AccessInfo {
 
 export interface PublicFriend {
   slug: string;
-  username: string; /* "@alumi" */
-  displayName: string; /* "Алуми" */
+  username: string; /* Telegram handle, e.g. "@bob" */
+  displayName: string; /* display name, e.g. "Bob" */
   birthday: { month: number; day: number; year?: number };
   message: string;
   accent: string; /* hex, per-friend accent override */

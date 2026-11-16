@@ -34,7 +34,7 @@ function computeBox(): Box {
   };
 }
 
-/* The companion is always the little kitsune 🦊 (matches alumi's fox theme).
+/* The companion is always the little kitsune 🦊 (the fox motif from DESIGN.md).
    Mood is conveyed by scale + an optional sparkle, not by swapping the face. */
 const PET_GLYPH = "\u{1F98A}";
 

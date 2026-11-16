@@ -3,7 +3,7 @@
    The history DB folds this in on the next server start.
 
    Usage:
-     bun run add-gift -- --slug alumi --name "Instant Ramen" --emoji 🍜 \
+     bun run add-gift -- --slug bob --name "Instant Ramen" --emoji 🍜 \
        [--lottie /gifts/instant-ramen.json] [--link https://t.me/nft/InstantRamen-349224] \
        [--imagePath gift.jpg] [--date 2026-06-15] [--current]
 */

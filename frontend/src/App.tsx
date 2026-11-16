@@ -19,7 +19,7 @@ const PreviewHost = lazy(() =>
   import("./admin/PreviewHost.tsx").then((m) => ({ default: m.PreviewHost })),
 );
 
-/* Read the route slug from the path: "/alumi" -> "alumi", "/" -> "". No router;
+/* Read the route slug from the path: "/bob" -> "bob", "/" -> "". No router;
    the backend serves the same SPA shell on every path. */
 function readSlug(): string {
   return window.location.pathname.replace(/^\/+/, "").split("/")[0] ?? "";
