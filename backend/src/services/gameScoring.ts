@@ -1,9 +1,8 @@
-/* Server-authoritative scoring. The client no longer sends a score — it sends
-   the raw play metrics (moves, hints, items caught) plus the play duration, and
-   the server computes the score itself with the same formulas the games used to
-   apply locally. This makes the score un-forgeable by tampering with the POST
-   body: a cheat would have to fake plausible metrics AND beat the realism
-   checks, which is far harder than POSTing a big number. */
+/* Server-authoritative scoring. The client never sends a score — it sends the
+   raw play metrics (moves, hints, items caught) plus the play duration, and the
+   server computes the score itself. This makes the score un-forgeable by
+   tampering with the POST body: a cheat would have to fake plausible metrics AND
+   beat the realism checks, which is far harder than POSTing a big number. */
 
 /* Per-game realism ceilings. A play longer than the ceiling is rejected as
    absurd; there is deliberately no floor (a fast solve is legitimate and gets
@@ -65,8 +64,7 @@ export function computeScore(
     return Math.min(RAW_BEST_CAP, rawScore(gameId, durationMs, meta));
 }
 
-/* The raw per-game formula before the cap; mirrors the games' former local
-   scoring. */
+/* The raw per-game formula, before the RAW_BEST_CAP clamp. */
 function rawScore(
     gameId: string,
     durationMs: number,

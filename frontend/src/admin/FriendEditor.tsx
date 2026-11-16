@@ -505,7 +505,7 @@ export function FriendEditor({
   const targetLang: "ru" | "en" = pageLang === "ru" ? "en" : "ru";
 
   /* Merge the panel values into config.translations[targetLang] verbatim — the
-     backend no longer auto-fills, so the saved translation is exactly what the
+     backend never fills them in, so the saved translation is exactly what the
      panel holds. Visible fields are sent as-is (empty included, so a cleared
      translation persists); fields the panel doesn't expose stay untouched. */
   const withTranslations = (base: FriendConfig): FriendConfig => {

@@ -2,8 +2,8 @@ import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 
 import { SESSION_SECRET } from "../config/constants";
 
-/* Anti-cheat for game scores. A raw POST to /api/scores could previously claim
-   any number. Now a play must carry a one-time, server-signed token issued by
+/* Anti-cheat for game scores, so a raw POST to /api/scores can't claim any
+   number. A play must carry a one-time, server-signed token issued by
    POST /api/games/start, bound to {slug, gameId, visitorId} and short-lived, the
    raw metrics + duration must be plausible (see services/gameScoring), and the
    server computes the score itself. None of this makes a client game
