@@ -16,9 +16,9 @@ import {
 import { clientIp } from "../utils/clientIp";
 import Logger from "../utils/Logger";
 
-/* The casino spends a visitor's PERSONAL purse (derived in CasinoRepository),
-   never the friend's shop wallet; donating what is left is the only, one-way
-   bridge into that wallet.
+/* The casino spends a visitor's PERSONAL purse (walletOf below; the formula is
+   in CasinoRepository's header), never the friend's shop wallet; donating what
+   is left is the only, one-way bridge into that wallet.
 
    Like /api/scores, these routes are anonymous and keyed by the client's
    localStorage `visitorId`, so a caller can only spend points that the visitorId
