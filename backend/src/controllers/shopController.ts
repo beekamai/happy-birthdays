@@ -98,7 +98,6 @@ export const refundItem = async ({ params, body, user, set }: any) => {
             return { error: "Not owned" };
         }
 
-        /* Drop it from its slot if it was equipped. */
         let decor: Decor | undefined = cfg.decor;
         if (cfg.decor?.[item.type] === item.id) {
             decor = { ...cfg.decor };
@@ -129,7 +128,6 @@ export const equipItem = async ({ params, body, user, set }: any) => {
         const decor: Decor = { ...(cfg.decor ?? {}) };
 
         if (rawId === null || rawId === undefined || rawId === "") {
-            /* Clear the slot. */
             delete decor[slot];
         } else {
             const item = shopItem(String(rawId));

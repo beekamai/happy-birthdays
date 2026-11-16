@@ -1,10 +1,7 @@
 import BirthdayRepository from "../repositories/BirthdayRepository";
 import Logger from "../utils/Logger";
 
-/**
- * GET /api/birthdays — all friends' birthdays, soonest first (with daysUntil).
- * Handy for a future "upcoming birthdays" dashboard.
- */
+/** GET /api/birthdays — all friends' birthdays, soonest first (with daysUntil). */
 export const getBirthdays = async ({ set }: any) => {
     try {
         set.status = 200;

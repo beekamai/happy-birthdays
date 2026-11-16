@@ -125,7 +125,6 @@ export default class OgImageService {
             const { hash, cfg, avatarPath } = computed;
             const cacheFile = path.join(OG_CACHE_DIR, `${slug}-${hash}.png`);
 
-            /* Cache hit. */
             if (fs.existsSync(cacheFile)) {
                 return { png: fs.readFileSync(cacheFile), hash };
             }

@@ -89,7 +89,6 @@ export default function Memory({ config, onFinish }: GameProps) {
     }
   }
 
-  /* win check */
   useEffect(() => {
     if (finishedRef.current) return;
     if (deck.length > 0 && deck.every((c) => c.matched)) {

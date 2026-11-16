@@ -87,7 +87,7 @@ export function validateFriendConfig(obj: unknown): FriendConfig {
     const message = requireString(obj, "message");
     const avatar = requireString(obj, "avatar");
 
-    /* Birthday must be parseable. */
+    /* Validation only: throws on a malformed birthday. */
     parseBirthday(birthday);
 
     /* games: required array of { gameId, config? }. */

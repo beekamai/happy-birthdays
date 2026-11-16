@@ -67,7 +67,6 @@ export default function Catcher({ config, onFinish }: GameProps) {
       if (basket) basket.style.transform = `translateX(${x - BASKET_SIZE / 2}px)`;
     };
 
-    /* Start centered. */
     const rect = arena.getBoundingClientRect();
     basketXRef.current = rect.width / 2;
     const basket = basketRef.current;

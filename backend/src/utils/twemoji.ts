@@ -50,16 +50,13 @@ export function emojiToDataUri(emoji: string): string | null {
     if (points.length > 0) {
         const candidates: string[] = [];
 
-        /* Full sequence as-is. */
         candidates.push(hexJoin(points));
 
-        /* Sequence without the FE0F variation selector. */
         const stripped = points.filter((p) => p !== VARIATION_SELECTOR_16);
         if (stripped.length !== points.length && stripped.length > 0) {
             candidates.push(hexJoin(stripped));
         }
 
-        /* First codepoint only. */
         candidates.push(points[0]!.toString(16));
 
         for (const stem of candidates) {
