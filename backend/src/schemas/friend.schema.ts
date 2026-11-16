@@ -2,9 +2,7 @@ import { t } from "elysia";
 import type { FriendConfig, ParsedBirthday } from "../models/Friend";
 import { normalizeSocialUrl } from "../utils/socialUrl";
 
-/* ------------------------------------------------------------------ */
-/* Birthday parsing                                                    */
-/* ------------------------------------------------------------------ */
+/* ---- Birthday parsing -------------------------------------------- */
 
 /**
  * Parse a birthday string into { month, day, year? }.
@@ -44,9 +42,7 @@ function assertMonthDay(month: number, day: number, raw: string): void {
     }
 }
 
-/* ------------------------------------------------------------------ */
-/* Runtime friend config validation                                    */
-/* ------------------------------------------------------------------ */
+/* ---- Runtime friend config validation ---------------------------- */
 
 function isObject(v: unknown): v is Record<string, unknown> {
     return typeof v === "object" && v !== null && !Array.isArray(v);
@@ -242,9 +238,7 @@ export function validateFriendConfig(obj: unknown): FriendConfig {
     return result;
 }
 
-/* ------------------------------------------------------------------ */
-/* TypeBox object schemas                                               */
-/* ------------------------------------------------------------------ */
+/* ---- TypeBox object schemas -------------------------------------- */
 
 export const Birthday_Object_Schema = {
     month: t.Number(),
@@ -359,9 +353,7 @@ export const Score_Object_Schema = {
 /* Shared error response shape. */
 const errorResponse = t.Object({ error: t.String() });
 
-/* ------------------------------------------------------------------ */
-/* Request schemas (consumed by Phase 2 routes)                        */
-/* ------------------------------------------------------------------ */
+/* ---- Route schemas (params / body / response) -------------------- */
 
 export const getFriend_Request_Schema = {
     params: t.Object({

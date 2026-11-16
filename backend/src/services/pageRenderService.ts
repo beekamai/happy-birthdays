@@ -66,9 +66,7 @@ export default class PageRenderService {
         return this.htmlAvailable;
     }
 
-    /* ----------------------------------------------------------------- */
-    /* Public render entry points                                         */
-    /* ----------------------------------------------------------------- */
+    /* ---- Public render entry points --------------------------------- */
 
     /** Render a friend's page, or the not-found page when the slug is unknown. */
     static renderFriendPage(slug: string): RenderResult {
@@ -148,9 +146,7 @@ export default class PageRenderService {
         return { html, status: 200 };
     }
 
-    /* ----------------------------------------------------------------- */
-    /* Internals                                                          */
-    /* ----------------------------------------------------------------- */
+    /* ---- Internals -------------------------------------------------- */
 
     /* Site config with a safe default when site.json is absent. */
     private static resolveSite(): SiteConfig {
@@ -257,9 +253,7 @@ export default class PageRenderService {
     }
 }
 
-/* ---------------------------------------------------------------------- */
-/* Escaping helpers                                                        */
-/* ---------------------------------------------------------------------- */
+/* ---- Escaping helpers ------------------------------------------------ */
 
 /* Escape a value destined for a double-quoted HTML attribute. */
 function escapeAttr(value: string): string {

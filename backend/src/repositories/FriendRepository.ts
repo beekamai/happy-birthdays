@@ -25,9 +25,7 @@ export default class FriendRepository {
     /* Parsed config cache, keyed by slug. Bypassed in dev for live edits. */
     private static cache = new Map<string, FriendConfig>();
 
-    /* ----------------------------------------------------------------- */
-    /* Friends                                                            */
-    /* ----------------------------------------------------------------- */
+    /* ---- Friends ---------------------------------------------------- */
 
     /** Read + validate a friend config and map it to the public shape. */
     static findBySlug(slug: string): PublicFriend | null {
@@ -107,9 +105,7 @@ export default class FriendRepository {
         }
     }
 
-    /* ----------------------------------------------------------------- */
-    /* Site                                                               */
-    /* ----------------------------------------------------------------- */
+    /* ---- Site ------------------------------------------------------- */
 
     /** Read site-level config; maps owner avatar filename to a public URL. */
     static getSite(): SiteConfig | null {
@@ -150,9 +146,7 @@ export default class FriendRepository {
         }
     }
 
-    /* ----------------------------------------------------------------- */
-    /* Admin writes                                                       */
-    /* ----------------------------------------------------------------- */
+    /* ---- Admin writes ----------------------------------------------- */
 
     /** All friend slugs (directory names with a valid config). */
     static listSlugs(): string[] {
@@ -242,9 +236,7 @@ export default class FriendRepository {
         }
     }
 
-    /* ----------------------------------------------------------------- */
-    /* Internals                                                          */
-    /* ----------------------------------------------------------------- */
+    /* ---- Internals -------------------------------------------------- */
 
     /* Validated friend directory path. */
     private static friendDir(slug: string): string {
