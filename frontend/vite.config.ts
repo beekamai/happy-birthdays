@@ -3,8 +3,9 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import path from "node:path";
 
-/* Vite билдит фронт прямо в backend/dist — прод обслуживается одним процессом Elysia.
-   Dev-proxy уводит серверные пути (/api,/og,/friends,/owner) на бэк :3000. */
+/* Vite builds straight into backend/dist — production is served by the single
+   Elysia process. The dev proxy forwards server-owned paths (/api, /og, /friends,
+   /owner) to the backend on :3000. */
 export default defineConfig({
     plugins: [react(), tailwindcss()],
     build: {

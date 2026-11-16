@@ -11,7 +11,7 @@ import type { GameDescriptor, GameResult } from "./game-types.ts";
 
 /* The single host that mounts a game, posts its score exactly once, fires
    confetti on a win, and shows a finish overlay. Games never touch the API —
-   they only call `onFinish`. "Сыграть ещё" remounts the game via `runKey`. */
+   they only call `onFinish`. "Play again" remounts the game via `runKey`. */
 
 interface GameHostProps {
   descriptor: GameDescriptor;

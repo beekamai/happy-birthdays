@@ -1,5 +1,5 @@
-/* Параллельный dev-раннер: backend (Elysia :3000) + frontend (Vite :5173).
-   Bun.spawn вместо concurrently — без лишней зависимости. */
+/* Parallel dev runner: backend (Elysia :3000) + frontend (Vite :5173).
+   Bun.spawn instead of `concurrently` — one dependency fewer. */
 
 const spawnOpts = {
     stdio: ["inherit", "inherit", "inherit"] as const,

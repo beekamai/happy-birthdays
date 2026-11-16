@@ -21,9 +21,9 @@ export const MAX_BET = 500;
 /* Smallest gift that may be sent to the friend's shop wallet. */
 export const MIN_DONATION = 10;
 
-/* A free top-up so a cleaned-out player can win their way back ("отыграться")
-   without having to beat their own game records first. Once per day, per
-   visitor AND per ip (see CasinoRepository.lastBonusAt). */
+/* A free top-up so a cleaned-out player can win their way back without having
+   to beat their own game records first. Once per day, per visitor AND per ip
+   (see CasinoRepository.lastBonusAt). */
 export const DAILY_BONUS = 100;
 export const BONUS_COOLDOWN_MS = 24 * 60 * 60 * 1000;
 

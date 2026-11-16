@@ -13,9 +13,9 @@ import { PillButton, Spinner, StateBadge, Toast, useToast } from "./adminUi.tsx"
 import { FriendEditor } from "./FriendEditor.tsx";
 
 /* The owner's home: a grid of every friend page as a cozy card, plus a button to
-   create a new one. Selecting a card or "create" swaps in the FriendEditor; the
-   "← К списку" back-action re-fetches the list so freshly created/edited pages
-   show up. View state lives here (no router).
+   create a new one. Selecting a card or "create" swaps in the FriendEditor; its
+   back-to-list action (editor.toBack) re-fetches the list so freshly
+   created/edited pages show up. View state lives here (no router).
 
    Cards are reorderable by dragging the ⠿ handle with pointer events, so it
    works with both mouse and touch. The dragged card tracks the pointer 1:1 via a
@@ -89,7 +89,7 @@ export function OwnerDashboard() {
   const flipPending = useRef(false);
   /* Timestamp until which swaps are held off. While a FLIP is mid-flight the
      cards' rects are transitional, so hit-testing them re-triggered swaps and the
-     order ping-ponged ("туда-сюда"). Block new swaps until the animation settles. */
+     order ping-ponged. Block new swaps until the animation settles. */
   const swapLockUntil = useRef(0);
 
   const load = () => {
